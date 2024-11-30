@@ -4,7 +4,7 @@
 #
 # Copyright (C) 2024 honeok <yihaohey@gmail.com>
 # Blog: www.honeok.com
-# https://github.com/honeok/cross/blob/master/jds/game-allstop.sh
+# https://github.com/honeok/archive/blob/master/jds/game-allstop.sh
 
 # export LANG=en_US.UTF-8
 # set -x

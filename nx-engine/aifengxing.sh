@@ -4,7 +4,7 @@
 #
 # Copyright (C) 2021 - 2022 honeok <yihaohey@gmail.com>
 # Blog: www.honeok.com
-# https://github.com/honeok/cross/blob/master/nx-engine/aifengxing.sh
+# https://github.com/honeok/archive/blob/master/nx-engine/aifengxing.sh
 
 . /etc/init.d/functions
 CONTRAST=`docker images | grep -iv "REPOSITORY" | awk 'BEGIN{FS=" ";OFS=":"}{print $1,$2}'`

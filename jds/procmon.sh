@@ -4,7 +4,7 @@
 #
 # Copyright (C) 2024 honeok <yihaohey@gmail.com>
 # Blog: www.honeok.com
-# https://github.com/honeok/cross/blob/master/jds/procmon.sh
+# https://github.com/honeok/archive/blob/master/jds/procmon.sh
 
 # 设置警报API的URL
 bark_url="x"
