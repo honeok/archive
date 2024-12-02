@@ -2,7 +2,7 @@
 #
 # Description: 
 #
-# Copyright (C) 2000 - 2000 honeok <yihaohey@gmail.com>
+# Copyright (C) 0000 honeok <yihaohey@gmail.com>
 # Blog: www.honeok.com
 # Twitter: https://twitter.com/hone0k
 # https://github.com/honeok/archive/blob/master/base.sh
@@ -10,10 +10,10 @@
 # export LANG=en_US.UTF-8
 # set -x
 
-script_v="v0.0.0"
 # MAJOR: 重大更新通常会导致向后不兼容的变化
 # MINOR: 小功能更新或向后兼容的改动
-# PATCH: 小修复和 bug 修复
+# PATCH: 小修复和bug修复
+script_v="v0.0.0"
 
 yellow='\033[93m'
 red='\033[38;5;160m'
@@ -32,3 +32,8 @@ _cyan() { echo -e ${cyan}$@${white}; }
 _purple() { echo -e ${purple}$@${white}; }
 _gray() { echo -e ${gray}$@${white}; }
 _orange() { echo -e ${orange}$@${white}; }
+
+_red_bg() { echo -e "\e[41m$@${white}"; }
+
+_error() { echo -e "\n$( _red_bg "错误" ) $@\n" && exit 1; }
+_warn() { echo -e "\n$( _red_bg "警告" ) $@\n"; }
