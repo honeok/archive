@@ -7,12 +7,13 @@
 # https://github.com/honeok/archive/blob/master/jds/game-processcontrol.sh
 
 server_range=$(seq 1 5)   # Game服务器范围
-east8_time=$(date -d @$(($(curl -sL https://acs.m.taobao.com/gw/mtop.common.getTimestamp/ | awk -F'"t":"' '{print $2}' | cut -d '"' -f1) / 1000)) +"%Y-%m-%d %H:%M:%S")
-base_path="/data/server"
+china_time=$(date -d @$(($(curl -sL https://acs.m.taobao.com/gw/mtop.common.getTimestamp/ | awk -F'"t":"' '{print $2}' | cut -d '"' -f1) / 1000)) +"%Y-%m-%d %H:%M:%S")
 app_name="p8_app_server"
+log_bak="/data/logbak"
+base_path="/data/server"
 
 # 日志备份目录校验
-[ ! -d /data/logback ] && mkdir -p /data/logback
+[ ! -d "$log_bak" ] && mkdir -p $log_bak
 
 # API回调
 send_message() {
@@ -23,7 +24,7 @@ send_message() {
 
     curl -s -X POST "https://api.honeok.com/api/log" \
         -H "Content-Type: application/json" \
-        -d "{\"action\":\"$action\",\"timestamp\":\"${east8_time}\",\"country\":\"$country\",\"os_info\":\"$os_info\",\"cpu_arch\":\"$cpu_arch\"}" >/dev/null 2>&1 &
+        -d "{\"action\":\"$action\",\"timestamp\":\"${china_time}\",\"country\":\"$country\",\"os_info\":\"$os_info\",\"cpu_arch\":\"$cpu_arch\"}" >/dev/null 2>&1 &
 }
 
 # 服务器运行状态校验
@@ -35,12 +36,12 @@ check_server() {
     if ! pgrep -f "$server_dir/$app_name" > /dev/null 2>&1; then
         # 服务没有运行进行重启操作
         cd "$server_dir" || return              # 进入服务器目录，如果失败则退出
-        [[ -f nohup.txt ]] && cp -f nohup.txt "/data/logback/nohup_${server_name}_$(date -u '+%Y%m%d%H%M%S' -d '+8 hours').txt" && rm -f nohup.txt
+        [[ -f nohup.txt ]] && cp -f nohup.txt "$log_bak/nohup_${server_name}_$(date -u '+%Y%m%d%H%M%S' -d '+8 hours').txt" && rm -f nohup.txt
         ./server.sh start &
         send_message "[${server_name} Restart]" # 发送重启通知
-        echo "${east8_time} [ERROR] $server_name Restart" >> /data/tool/control.txt &
+        echo "${china_time} [ERROR] $server_name Restart" >> /data/tool/control.txt &
     else
-        echo "${east8_time} [INFO] $server_name Running" >> /data/tool/control.txt &
+        echo "${china_time} [INFO] $server_name Running" >> /data/tool/control.txt &
     fi
 }
 
