@@ -1,12 +1,16 @@
 #!/usr/bin/env bash
 #
-# Description: Automatic server startup watchdog.
+# This script is designed to automate the management of game servers using an API.
+# It allows the automatic startup of game servers by passing server identifiers as parameters.
+# Please ensure that the parameters are passed correctly, as once executed, the action cannot be undone!
+#
+# Example Usage:
+# ./watchdog.sh 1/2/3/4/5...       # Starts the game server(s) corresponding to the given IDs.
 #
 # Copyright (C) 2024 honeok <honeok@duck.com>
 # Blog: www.honeok.com
 # https://github.com/honeok/archive/blob/master/jds/watchdog.sh
 
-# 游戏服定义
 game1="10.46.99.216"
 game2="127.0.0.1"
 
