@@ -2,13 +2,9 @@
 #
 # Description: 
 #
-# Copyright (C) 0000 honeok <yihaohey@gmail.com>
+# Copyright (C) 2024 honeok <honeok@duck.com>
 # Blog: www.honeok.com
-# Twitter: https://twitter.com/hone0k
 # https://github.com/honeok/archive/blob/master/base.sh
-
-# export LANG=en_US.UTF-8
-# set -x
 
 # MAJOR: 重大更新通常会导致向后不兼容的变化
 # MINOR: 小功能更新或向后兼容的改动
@@ -33,7 +29,24 @@ _purple() { echo -e ${purple}$@${white}; }
 _gray() { echo -e ${gray}$@${white}; }
 _orange() { echo -e ${orange}$@${white}; }
 
-_red_bg() { echo -e "\e[41m$@${white}"; }
+bg_yellow='\033[48;5;220m'
+bg_red='\033[41m'
+bg_green='\033[42m'
+bold='\033[1m'
+_bg_yellow() { echo -e "${bg_yellow}${bold}$@${white}"; }
+_bg_red() { echo -e "${bg_red}${bold}$@${white}"; }
+_bg_green() { echo -e "${bg_green}${bold}$@${white}"; }
 
-_error() { echo -e "\n$( _red_bg "错误" ) $@\n" && exit 1; }
-_warn() { echo -e "\n$( _red_bg "警告" ) $@\n"; }
+info_msg=$(_bg_yellow 提示)
+err_msg=$(_bg_red 警告)
+suc_msg=$(_bg_green 成功)
+_info_msg() { echo -e "$info_msg $@"; }
+_err_msg() { echo -e "$err_msg $@"; }
+_suc_msg() { echo -e "$suc_msg $@"; }
+
+# export LANG=en_US.UTF-8
+export DEBIAN_FRONTEND=noninteractive
+
+if [ "$(cd -P -- "$(dirname -- "$0")" && pwd -P)" != "/root" ]; then
+    cd /root >/dev/null 2>&1
+fi
