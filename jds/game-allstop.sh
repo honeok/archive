@@ -2,7 +2,7 @@
 #
 # Description: Parallel stop game server
 #
-# Copyright (C) 2024 JDSGame <honeok@duck.com>
+# Copyright (C) 2024 honeok <honeok@duck.com>
 # Blog: www.honeok.com
 # https://github.com/honeok/archive/blob/master/jds/game-allstop.sh
 

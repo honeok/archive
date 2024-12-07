@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 #
-# Description: Automatic server activation
+# Description: Automatic server startup watchdog.
 #
-# Copyright (C) 2024 JDSGame <auther: honeok@duck.com>
+# Copyright (C) 2024 honeok <honeok@duck.com>
 # Blog: www.honeok.com
 # https://github.com/honeok/archive/blob/master/jds/watchdog.sh
 
@@ -10,33 +10,27 @@
 game1="10.46.99.216"
 game2="127.0.0.1"
 
-# 系统预检
 os_name=$(grep ^ID= /etc/*release | awk -F'=' '{print $2}' | sed 's/"//g')
 [[ "$os_name" != "debian" && "$os_name" != "ubuntu" && "$os_name" != "centos" && "$os_name" != "rocky" && "$os_name" != "alma" ]] && exit 0
 
-# 守护进程与信号处理
+[ "$(id -u)" -ne "0" ] && exit 0
+
+if [ "$(cd -P -- "$(dirname -- "$0")" && pwd -P)" != "/root" ]; then
+    cd /root >/dev/null 2>&1
+fi
+
 watchdog_pid="/tmp/watchdog.pid"
 if [ -f "$watchdog_pid" ] && kill -0 $(cat "$watchdog_pid") 2>/dev/null; then
     exit 1
 fi
 echo $$ > "$watchdog_pid"
 
-# 终止信号捕获，意外中断时能优雅地处理
 trap _exit SIGINT SIGQUIT SIGTERM SIGHUP
 
 _exit() {
-    # 删除PID文件
-    if [ -f "$watchdog_pid" ]; then
-        rm -f "$watchdog_pid"
-    fi
+    [ -f "$watchdog_pid" ] && rm -f "$watchdog_pid"
     exit 0
 }
-
-[ "$(id -u)" -ne "0" ] && _exit
-
-if [ "$(cd -P -- "$(dirname -- "$0")" && pwd -P)" != "/root" ]; then
-    cd /root >/dev/null 2>&1
-fi
 
 # 脚本入参校验
 if [[ ${#} -ne 1 || ! $1 =~ ^[0-9]+$ ]]; then
@@ -46,19 +40,18 @@ else
 fi
 
 # 开服所需时间相关
+open_server_time=""
 suning_timeapi=$(date -d @$(($(curl -sL https://f.m.suning.com/api/ct.do | awk -F'"currentTime": ' '{print $2}' | cut -d ',' -f1) / 1000)) +"%Y-%m-%dT%H:00:00")            # 苏宁时间API
 taobao_timeapi=$(date -d @$(($(curl -sL https://acs.m.taobao.com/gw/mtop.common.getTimestamp/ | awk -F'"t":"' '{print $2}' | cut -d '"' -f1) / 1000)) +"%Y-%m-%dT%H:00:00") # 淘宝时间API
 ddnspod_timeapi=$(date -d @$(($(curl -sL https://ip.ddnspod.com/timestamp) / 1000)) +"%Y-%m-%dT%H:00:00")
-timeapi_timeapi=$(curl -sL --max-time 2 "https://timeapi.io/api/Time/current/zone?timeZone=Asia/Shanghai" | grep -oP '"dateTime":\s*"\K[^"]+' | sed 's/\.[0-9]*//g' | sed 's/:[0-9]*:[0-9]*$/:00:00/')
-
-open_server_time=""
+timeapi_timeapi=$(curl -fskL --max-time 2 "https://timeapi.io/api/Time/current/zone?timeZone=Asia/Shanghai" | grep -oP '"dateTime":\s*"\K[^"]+' | sed 's/\.[0-9]*//g' | sed 's/:[0-9]*:[0-9]*$/:00:00/')
 
 for api in "$suning_timeapi" "$taobao_timeapi" "$ddnspod_timeapi" "$timeapi_timeapi"; do
     open_server_time=$api  # 将当前API返回的时间赋值给open_server_time
 
     # 检查时间格式是否有效
     if [[ -n "$open_server_time" && "$open_server_time" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:00:00$ ]]; then
-        break  # 如果获取到有效时间，跳出循环
+        break
     fi
 done
 
@@ -67,13 +60,12 @@ if [[ -z "$open_server_time" || ! "$open_server_time" =~ ^[0-9]{4}-[0-9]{2}-[0-9
     open_server_time=$(date -u -d '+8 hours' +"%Y-%m-%dT%H:00:00")  # 使用当前时间并调整为北京时间 (UTC+8)，如果系统时间同步不可用，时间偏差通常不会太大
 fi
 
-beijing_time=$(date -d @$(($(curl -sL https://acs.m.taobao.com/gw/mtop.common.getTimestamp/ | awk -F'"t":"' '{print $2}' | cut -d '"' -f1) / 1000)) +"%Y-%m-%dT%H:%M:%S")
-# beijing_time=$(date -d @$(($(curl -sL https://f.m.suning.com/api/ct.do | awk -F'"currentTime": ' '{print $2}' | cut -d ',' -f1) / 1000)) +"%Y-%m-%dT%H:%M:%S")
-# beijing_time=$(date -d @$(($(curl -sL https://ip.ddnspod.com/timestamp) / 1000)) +"%Y-%m-%dT%H:%M:%S")
-# beijing_time=$(curl -sL --max-time 2 "https://timeapi.io/api/Time/current/zone?timeZone=Asia/Shanghai" | grep -oP '"dateTime":\s*"\K[^"]+' | sed 's/\.[0-9]*//g' | sed 's/T/ /')
+china_time=$(date -d @$(($(curl -sL https://acs.m.taobao.com/gw/mtop.common.getTimestamp/ | awk -F'"t":"' '{print $2}' | cut -d '"' -f1) / 1000)) +"%Y-%m-%dT%H:%M:%S")
+if [ -z $china_time ]; then
+    china_time=$(date -d @$(($(curl -sL https://f.m.suning.com/api/ct.do | awk -F'"currentTime": ' '{print $2}' | cut -d ',' -f1) / 1000)) +"%Y-%m-%dT%H:%M:%S")
+fi
 
-# echo "xxxxxxxxxxxx" > /root/password.txt
-# chmod 600 /root/password.txt 只有root用户可以读取该文件
+# echo "xxxxxxxxxxxx" > /root/password.txt && chmod 600 /root/password.txt 只有root用户可以读取该文件
 [ -f /root/password.txt ] && [ -s /root/password.txt ] && server_password=$(cat /root/password.txt) || exit 1
 
 # 根据区服编号匹配服务器IP
@@ -148,20 +140,20 @@ for (( i=1; i<=3; i++ )); do
     if [ $exit_code -eq 0 ]; then
         # 如果远程命令执行成功，发送已开服消息
         send_message "[server${server_number}已开服]"
-        echo "${beijing_time} [SUCCESS] server${server_number}已开服" >> watchdog.log 2>&1
+        echo "${china_time} [SUCCESS] server${server_number}已开服" >> watchdog.log 2>&1
         _exit
     fi
 
     # 如果是最后一次失败，发送失败消息并退出
     if (( i == 3 )); then
         send_message "[server${server_number}开服失败]"
-        echo "${beijing_time} [ERROR] server${server_number}开服失败，错误信息: $output" >> watchdog.log 2>&1
+        echo "${china_time} [ERROR] server${server_number}开服失败，错误信息: $output" >> watchdog.log 2>&1
         _exit
     fi
 
     # 使用指数退避策略增加等待时间
     sleep_time=$(( 5 * i ))  # 逐步增加等待时间：5秒、10秒、15秒
-    echo "${beijing_time} [WARNING] 第${i}次尝试失败，错误信息: ${output}，等待${sleep_time}秒后重试" >> watchdog.log 2>&1
+    echo "${china_time} [WARNING] 第${i}次尝试失败，错误信息: ${output}，等待${sleep_time}秒后重试" >> watchdog.log 2>&1
 
     # 暂停等待后重试
     sleep $sleep_time

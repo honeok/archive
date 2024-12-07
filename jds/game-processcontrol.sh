@@ -2,7 +2,7 @@
 #
 # Description: Resident daemon in the game server backend
 #
-# Copyright (C) 2024 JDSGame <auther: honeok@duck.com>
+# Copyright (C) 2024 honeok <honeok@duck.com>
 # Blog: www.honeok.com
 # https://github.com/honeok/archive/blob/master/jds/game-processcontrol.sh
 
