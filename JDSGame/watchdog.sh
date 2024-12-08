@@ -9,7 +9,7 @@
 #
 # Copyright (C) 2024 honeok <honeok@duck.com>
 # Blog: www.honeok.com
-# https://github.com/honeok/archive/blob/master/jds/watchdog.sh
+# https://github.com/honeok/archive/blob/master/JDSGame/watchdog.sh
 
 game1="10.46.99.216"
 game2="127.0.0.1"

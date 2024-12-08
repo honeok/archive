@@ -4,7 +4,7 @@
 #
 # Copyright (C) 2024 honeok <honeok@duck.com>
 # Blog: www.honeok.com
-# https://github.com/honeok/archive/blob/master/jds/game-reload.sh
+# https://github.com/honeok/archive/blob/master/JDSGame/game-reload.sh
 
 yellow='\033[93m'
 red='\033[31m'

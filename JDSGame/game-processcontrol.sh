@@ -4,7 +4,7 @@
 #
 # Copyright (C) 2024 honeok <honeok@duck.com>
 # Blog: www.honeok.com
-# https://github.com/honeok/archive/blob/master/jds/game-processcontrol.sh
+# https://github.com/honeok/archive/blob/master/JDSGame/game-processcontrol.sh
 
 server_range=$(seq 1 5)   # Game服务器范围
 china_time=$(date -d @$(($(curl -sL https://acs.m.taobao.com/gw/mtop.common.getTimestamp/ | awk -F'"t":"' '{print $2}' | cut -d '"' -f1) / 1000)) +"%Y-%m-%d %H:%M:%S")
