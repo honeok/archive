@@ -4,7 +4,7 @@
 #
 # Copyright (C) 2024 honeok <honeok@duck.com>
 # Blog: www.honeok.com
-# https://github.com/honeok/archive/blob/master/jds/game-allstop.sh
+# https://github.com/honeok/archive/blob/master/JDSGame/game-allstop.sh
 
 server_range=$(seq 1 5)   # Game服务器范围
 
