@@ -45,12 +45,10 @@ fi
 
 # 开服所需时间相关
 open_server_time=""
-suning_timeapi=$(date -d @$(($(curl -sL https://f.m.suning.com/api/ct.do | awk -F'"currentTime": ' '{print $2}' | cut -d ',' -f1) / 1000)) +"%Y-%m-%dT%H:00:00")            # 苏宁时间API
-taobao_timeapi=$(date -d @$(($(curl -sL https://acs.m.taobao.com/gw/mtop.common.getTimestamp/ | awk -F'"t":"' '{print $2}' | cut -d '"' -f1) / 1000)) +"%Y-%m-%dT%H:00:00") # 淘宝时间API
-ddnspod_timeapi=$(date -d @$(($(curl -sL https://ip.ddnspod.com/timestamp) / 1000)) +"%Y-%m-%dT%H:00:00")
-timeapi_timeapi=$(curl -fskL --max-time 2 "https://timeapi.io/api/Time/current/zone?timeZone=Asia/Shanghai" | grep -oP '"dateTime":\s*"\K[^"]+' | sed 's/\.[0-9]*//g' | sed 's/:[0-9]*:[0-9]*$/:00:00/')
+taobao_timeapi=$(date -d @$(($(curl -sL https://acs.m.taobao.com/gw/mtop.common.getTimestamp/ | awk -F'"t":"' '{print $2}' | cut -d '"' -f1) / 1000)) +"%Y-%m-%dT%H:00:00")
+suning_timeapi=$(date -d @$(($(curl -sL https://f.m.suning.com/api/ct.do | awk -F'"currentTime": ' '{print $2}' | cut -d ',' -f1) / 1000)) +"%Y-%m-%dT%H:00:00")
 
-for api in "$suning_timeapi" "$taobao_timeapi" "$ddnspod_timeapi" "$timeapi_timeapi"; do
+for api in "$taobao_timeapi" "$suning_timeapi"; do
     open_server_time=$api  # 将当前API返回的时间赋值给open_server_time
 
     # 检查时间格式是否有效
@@ -93,8 +91,7 @@ send_message() {
         -d "{\"action\":\"$action\",\"timestamp\":\"${china_time}\",\"country\":\"$country\",\"os_info\":\"$os_info\",\"cpu_arch\":\"$cpu_arch\"}" >/dev/null 2>&1 &
 }
 
-# sshpass命令校验
-if ! command -v sshpass >/dev/null 2>&1; then
+if ! command -v sshpass >/dev/null 2>&1 && type -P sshpass >/dev/null 2>&1; then
     if command -v dnf >/dev/null 2>&1; then
         if ! rpm -q epel-release >/dev/null 2>&1; then
             dnf install epel-release -y
@@ -105,8 +102,8 @@ if ! command -v sshpass >/dev/null 2>&1; then
             yum install epel-release -y
         fi
         yum update -y && yum install sshpass -y
-    elif command -v apt >/dev/null 2>&1; then
-        apt update -y && apt install sshpass -y
+    elif command -v apt-get >/dev/null 2>&1; then
+        apt-get update -y && apt-get install sshpass -y
     else
         _exit
     fi
