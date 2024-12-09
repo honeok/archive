@@ -1,36 +1,32 @@
-#!/bin/bash
-## Author: honeok
-## Blog: www.honeok.com
-## Github: https://github.com/honeok
+#!/usr/bin/env bash
+#
+# Description: Parallel stop game server
+#
+# Copyright (C) 2024 honeok <honeok@duck.com>
+# Blog: www.honeok.com
+# https://github.com/honeok/archive/blob/master/jds/game-updatestart.sh
 
-## set -x
-set -e  # 在任何命令失败时退出脚本
-
-yellow='\033[93m'        # 亮黄色
-red='\033[91m'           # 亮红色
-green='\033[92m'         # 亮绿色
-white='\033[0m'          # 重置
-
+yellow='\033[93m'
+red='\033[31m'
+green='\033[92m'
+white='\033[0m'
 _yellow() { echo -e ${yellow}$@${white}; }
 _red() { echo -e ${red}$@${white}; }
 _green() { echo -e ${green}$@${white}; }
 
-project_name="CBT4"
+separator() { printf "%-20s\n" "-" | sed 's/\s/-/g'; }
+
+server_range=$(seq 1 5)
 local_update_path="/data/update"
 remote_update_source="/data/update/updategame.tar.gz"
 center_host="10.46.96.254"
 center_passwd="xxxxxxxxxx"
 
-## 二次确认
-echo -e "${yellow}注意: 当前项目为${project_name}，确认无误后按任意键继续${white}"
-read -n 1 -s -r -p ""
-echo ""
-
 cd "$local_update_path" || { _red "无法进入目录 $local_update_path"; exit 1; }
 rm -fr *
 
-## 从中心服务器下载最新更新包
-if command -v sshpass &> /dev/null; then
+# 从中心服务器下载最新更新包
+if command -v sshpass >/dev/null 2>&1; then
     sshpass -p "$center_passwd" scp -o StrictHostKeyChecking=no "root@$center_host:$remote_update_source" "$local_update_path/" \
         && _green "从中心拉取Updategame.tar.gz成功！" || { _red "下载失败，请检查网络连接或密码"; exit 1; }
 else
@@ -38,28 +34,25 @@ else
     exit 1
 fi
 
-tar xvf "$local_update_path/updategame.tar.gz" \
+tar zxvf "$local_update_path/updategame.tar.gz" \
     && _green "解压成功" || { _red "解压失败"; exit 1; }
 
-for i in {1..5}; do
+for i in $server_range; do
     dest_dir="/data/server$i/game"
     _yellow "正在处理server$i"
 
-    if [ ! -d "$dest_dir" ]; then
-        _red "目录${dest_dir}不存在，跳过server${i}更新！"
-        continue
-    fi
+    [ ! -d "$dest_dir" ] && _red "目录${dest_dir}不存在，跳过server${i}更新！" && continue
 
     \cp -fr "$local_update_path/app/"* "$dest_dir/"
 
     cd "$dest_dir" || exit
-    rm -f nohup.txt
+    [ -f "nohup.txt" ] && > nohup.txt
     ./server.sh start
     _green "server${i}启动成功！"
-    echo "-------------------"
+    separator
 done
 
-## 处理gate和login入口
+# 处理gate和login入口
 for entrance in "gate" "login";do
     dest_dir="/data/server/${entrance}"
     _yellow "正在处理${entrance}"
@@ -72,21 +65,21 @@ for entrance in "gate" "login";do
     \cp -fr "$local_update_path/app/"* "$dest_dir/"
 
     cd "$dest_dir" || exit
-    rm -f nohup.txt
+    [ -f "nohup.txt" ] && > nohup.txt
     ./server.sh start
     _green "${entrance}启动成功！"
-    echo "-------------------"
+    separator
 done
 
-## 等待服务器启动
+# 等待服务器启动
 sleep 5s
 
-## 检查并启动processcontrol-allserver
+# 检查并启动processcontrol-allserver
 cd /data/tool/
 if pgrep -f "processcontrol-allserver.sh" >/dev/null 2>&1; then
     _yellow "processcontrol-allserver守护进程正在运行"
 else
-    sh processcontrol-allserver.sh > /dev/null 2>&1 &
+    sh processcontrol-allserver.sh >/dev/null 2>&1 &
     _green "processcontrol-allserver守护进程启动成功！"
 fi
 

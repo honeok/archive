@@ -9,7 +9,7 @@
 #
 # Copyright (C) 2024 honeok <honeok@duck.com>
 # Blog: www.honeok.com
-# https://github.com/honeok/archive/blob/master/JDSGame/watchdog.sh
+# https://github.com/honeok/archive/blob/master/jds/watchdog.sh
 
 game1="10.46.99.216"
 game2="127.0.0.1"
@@ -88,7 +88,7 @@ send_message() {
 
     curl -s -X POST "https://api.honeok.com/api/log" \
         -H "Content-Type: application/json" \
-        -d "{\"action\":\"$action\",\"timestamp\":\"${china_time}\",\"country\":\"$country\",\"os_info\":\"$os_info\",\"cpu_arch\":\"$cpu_arch\"}" >/dev/null 2>&1 &
+        -d "{\"action\":\"$action\",\"timestamp\":\"$china_time\",\"country\":\"$country\",\"os_info\":\"$os_info\",\"cpu_arch\":\"$cpu_arch\"}" >/dev/null 2>&1 &
 }
 
 if ! command -v sshpass >/dev/null 2>&1 && type -P sshpass >/dev/null 2>&1; then

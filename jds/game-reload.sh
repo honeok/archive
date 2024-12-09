@@ -4,7 +4,7 @@
 #
 # Copyright (C) 2024 honeok <honeok@duck.com>
 # Blog: www.honeok.com
-# https://github.com/honeok/archive/blob/master/JDSGame/game-reload.sh
+# https://github.com/honeok/archive/blob/master/jds/game-reload.sh
 
 yellow='\033[93m'
 red='\033[31m'
@@ -13,6 +13,8 @@ white='\033[0m'
 _yellow() { echo -e ${yellow}$@${white}; }
 _red() { echo -e ${red}$@${white}; }
 _green() { echo -e ${green}$@${white}; }
+
+separator() { printf "%-20s\n" "-" | sed 's/\s/-/g'; }
 
 local_update_path="/data/update"
 remote_update_source="/data/update/updategame.tar.gz"
@@ -48,5 +50,5 @@ for i in {1..5}; do
     cd "$dest_dir" || exit
     ./server.sh reload
     _green "server${i}更新成功！"
-    echo "-------------------"
+    separator
 done
