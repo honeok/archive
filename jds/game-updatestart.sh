@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Description: Parallel stop game server
+# Description: Update and start game server after maintenance.
 #
 # Copyright (C) 2024 honeok <honeok@duck.com>
 # Blog: www.honeok.com
@@ -57,10 +57,7 @@ for entrance in "gate" "login";do
     dest_dir="/data/server/${entrance}"
     _yellow "正在处理${entrance}"
 
-    if [ ! -d "$dest_dir" ]; then
-        _red "目录${dest_dir}不存在，跳过${entrance}更新！"
-        continue
-    fi
+    [ ! -d "$dest_dir" ] && _red "目录${dest_dir}不存在，跳过${entrance}更新！" && continue
 
     \cp -fr "$local_update_path/app/"* "$dest_dir/"
 
