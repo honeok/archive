@@ -21,7 +21,7 @@ remote_update_source="/data/update/updategame.tar.gz"
 center_host="10.46.96.254"
 center_passwd="xxxxxxxxxx"
 
-cd "$local_update_path" || exit 1
+cd $local_update_path || exit 1
 rm -fr *
 
 # 从中心服务器下载最新更新包
@@ -40,10 +40,7 @@ for i in {1..5}; do
     dest_dir="/data/server$i/game"
     _yellow "正在处理server$i"
 
-    if [ ! -d "$dest_dir" ]; then
-        _red "目录${dest_dir}不存在，跳过server${i}更新！"
-        continue
-    fi
+    [ ! -d "$dest_dir" ] && _red "目录${dest_dir}不存在，跳过server${i}更新！" && continue
 
     \cp -fr "$local_update_path/app/"* "$dest_dir/"
 
