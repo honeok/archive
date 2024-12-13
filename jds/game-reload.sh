@@ -15,6 +15,7 @@ _red() { echo -e ${red}$@${white}; }
 _green() { echo -e ${green}$@${white}; }
 
 separator() { printf "%-20s\n" "-" | sed 's/\s/-/g'; }
+server_range=$(seq 1 5) # 服务器范围
 
 local_update_path="/data/update"
 remote_update_source="/data/update/updategame.tar.gz"
@@ -25,18 +26,20 @@ cd $local_update_path || exit 1
 rm -fr *
 
 # 从中心服务器下载最新更新包
-if command -v sshpass >/dev/null 2>&1; then
-    sshpass -p "$center_passwd" scp -o StrictHostKeyChecking=no "root@$center_host:$remote_update_source" "$local_update_path/" \
-        && _green "从中心拉取Updategame.tar.gz成功！" || { _red "下载失败，请检查网络连接或密码"; exit 1; }
-else
+if ! command -v sshpass >/dev/null 2>&1; then
     _red "sshpass未安装，请先安装sshpass"
     exit 1
 fi
 
-tar zxvf "$local_update_path/updategame.tar.gz" \
-    && _green "解压成功" || { _red "解压失败"; exit 1; }
+if ! sshpass -p "$center_passwd" scp -o StrictHostKeyChecking=no "root@$center_host:$remote_update_source" "$local_update_path/"; then
+    _red "下载失败，请检查网络连接或密码" && exit 1
+else
+    _green "从中心拉取Updategame.tar.gz成功！"
+fi
 
-for i in {1..5}; do
+tar zxvf "$local_update_path/updategame.tar.gz" && _green "解压成功" || { _red "解压失败"; exit 1; }
+
+for i in $server_range; do
     dest_dir="/data/server$i/game"
     _yellow "正在处理server$i"
 
