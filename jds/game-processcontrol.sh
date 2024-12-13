@@ -35,7 +35,7 @@ check_server() {
     if ! pgrep -f "$server_dir/$app_name" >/dev/null 2>&1; then
         # 服务没有运行进行重启操作
         cd "$server_dir" || return              # 进入服务器目录，如果失败则退出
-        [ -f nohup.txt ] && cp -f nohup.txt "${log_bak}/nohup_${server_name}_${china_time}.txt" && rm -f nohup.txt
+        [ -f nohup.txt ] && cp -f nohup.txt "${log_bak}/nohup_${server_name}_$(date -u '+%Y%m%d%H%M%S' -d '+8 hours').txt" && rm -f nohup.txt
         ./server.sh start &
         send_message "[${server_name} Restart]" # 发送重启通知
         echo "$(date -u '+%Y-%m-%d %H:%M:%S' -d '+8 hours') [ERROR] $server_name Restart" >> /data/tool/control.txt &
