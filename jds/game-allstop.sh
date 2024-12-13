@@ -14,8 +14,10 @@ _yellow() { echo -e ${yellow}$@${white}; }
 _red() { echo -e ${red}$@${white}; }
 _green() { echo -e ${green}$@${white}; }
 
+server_range=$(seq 1 5) # 服务器范围
+
 clear
-cd /data/tool/
+cd /data/tool
 if pgrep -f processcontrol-allserver.sh >/dev/null 2>&1; then
     pkill -9 -f processcontrol-allserver.sh
     [ -f "control.txt" ] && > control.txt
@@ -29,7 +31,7 @@ cd /data/server/login/ && ./server.sh stop
 cd /data/server/gate/ && ./server.sh stop && sleep 120s
 _green "login和gate服务器已停止"
 
-for i in {1..5}; do
+for i in $server_range; do
     (
         _yellow "正在处理server$i"
         cd /data/server$i/game/
@@ -40,4 +42,4 @@ for i in {1..5}; do
 done
 # 等待所有并行操作完成
 wait
-_green "所有Game服务器已完成Flush和Stop操作"
+_green "所有Game服务器已完成flush和stop操作"
