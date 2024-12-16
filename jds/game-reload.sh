@@ -25,11 +25,13 @@ os_name=$(grep ^ID= /etc/*release | awk -F'=' '{print $2}' | sed 's/"//g')
 [[ "$os_name" != "debian" && "$os_name" != "ubuntu" && "$os_name" != "centos" && "$os_name" != "rocky" && "$os_name" != "alma" ]] && exit 0
 [ "$(id -u)" -ne "0" ] && exit 1
 
-# 读取中心服务器密码
+# 检查Center密码文件
 # echo "xxxxxxxxxxxx" > /root/password.txt chmod 600 /root/password.txt 只有root用户可以读取该文件
 [ -f /root/password.txt ] && [ -s /root/password.txt ] || exit 1
 center_passwd=$(cat /root/password.txt)
 [ -n "$center_passwd" ] || exit 1
+# 检查Server目录
+[ -z "$server_range" ] && _red "未找到任何有效的server目录！" && exit 1
 
 cd $local_update_path || exit 1
 rm -fr *
