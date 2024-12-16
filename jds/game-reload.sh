@@ -67,7 +67,10 @@ for i in $server_range; do
     dest_dir="/data/server$i/game"
     _yellow "正在处理server$i"
 
-    [ ! -d "$dest_dir" ] && _red "目录${dest_dir}不存在，跳过server${i}更新！" && continue
+    if [ ! -d "$dest_dir" ]; then
+        _red "目录${dest_dir}不存在，跳过server${i}更新！"
+        continue
+    fi
 
     \cp -fr "$local_update_path/app/"* "$dest_dir/"
 
