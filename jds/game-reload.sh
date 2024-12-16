@@ -22,6 +22,8 @@ local_update_path="/data/update"
 remote_update_source="/data/update/updategame.tar.gz"
 center_host="10.46.96.254"
 
+export DEBIAN_FRONTEND=noninteractive
+
 # 操作系统和权限校验
 os_name=$(grep ^ID= /etc/*release | awk -F'=' '{print $2}' | sed 's/"//g')
 [[ "$os_name" != "debian" && "$os_name" != "ubuntu" && "$os_name" != "centos" && "$os_name" != "rocky" && "$os_name" != "alma" ]] && exit 0
