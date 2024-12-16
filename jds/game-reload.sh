@@ -15,7 +15,7 @@ _red() { echo -e ${red}$@${white}; }
 _green() { echo -e ${green}$@${white}; }
 separator() { printf "%-20s\n" "-" | sed 's/\s/-/g'; }
 
-server_range=$(find /data/ -maxdepth 1 -type d -name "server*" | sed 's:.*/::' | grep -Eo 'server[0-9]+' | grep -Eo '[0-9]+' | sort -n)
+server_range=$(find /data/ -maxdepth 1 -type d -name "server*" | sed 's:.*/::' | grep -E '^server[0-9]+$' | sed 's/server//' | sort -n)
 local_update_path="/data/update"
 remote_update_source="/data/update/updategame.tar.gz"
 center_host="10.46.96.254"
