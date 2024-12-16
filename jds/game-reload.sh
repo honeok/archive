@@ -22,7 +22,7 @@ local_update_path="/data/update"
 remote_update_source="/data/update/updategame.tar.gz"
 center_host="10.46.96.254"
 
-# 验证操作系统和权限
+# 操作系统和权限校验
 os_name=$(grep ^ID= /etc/*release | awk -F'=' '{print $2}' | sed 's/"//g')
 [[ "$os_name" != "debian" && "$os_name" != "ubuntu" && "$os_name" != "centos" && "$os_name" != "rocky" && "$os_name" != "alma" ]] && exit 0
 [ "$(id -u)" -ne "0" ] && exit 1
@@ -35,9 +35,7 @@ center_passwd=$(cat /root/password.txt)
 # 检查Server目录
 [ -z "$server_range" ] && _red "未找到任何有效的server目录！" && exit 1
 
-cd $local_update_path || exit 1
-rm -fr *
-
+# 检查sshpass命令
 if ! command -v sshpass >/dev/null 2>&1; then
     if command -v dnf >/dev/null 2>&1; then
         [[ ! $(rpm -q epel-release) ]] && dnf install epel-release -y
@@ -53,6 +51,10 @@ if ! command -v sshpass >/dev/null 2>&1; then
 fi
 
 _yellow "当前脚本版本 "${version}""
+
+cd $local_update_path || exit 1
+rm -fr *
+
 if ! sshpass -p "$center_passwd" scp -o StrictHostKeyChecking=no "root@$center_host:$remote_update_source" "$local_update_path/"; then
     _red "下载失败，请检查网络连接或密码" && exit 1
 else
