@@ -20,15 +20,35 @@ server_range=$(seq 1 5) # 服务器范围
 local_update_path="/data/update"
 remote_update_source="/data/update/updategame.tar.gz"
 center_host="10.46.96.254"
-center_passwd="xxxxxxxxxx"
+
+os_name=$(grep ^ID= /etc/*release | awk -F'=' '{print $2}' | sed 's/"//g')
+[[ "$os_name" != "debian" && "$os_name" != "ubuntu" && "$os_name" != "centos" && "$os_name" != "rocky" && "$os_name" != "alma" ]] && exit 0
+[ "$(id -u)" -ne "0" ] && exit 1
+# echo "xxxxxxxxxxxx" > /root/password.txt chmod 600 /root/password.txt 只有root用户可以读取该文件
+[ -f /root/password.txt ] && [ -s /root/password.txt ] || exit 1
+center_passwd=$(cat /root/password.txt)
+[ -n "$center_passwd" ] || exit 1
 
 cd $local_update_path || exit 1
 rm -fr *
 
 # 从中心服务器下载最新更新包
 if ! command -v sshpass >/dev/null 2>&1; then
-    _red "sshpass未安装，请先安装sshpass"
-    exit 1
+    if command -v dnf >/dev/null 2>&1; then
+        if ! rpm -q epel-release >/dev/null 2>&1; then
+            dnf install epel-release -y
+        fi
+        dnf update -y && dnf install sshpass -y
+    elif command -v yum >/dev/null 2>&1; then
+        if ! rpm -q epel-release >/dev/null 2>&1; then
+            yum install epel-release -y
+        fi
+        yum update -y && yum install sshpass -y
+    elif command -v apt >/dev/null 2>&1; then
+        apt update -y && apt install sshpass -y
+    else
+        exit 1
+    fi
 fi
 
 if ! sshpass -p "$center_passwd" scp -o StrictHostKeyChecking=no "root@$center_host:$remote_update_source" "$local_update_path/"; then
@@ -47,7 +67,7 @@ for i in $server_range; do
 
     \cp -fr "$local_update_path/app/"* "$dest_dir/"
 
-    cd "$dest_dir" || exit
+    cd "$dest_dir" || exit 1
     ./server.sh reload
     _green "server${i}更新成功！"
     separator
