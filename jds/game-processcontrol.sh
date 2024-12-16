@@ -1,10 +1,8 @@
 #!/usr/bin/env bash
 #
-# Description: Resident daemon in the game server backend
+# Description: Resident daemon in the game server backend.
 #
 # Copyright (C) 2024 honeok <honeok@duck.com>
-# Blog: www.honeok.com
-# https://github.com/honeok/archive/blob/master/jds/game-processcontrol.sh
 
 server_range=$(seq 1 5) # 服务器范围
 log_bak="/data/logbak"

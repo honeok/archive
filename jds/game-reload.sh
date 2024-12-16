@@ -3,8 +3,6 @@
 # Description: Server Rereading.
 #
 # Copyright (C) 2024 honeok <honeok@duck.com>
-# Blog: www.honeok.com
-# https://github.com/honeok/archive/blob/master/jds/game-reload.sh
 
 version='v0.0.2 (2024.12.16)'
 

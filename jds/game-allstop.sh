@@ -3,8 +3,6 @@
 # Description: The game server is stopped in parallel.
 #
 # Copyright (C) 2024 honeok <honeok@duck.com>
-# Blog: www.honeok.com
-# https://github.com/honeok/archive/blob/master/jds/game-allstop.sh
 
 yellow='\033[93m'
 red='\033[31m'

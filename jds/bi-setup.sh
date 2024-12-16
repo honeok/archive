@@ -1,9 +1,6 @@
-#!/bin/bash
-# Author: honeok
-# Blog: https://www.honeok.com
+#!/usr/bin/env bash
 #
-# Usage:
-#   ./setup.sh [uninstall]
+# Copyright (C) 2024 honeok <honeok@duck.com>
 
 set -o errexit
 set -o pipefail
