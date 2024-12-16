@@ -6,6 +6,8 @@
 # Blog: www.honeok.com
 # https://github.com/honeok/archive/blob/master/jds/game-reload.sh
 
+version='v0.0.2 (2024.12.16)'
+
 yellow='\033[93m'
 red='\033[31m'
 green='\033[92m'
@@ -36,17 +38,12 @@ center_passwd=$(cat /root/password.txt)
 cd $local_update_path || exit 1
 rm -fr *
 
-# 从中心服务器下载最新更新包
 if ! command -v sshpass >/dev/null 2>&1; then
     if command -v dnf >/dev/null 2>&1; then
-        if ! rpm -q epel-release >/dev/null 2>&1; then
-            dnf install epel-release -y
-        fi
+        [[ ! $(rpm -q epel-release) ]] && dnf install epel-release -y
         dnf update -y && dnf install sshpass -y
     elif command -v yum >/dev/null 2>&1; then
-        if ! rpm -q epel-release >/dev/null 2>&1; then
-            yum install epel-release -y
-        fi
+        [[ ! $(rpm -q epel-release) ]] && yum install epel-release -y
         yum update -y && yum install sshpass -y
     elif command -v apt >/dev/null 2>&1; then
         apt update -y && apt install sshpass -y
@@ -55,6 +52,7 @@ if ! command -v sshpass >/dev/null 2>&1; then
     fi
 fi
 
+_yellow "当前脚本版本 "${version}""
 if ! sshpass -p "$center_passwd" scp -o StrictHostKeyChecking=no "root@$center_host:$remote_update_source" "$local_update_path/"; then
     _red "下载失败，请检查网络连接或密码" && exit 1
 else
