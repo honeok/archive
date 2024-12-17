@@ -11,7 +11,7 @@
 
 version='v0.0.2 (2024.12.17)'
 
-# 信号捕捉相关
+# 信号捕捉
 trap _exit SIGINT SIGQUIT SIGTERM SIGHUP
 set -o errexit
 
