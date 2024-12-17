@@ -23,6 +23,7 @@ _exit() {
 # 预定义变量
 server_number=""
 open_server_time=""
+watchdog_pid="/tmp/watchdog.pid"
 
 game1="10.46.99.216"
 game2="127.0.0.1"
@@ -62,7 +63,6 @@ server_password=$(cat /root/password.txt)
 [ -n "$server_password" ] || exit 1
 
 # 脚本执行pid写入，确保脚本执行进程唯一性
-watchdog_pid="/tmp/watchdog.pid"
 if [ -f "$watchdog_pid" ] && kill -0 $(cat "$watchdog_pid") 2>/dev/null; then
     exit 1
 fi
