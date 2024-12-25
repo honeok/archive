@@ -24,8 +24,6 @@ _yellow() { echo -e ${yellow}$@${white}; }
 _red() { echo -e ${red}$@${white}; }
 _green() { echo -e ${green}$@${white}; }
 
-trap INT QUIT TERM EXIT
-
 # Check OS type
 os_name=$(grep ^ID= /etc/*release | awk -F'=' '{print $2}' | sed 's/"//g')
 [[ "$os_name" != "centos" && "$os_name" != "rhel" && "$os_name" != "rocky" && "$os_name" != "almalinux" ]] && exit 0
