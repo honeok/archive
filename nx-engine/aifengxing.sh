@@ -1,70 +1,102 @@
 #!/usr/bin/env bash
 #
-# Description: H5 Container Rolling Update
+# Description: h5 container rolling update.
 #
-# Copyright (C) 2021 - 2022 honeok <yihaohey@gmail.com>
-# Blog: www.honeok.com
-# https://github.com/honeok/archive/blob/master/nx-engine/aifengxing.sh
+# Copyright (C) 2021 - 2022 nx-engine <yihao.he@nx-engine.com>
+#
+# Originally written on: 2022.01.14, archived after updates on: 2024.12.25
+# Company site: https://www.nx-engine.com
+#
+# https://github.com/honeok/archive/raw/master/nx-engine/aifengxing.sh
+
+set -e
+clear
+
+host_port='8080'
+container_port='3000'
+svc_name='DongFengFengXing'
+
+yellow='\033[93m'
+red='\033[31m'
+green='\033[92m'
+white='\033[0m'
+_yellow() { echo -e ${yellow}$@${white}; }
+_red() { echo -e ${red}$@${white}; }
+_green() { echo -e ${green}$@${white}; }
+
+trap INT QUIT TERM EXIT
+
+# Check OS type
+os_name=$(grep ^ID= /etc/*release | awk -F'=' '{print $2}' | sed 's/"//g')
+[[ "$os_name" != "centos" && "$os_name" != "rhel" && "$os_name" != "rocky" && "$os_name" != "almalinux" ]] && exit 0
+[ "$(id -u)" -ne "0" ] && exit 1
+
+# Ensure running from root directory
+if [ "$(cd -P -- "$(dirname -- "$0")" && pwd -P)" != "/root" ]; then
+    cd /root >/dev/null 2>&1
+fi
 
 . /etc/init.d/functions
-CONTRAST=`docker images | grep -iv "REPOSITORY" | awk 'BEGIN{FS=" ";OFS=":"}{print $1,$2}'`
-PARAMS=("$@")
-set -o errexit
-echo ""
-echo -e "\033[033mUPDATED ON 2022-1-14 if There is an error @OP\033[0m"
-if [[ ${#} -lt 1 ]];then
-  echo "#####################"
-  echo "No parameters!" && exit 1
+
+# Validate parameters
+if [ $# -lt 1 ]; then
+    _red "No parameters provided！" && exit 1
 fi
-VAR_PRO="
--e VUE_APP_BASE_URL="weixin.com.cn/tg-car-api/mini" \
--e VUE_APP_BASE_URL_OTHER="weixin.com.cn/tg-car-api" \
--e VUE_APP_BASE_URL_OTHER_API="weixin.com.cn/tg-car-api" \
--e VUE_APP_BASE_URL_DSP="gateway.com.cn" \
+
+_yellow "Update on 2022.01.14 if there is an error！ @OP"
+
+pro_variable="
+    -e VUE_APP_BASE_URL="weixin.car.com.cn/tg-car-api/mini" \
+    -e VUE_APP_BASE_URL_OTHER="weixin.car.com.cn/tg-car-api" \
+    -e VUE_APP_BASE_URL_OTHER_API="weixin.car.com.cn/tg-car-api" \
+    -e VUE_APP_BASE_URL_DSP="gateway.car.com.cn" \
 "
-##########[FUNC LIBRARY]##########
-# Image sha256
-CHECKIMG(){
-for newimg in ${PARAMS};do
-  for oldimg in ${CONTRAST};do
-    if [[ ${newimg} == ${oldimg} ]];then
-      echo "Mirror exists! Or Please use \"docker run\" function!" && exit 2
+
+check_image() {
+    local contrast=$(docker images --format '{{.Repository}}:{{.Tag}}')
+
+    if echo "${contrast}" | grep -q "$param"; then
+        _red "Mirror exists！Or Please use \"docker run\" function！" && exit 1
     fi
-  done
-done
 }
-GLOBAL(){
-  echo -e -n "\n######## BEGIN TO [UPDATE|DEPLOY] ${PARAM} ########\n"
-  docker pull ${PARAMS} || $(echo "please check your image name and try again!";exit 3)
-  RUNCON=`docker ps | egrep "${SVCNAME}" | awk '{print $1}'`
-  OLD_IMG_LOG=`docker ps | egrep -i "DongFengFengXing" | awk '{print $2}'`
-  echo "`date +%Y-%m-%d' '%H:%M:%S` CHANGED [${OLD_IMG_LOG}]" >> ./liveoldimage.log
-  echo ""
-  docker stop ${RUNCON} &>/dev/null && action "[STOP OLD SERVICE CONTAINER]"
-  echo ""
-  docker rm -f ${RUNCON} &>/dev/null && action "[REMOVE OLD SERVICE CONTAINER]"
-  echo ""
-  docker run -itd --name=${SVCNAME}-$RANDOM -p ${HPORT}:${CPORT} ${VARIABLE} --restart=always ${PARAM}
-  action "[DEPLOY NEW SERVICE CONTAINER]"
-  echo -e "\033[33m########## WAIR 2 SECONDS ##########\033[0m" && sleep 2 && docker ps | egrep -i "${PARAM}"
+
+deploy_image() {
+    local runcon=$(docker ps -q -f "name=${svc_name}")
+    local old_img_log=$(docker ps --format "{{.Image}}" | egrep -i "${svc_name}")
+
+    _yellow "Beginning to (update|deploy)"
+
+    docker pull ${param} || { _red "Please check your image name and try again！"; exit 1; }
+
+    echo "$(date -u -d '+8 hours' +'%Y-%m-%d %H:%M:%S') changed [${old_img_log}]" >> ./live_oldimage.log
+
+    # Stop and remove the old container
+    echo "" && docker stop ${runcon} >/dev/null 2>&1 && action "[Stop old service container]"
+    echo "" && docker rm -f ${runcon} >/dev/null 2>&1 && action "[Remove old service container]"
+
+    # Run the new container
+    echo "" && docker run -d --restart=unless-stopped --name=${svc_name}-$RANDOM -p ${host_port}:${container_port} ${pro_variable} ${param} && action "[Deploy new service container]"
+
+    # Wait for the container to be fully started
+    _yellow "Please wait 2 seconds" && sleep 2 && docker ps | grep -i "${param}"
 }
-PRUNEIMG(){
-  echo ""
-  echo -e "\033[033m########## CLEAR OLD IMAGE ##########\033[0m"
-  echo ""
-  echo "y" | docker system prune -a
+
+prune_image() {
+    if docker image prune -a -f >/dev/null 2>&1; then
+        _green "successfully deleted unused images"
+    else
+        _red "failed to delete unused images"
+    fi
 }
-##########[FUNC LIBRARY]##########
-for PARAM in ${PARAMS[@]};do
-  echo ""
-  HPORT=""
-  CPORT=""
-  if [[ ${PARAM} =~ "lq_car_uni" ]];then HPORT=8080 && CPORT=3000 && SVCNAME="DongFengFengXing" && VARIABLE=${VAR_PRO};
-  fi
-  echo -e "\033[31m%%%%% HOST_PORT:${HPORT} CONTAINER_PORT:${CPORT} %%%%%\033[0m"
-  echo ""
-  CHECKIMG
-  GLOBAL
-  PRUNEIMG
-  echo -e "\033[35m%%%%% do done %%%%%\033[0m"
+
+for param in "$@"; do
+    if [[ ! ${param} =~ "lq_car_uni" ]]; then
+        _red "The provided image is not suitable for this project. Exiting！" && exit 1
+    fi
+
+    check_image
+    deploy_image
+    prune_image
+
+    _green "Completed"
 done
