@@ -5,35 +5,66 @@
 # Please ensure that the parameters are passed correctly, as once executed, the action cannot be undone!
 #
 # Example Usage:
-# ./watchdog.sh 1/2/3/4/5...       # Starts the game server(s) corresponding to the given IDs.
+# ./watchdog.sh 1/2/3/4/5... # Starts the game server(s) corresponding to the given IDs.
 #
 # Copyright (C) 2024 honeok <honeok@duck.com>
 
-version='v0.0.2 (2024.12.17)'
+version='v0.0.2 (2024.12.25)'
+set -e
 
-# 信号捕捉
-trap _exit SIGINT SIGQUIT SIGTERM SIGHUP
-set -o errexit
+yellow='\033[93m'
+white='\033[0m'
+_yellow() { echo -e ${yellow}$@${white}; }
 
-_exit() {
-    [ -f "$watchdog_pid" ] && rm -f "$watchdog_pid"
-    exit 0
-}
-
-# 预定义变量
+watchdog_pid="/tmp/watchdog.pid"
+os_name=""
+country=""
+server_password=""
 server_number=""
 open_server_time=""
-watchdog_pid="/tmp/watchdog.pid"
 
 game1="10.46.99.216"
 game2="127.0.0.1"
 
 export DEBIAN_FRONTEND=noninteractive
 
-# 消息回调
-china_time=$(date -d @$(($(curl -sL https://acs.m.taobao.com/gw/mtop.common.getTimestamp/ | awk -F'"t":"' '{print $2}' | cut -d '"' -f1) / 1000)) +"%Y-%m-%d %H:%M:%S")
-if [ -z $china_time ]; then
-    china_time=$(date -d @$(($(curl -sL https://f.m.suning.com/api/ct.do | awk -F'"currentTime": ' '{print $2}' | cut -d ',' -f1) / 1000)) +"%Y-%m-%d %H:%M:%S")
+trap _exit INT QUIT TERM EXIT
+
+_exit() {
+    [ -f "$watchdog_pid" ] && rm -f "$watchdog_pid"
+    exit 0
+}
+
+os_name=$(grep ^ID= /etc/*release | awk -F'=' '{print $2}' | sed 's/"//g')
+[ "$os_name" != "debian" && "$os_name" != "ubuntu" && "$os_name" != "centos" && "$os_name" != "rocky" && "$os_name" != "almalinux" ] && exit 0
+[ "$(id -u)" -ne "0" ] && exit 1
+
+if [ "$(cd -P -- "$(dirname -- "$0")" && pwd -P)" != "/root" ]; then
+    cd /root >/dev/null 2>&1
+fi
+
+geo_check() {
+    local cloudflare_api="https://dash.cloudflare.com/cdn-cgi/trace"
+    local user_agent="Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101 Firefox/81.0"
+
+    country=$(curl -A "$user_agent" -m 10 -s "$cloudflare_api" | grep -oP 'loc=\K\w+')
+    [ -z "$country" ] && _err_msg "$(_red '无法获取服务器所在地区，请检查网络！')" && exit 1
+}
+
+geo_check
+
+if [ -f "$watchdog_pid" ] && kill -0 $(cat "$watchdog_pid") 2>/dev/null; then
+    exit 1
+fi
+echo $$ > "$watchdog_pid"
+
+if [ "$country" == "CN" ]; then
+    # china_time=$(date -d @$(($(curl -sL https://f.m.suning.com/api/ct.do | awk -F'"currentTime": ' '{print $2}' | cut -d ',' -f1) / 1000)) +"%Y-%m-%d %H:%M:%S")
+    china_time=$(date -d @$(($(curl -sL https://acs.m.taobao.com/gw/mtop.common.getTimestamp/ | awk -F'"t":"' '{print $2}' | cut -d '"' -f1) / 1000)) +"%Y-%m-%d %H:%M:%S")
+elif [ "$country" != "CN" ]; then
+    china_time=$(curl -fskL "https://timeapi.io/api/Time/current/zone?timeZone=Asia/Shanghai" | grep -oP '"dateTime":\s*"\K[^"]+' | sed 's/\.[0-9]*//g' | sed 's/T/ /')
+else
+    china_time=$(date -u -d '+8 hours' +"%Y-%m-%d %H:%M:%S")
 fi
 
 send_message() {
@@ -47,26 +78,11 @@ send_message() {
         -d "{\"action\":\"$action\",\"timestamp\":\"$china_time\",\"country\":\"$country\",\"os_info\":\"$os_info\",\"cpu_arch\":\"$cpu_arch\"}" >/dev/null 2>&1 &
 }
 
-# 服务器信息预检
-os_name=$(grep ^ID= /etc/*release | awk -F'=' '{print $2}' | sed 's/"//g')
-[[ "$os_name" != "debian" && "$os_name" != "ubuntu" && "$os_name" != "centos" && "$os_name" != "rocky" && "$os_name" != "alma" ]] && exit 0
-[ "$(id -u)" -ne "0" ] && exit 1
-
-if [ "$(cd -P -- "$(dirname -- "$0")" && pwd -P)" != "/root" ]; then
-    cd /root >/dev/null 2>&1
-fi
-
 # 获取服务器密码
 # echo "xxxxxxxxxxxx" > /root/password.txt && chmod 600 /root/password.txt
 [ -f /root/password.txt ] && [ -s /root/password.txt ] || exit 1
 server_password=$(cat /root/password.txt)
 [ -n "$server_password" ] || exit 1
-
-# 脚本执行pid写入，确保脚本执行进程唯一性
-if [ -f "$watchdog_pid" ] && kill -0 $(cat "$watchdog_pid") 2>/dev/null; then
-    exit 1
-fi
-echo $$ > "$watchdog_pid"
 
 # 脚本入参校验
 if [[ ${#} -ne 1 || ! $1 =~ ^[0-9]+$ ]]; then
