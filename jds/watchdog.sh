@@ -11,7 +11,7 @@
 #
 # Archive on GitHub: https://github.com/honeok/archive/raw/master/jds/watchdog.sh
 
-version='v0.0.2 (2024.12.26)'
+version='v0.0.2 (2024.12.27)'
 set -e
 
 yellow='\033[93m'
@@ -19,20 +19,16 @@ red='\033[31m'
 white='\033[0m'
 _yellow() { echo -e ${yellow}$@${white}; }
 _red() { echo -e ${red}$@${white}; }
-_err_msg() { echo -e "\033[41;1m$@${white}"; }
+_err_msg() { echo -e "\033[41m\033[1m警告\033[0m $@"; }
 
 export DEBIAN_FRONTEND=noninteractive
 
 watchdog_pid="/tmp/watchdog.pid"
-os_info=""
 country=""
 remote_server_passwd=""
 server_number=""
 server_ip=""
 open_server_time=""
-
-game1="10.46.99.216"
-game2="127.0.0.1"
 
 os_info=$(grep ^ID= /etc/*release | awk -F'=' '{print $2}' | sed 's/"//g')
 [[ "$os_info" != "debian" && "$os_info" != "ubuntu" && "$os_info" != "centos" && "$os_info" != "rhel" && "$os_info" != "rocky" && "$os_info" != "almalinux" ]] && exit 0
@@ -57,6 +53,7 @@ geo_check() {
     country=$(curl -A "$user_agent" -m 10 -s "$cloudflare_api" | grep -oP 'loc=\K\w+')
     [ -z "$country" ] && _err_msg "$(_red '无法获取服务器所在地区，请检查网络！')" && _exit
 }
+
 geo_check
 
 send_message() {
@@ -68,15 +65,15 @@ send_message() {
         -d "{\"action\":\"$event\",\"timestamp\":\"$china_time\",\"country\":\"$country\",\"os_info\":\"$os_info\",\"cpu_arch\":\"$cpu_arch\"}" >/dev/null 2>&1 &
 }
 
-if [ "$country" == "CN" ]; then
-    # china_time=$(date -d @$(($(curl -sL https://f.m.suning.com/api/ct.do | awk -F'"currentTime": ' '{print $2}' | cut -d ',' -f1) / 1000)) +"%Y-%m-%d %H:%M:%S")
-    china_time=$(date -d @$(($(curl -sL https://acs.m.taobao.com/gw/mtop.common.getTimestamp/ | awk -F'"t":"' '{print $2}' | cut -d '"' -f1) / 1000)) +"%Y-%m-%d %H:%M:%S")
-else
-    china_time=$(curl -fsL "https://timeapi.io/api/Time/current/zone?timeZone=Asia/Shanghai" | grep -oP '"dateTime":\s*"\K[^"]+' | sed 's/\.[0-9]*//g' | sed 's/T/ /')
-fi
-if [ -z "$china_time" ];then
-    china_time=$(date -u -d '+8 hours' +"%Y-%m-%d %H:%M:%S")
-fi
+china_time=$(
+    if [ "$country" == "CN" ]; then
+        # date -d @$(($(curl -sL https://f.m.suning.com/api/ct.do | awk -F'"currentTime": ' '{print $2}' | cut -d ',' -f1) / 1000)) +"%Y-%m-%d %H:%M:%S"
+        date -d @$(($(curl -sL https://acs.m.taobao.com/gw/mtop.common.getTimestamp/ | awk -F'"t":"' '{print $2}' | cut -d '"' -f1) / 1000)) +"%Y-%m-%d %H:%M:%S"
+    else
+        curl -fsL "https://timeapi.io/api/Time/current/zone?timeZone=Asia/Shanghai" | grep -oP '"dateTime":\s*"\K[^"]+' | sed 's/\.[0-9]*//g' | sed 's/T/ /'
+    fi
+)
+[ -z "$china_time" ] && china_time=$(date -u -d '+8 hours' +"%Y-%m-%d %H:%M:%S")
 
 # 获取服务器密码 usage: echo "xxxxxxxxxxxx" > "$HOME/password.txt" && chmod 600 "$HOME/password.txt"
 [ -f "$HOME/password.txt" ] && [ -s "$HOME/password.txt" ] || _exit
@@ -87,34 +84,38 @@ remote_server_passwd=$(head -n 1 "$HOME/password.txt" | tr -d '[:space:]') || re
 if [[ $# -ne 1 || ! $1 =~ ^[0-9]+$ ]]; then
     _exit
 else
-    server_number=$1
+    server_number="$1"
 fi
 
 # 服务器IP匹配
-if (( server_number >= 1 && server_number <= 5 )); then
-    server_ip=$game1
-elif (( server_number >= 6 && server_number <= 10 )); then
-    server_ip=$game2
-else
-    _exit
-fi
+declare -A server_ips=(
+    ["1-5"]="10.46.99.216"
+    ["6-10"]="127.0.0.1"
+    ["11-15"]="127.0.0.1"
+)
+
+# 查找匹配的服务器IP
+for server_range in "${!server_ips[@]}"; do
+    start_range=${server_range%%-*}  # 获取区间的开始值
+    end_range=${server_range##*-}    # 获取区间的结束值
+    if (( server_number >= start_range && server_number <= end_range )); then
+        server_ip="${server_ips[$server_range]}"
+        break
+    fi
+done
+[[ -z "$server_ip" ]] && _exit
 
 # 开服所需时间
 taobao_timeapi=$(date -d @$(($(curl -sL https://acs.m.taobao.com/gw/mtop.common.getTimestamp/ | awk -F'"t":"' '{print $2}' | cut -d '"' -f1) / 1000)) +"%Y-%m-%dT%H:00:00")
 suning_timeapi=$(date -d @$(($(curl -sL https://f.m.suning.com/api/ct.do | awk -F'"currentTime": ' '{print $2}' | cut -d ',' -f1) / 1000)) +"%Y-%m-%dT%H:00:00")
 
-for api in "$taobao_timeapi" "$suning_timeapi"; do
-    open_server_time=$api  # 将当前API返回的时间赋值给open_server_time
-
-    # 检查时间格式是否有效
-    if [[ -n "$open_server_time" && "$open_server_time" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:00:00$ ]]; then
-        break
-    fi
-done
-
-# 如果没有成功获取时间，使用当前时间
+if [[ -n "$taobao_timeapi" && "$taobao_timeapi" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:00:00$ ]]; then
+    open_server_time="$taobao_timeapi"
+elif [[ -n "$suning_timeapi" && "$suning_timeapi" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:00:00$ ]]; then
+    open_server_time="$suning_timeapi"
+fi
 if [[ -z "$open_server_time" || ! "$open_server_time" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:00:00$ ]]; then
-    open_server_time=$(date -u -d '+8 hours' +"%Y-%m-%dT%H:00:00")  # 使用当前时间并调整为北京时间 (UTC+8)，如果系统时间同步不可用时间偏差通常不会太大
+    open_server_time=$(date -u -d '+8 hours' +"%Y-%m-%dT%H:00:00") # 如果没有成功获取时间，使用当前时间并调整为北京时间(UTC+8)，如果系统时间同步不可用时间偏差通常不会太大
 fi
 
 if ! command -v sshpass >/dev/null 2>&1 && type -P sshpass >/dev/null 2>&1; then
