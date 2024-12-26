@@ -20,7 +20,7 @@ short_separator() { printf "%-20s\n" "-" | sed 's/\s/-/g'; }
 export DEBIAN_FRONTEND=noninteractive
 
 server_range=$(find /data/ -maxdepth 1 -type d -name "server*" | sed 's:.*/::' | grep -E '^server[0-9]+$' | sed 's/server//' | sort -n)
-reload_pid="/tmp/reload.pid"
+reload_pid='/tmp/reload.pid'
 local_update_dir='/data/update'
 remote_update_file='/data/update/updategame.tar.gz'
 update_host='10.46.96.254'
