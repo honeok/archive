@@ -73,7 +73,7 @@ china_time=$(
         curl -fsL "https://timeapi.io/api/Time/current/zone?timeZone=Asia/Shanghai" | grep -oP '"dateTime":\s*"\K[^"]+' | sed 's/\.[0-9]*//g' | sed 's/T/ /'
     fi
 )
-[ -z "$china_time" ] && china_time=$(date -u -d '+8 hours' +"%Y-%m-%d %H:%M:%S")
+[[ -z "$china_time" ]] && china_time=$(date -u -d '+8 hours' +"%Y-%m-%d %H:%M:%S")
 
 # 获取服务器密码 usage: echo "xxxxxxxxxxxx" > "$HOME/password.txt" && chmod 600 "$HOME/password.txt"
 [ -f "$HOME/password.txt" ] && [ -s "$HOME/password.txt" ] || _exit
@@ -176,12 +176,12 @@ for (( i=1; i<=3; i++ )); do
             _exit
         fi
 
-        # 使用指数退避策略增加等待时间
-        sleep_time=$(( 5 * i ))  # 逐步增加等待时间：5秒、10秒、15秒
+        # 指数退避策略增加等待时间
+        sleep_time=$(( 5 * i ))
         echo "${china_time} [WARNING] 第${i}次尝试失败，等待${sleep_time}秒后重试" >> watchdog.log 2>&1
 
         # 暂停等待后重试
-        sleep $sleep_time
+        sleep "$sleep_time"
     else
         send_message "[server${server_number}已开服]"
         echo "${china_time} [SUCCESS] server${server_number}已开服" >> watchdog.log 2>&1
