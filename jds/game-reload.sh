@@ -4,7 +4,7 @@
 #
 # Copyright (C) 2024 honeok <honeok@duck.com>
 #
-# Archive on GitHub: https://github.com/honeok/archive/raw/master/jds
+# Archive on GitHub: https://github.com/honeok/archive/raw/master/jds/game-reload.sh
 
 version='v0.0.2 (2024.12.26)'
 
@@ -39,13 +39,13 @@ fi
 echo $$ > "$reload_pid"
 
 # 检查Server目录
-[ -z "$server_range" ] && _red "未找到任何有效的server目录！" && exit 1
+[ -z "$server_range" ] && _red "未找到任何有效的server目录！" && _exit
 # 获取服务器密码 usage: echo "xxxxxxxxxxxx" > "$HOME/password.txt" && chmod 600 "$HOME/password.txt"
-[ -f "$HOME/password.txt" ] && [ -s "$HOME/password.txt" ] || exit 1
-update_host_passwd=$(head -n 1 "$HOME/password.txt" | tr -d '[:space:]' | xargs)
-[ -n "$update_host_passwd" ] || exit 1
+[ -f "$HOME/password.txt" ] && [ -s "$HOME/password.txt" ] || _exit
+update_host_passwd=$(head -n 1 "$HOME/password.txt" | tr -d '[:space:]') || update_host_passwd=$(awk 'NR==1 {gsub(/^[ \t]+|[ \t]+$/, ""); print}' "$HOME/password.txt")
+[ -n "$update_host_passwd" ] || _exit
 
-if ! command -v sshpass >/dev/null 2>&1; then
+if ! command -v sshpass >/dev/null 2>&1 && type -P sshpass >/dev/null 2>&1; then
     if command -v dnf >/dev/null 2>&1; then
         [[ ! $(rpm -q epel-release) ]] && dnf install epel-release -y
         dnf update -y && dnf install sshpass -y
@@ -55,24 +55,24 @@ if ! command -v sshpass >/dev/null 2>&1; then
     elif command -v apt >/dev/null 2>&1; then
         apt update -y && apt install sshpass -y
     else
-        exit 1
+        _exit
     fi
 fi
 
 _yellow "当前脚本版本: ${version}"
 
-cd "$local_update_dir" || exit 1
+cd "$local_update_dir" || _exit
 rm -rf *
 
 if ! sshpass -p "$update_host_passwd" scp -o StrictHostKeyChecking=no "root@$update_host:$remote_update_file" "$local_update_dir/"; then
-    _red "下载失败，请检查网络连接或密码" && exit 1
+    _red "下载失败，请检查网络连接或密码" && _exit
 fi
 if [ ! -f "$local_update_dir/updategame.tar.gz" ]; then
-    _red "更新包未正确下载，请检查！" && exit 1
+    _red "更新包未正确下载，请检查！" && _exit
 fi
 _green "从中心拉取updategame.tar.gz成功！"
 
-tar zxvf "$local_update_dir/updategame.tar.gz" && _green "解压成功" || { _red "解压失败"; exit 1; }
+tar zxvf "$local_update_dir/updategame.tar.gz" && _green "解压成功" || { _red "解压失败"; _exit; }
 
 for server_num in "$server_range"; do
     reach_dir="/data/server${server_num}/game"
@@ -84,7 +84,7 @@ for server_num in "$server_range"; do
     fi
 
     \cp -rf "${local_update_dir}/app/"* "$reach_dir/"
-    cd "$reach_dir" || exit 1
+    cd "$reach_dir" || _exit
     ./server.sh reload
     _green "server${server_num}更新成功！"
     short_separator
