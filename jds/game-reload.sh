@@ -70,7 +70,7 @@ fi
 if [ ! -f "$local_update_dir/updategame.tar.gz" ]; then
     _red "更新包未正确下载，请检查！" && exit 1
 fi
-_green "从中心拉取Updategame.tar.gz成功！"
+_green "从中心拉取updategame.tar.gz成功！"
 
 tar zxvf "$local_update_dir/updategame.tar.gz" && _green "解压成功" || { _red "解压失败"; exit 1; }
 
