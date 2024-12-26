@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 #
-# Description: Server Rereading.
+# Description: Automatically determines the server path and reloads configurations.
 #
 # Copyright (C) 2024 honeok <honeok@duck.com>
 
-version='v0.0.2 (2024.12.16)'
+version='v0.0.2 (2024.12.26)'
 
 yellow='\033[93m'
 red='\033[31m'
@@ -16,26 +16,24 @@ _green() { echo -e ${green}$@${white}; }
 separator() { printf "%-20s\n" "-" | sed 's/\s/-/g'; }
 
 server_range=$(find /data/ -maxdepth 1 -type d -name "server*" | sed 's:.*/::' | grep -E '^server[0-9]+$' | sed 's/server//' | sort -n)
-local_update_path="/data/update"
-remote_update_source="/data/update/updategame.tar.gz"
-center_host="10.46.96.254"
+local_update_dir="/data/update"
+remote_update_file="/data/update/updategame.tar.gz"
+update_host="10.46.96.254"
 
 export DEBIAN_FRONTEND=noninteractive
 
 # 操作系统和权限校验
 os_name=$(grep ^ID= /etc/*release | awk -F'=' '{print $2}' | sed 's/"//g')
-[[ "$os_name" != "debian" && "$os_name" != "ubuntu" && "$os_name" != "centos" && "$os_name" != "rocky" && "$os_name" != "alma" ]] && exit 0
+[[ "$os_info" != "debian" && "$os_info" != "ubuntu" && "$os_info" != "centos" && "$os_info" != "rhel" && "$os_info" != "rocky" && "$os_info" != "almalinux" ]] && exit 0
 [ "$(id -u)" -ne "0" ] && exit 1
 
-# 检查Center密码文件
-# echo "xxxxxxxxxxxx" > /root/password.txt chmod 600 /root/password.txt 只有root用户可以读取该文件
-[ -f /root/password.txt ] && [ -s /root/password.txt ] || exit 1
-center_passwd=$(cat /root/password.txt)
-[ -n "$center_passwd" ] || exit 1
 # 检查Server目录
 [ -z "$server_range" ] && _red "未找到任何有效的server目录！" && exit 1
+# 获取服务器密码 usage: echo "xxxxxxxxxxxx" > ~/password.txt && chmod 600 ~/password.txt
+[ -f /root/password.txt ] && [ -s /root/password.txt ] || exit 1
+update_host_passwd=$(head -n 1 /root/password.txt | tr -d '[:space:]' | xargs)
+[ -n "$update_host_passwd" ] || exit 1
 
-# 检查sshpass命令
 if ! command -v sshpass >/dev/null 2>&1; then
     if command -v dnf >/dev/null 2>&1; then
         [[ ! $(rpm -q epel-release) ]] && dnf install epel-release -y
@@ -50,32 +48,31 @@ if ! command -v sshpass >/dev/null 2>&1; then
     fi
 fi
 
-_yellow "当前脚本版本 "${version}""
+_yellow "当前脚本版本: "${version}""
 
-cd $local_update_path || exit 1
-rm -fr *
+cd $local_update_dir
+rm -rf *
 
-if ! sshpass -p "$center_passwd" scp -o StrictHostKeyChecking=no "root@$center_host:$remote_update_source" "$local_update_path/"; then
+if ! sshpass -p "$update_host_passwd" scp -o StrictHostKeyChecking=no "root@$update_host:$remote_update_file" "$local_update_dir/"; then
     _red "下载失败，请检查网络连接或密码" && exit 1
 else
     _green "从中心拉取Updategame.tar.gz成功！"
 fi
 
-tar zxvf "$local_update_path/updategame.tar.gz" && _green "解压成功" || { _red "解压失败"; exit 1; }
+tar zxvf "$local_update_dir/updategame.tar.gz" && _green "解压成功" || { _red "解压失败"; exit 1; }
 
-for i in $server_range; do
-    dest_dir="/data/server$i/game"
-    _yellow "正在处理server$i"
+for server_num in $server_range; do
+    dest_dir="/data/server$server_num/game"
+    _yellow "正在处理server$server_num"
 
     if [ ! -d "$dest_dir" ]; then
-        _red "目录${dest_dir}不存在，跳过server${i}更新！"
+        _red "目录${dest_dir}不存在，跳过server${server_num}更新！"
         continue
     fi
 
-    \cp -fr "$local_update_path/app/"* "$dest_dir/"
-
+    \cp -rf "$local_update_dir/app/"* "$dest_dir/"
     cd "$dest_dir" || exit 1
     ./server.sh reload
-    _green "server${i}更新成功！"
+    _green "server${server_num}更新成功！"
     separator
 done
