@@ -15,12 +15,12 @@ _red() { echo -e ${red}$@${white}; }
 _green() { echo -e ${green}$@${white}; }
 separator() { printf "%-20s\n" "-" | sed 's/\s/-/g'; }
 
-server_range=$(find /data/ -maxdepth 1 -type d -name "server*" | sed 's:.*/::' | grep -E '^server[0-9]+$' | sed 's/server//' | sort -n)
-local_update_dir="/data/update"
-remote_update_file="/data/update/updategame.tar.gz"
-update_host="10.46.96.254"
-
 export DEBIAN_FRONTEND=noninteractive
+
+server_range=$(find /data/ -maxdepth 1 -type d -name "server*" | sed 's:.*/::' | grep -E '^server[0-9]+$' | sed 's/server//' | sort -n)
+local_update_dir='/data/update'
+remote_update_file='/data/update/updategame.tar.gz'
+update_host='10.46.96.254'
 
 # 操作系统和权限校验
 os_name=$(grep ^ID= /etc/*release | awk -F'=' '{print $2}' | sed 's/"//g')
