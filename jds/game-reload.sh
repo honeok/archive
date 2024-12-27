@@ -6,7 +6,7 @@
 #
 # Archive on GitHub: https://github.com/honeok/archive/raw/master/jds/game-reload.sh
 
-version='v0.0.2 (2024.12.26)'
+version='v0.0.2 (2024.12.27)'
 
 yellow='\033[93m'
 red='\033[31m'
@@ -64,7 +64,7 @@ _yellow "当前脚本版本: ${version}"
 cd "$local_update_dir" || _exit
 rm -rf *
 
-if ! sshpass -p "$update_host_passwd" scp -o StrictHostKeyChecking=no "root@$update_host:$remote_update_file" "$local_update_dir/"; then
+if ! sshpass -p "$update_host_passwd" scp -o StrictHostKeyChecking=no -o ConnectTimeout=30 "root@$update_host:$remote_update_file" "$local_update_dir/"; then
     _red "下载失败，请检查网络连接或密码" && _exit
 fi
 if [ ! -f "$local_update_dir/updategame.tar.gz" ]; then
@@ -74,7 +74,7 @@ _green "从中心拉取updategame.tar.gz成功！"
 
 tar zxvf "$local_update_dir/updategame.tar.gz" && _green "解压成功" || { _red "解压失败"; _exit; }
 
-for server_num in "$server_range"; do
+for server_num in $server_range; do
     reach_dir="/data/server${server_num}/game"
     _yellow "正在处理server${server_num}"
 
