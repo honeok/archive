@@ -13,11 +13,11 @@ white='\033[0m'
 _yellow() { echo -e "${yellow}$@${white}"; }
 _red() { echo -e "${red}$@${white}"; }
 _green() { echo -e "${green}$@${white}"; }
-_info_msg() { echo -e "\033[48;5;220m\033[1m提示${white}$@"; }
-_err_msg() { echo -e "\033[41m\033[1m警告${white}$@"; }
-_suc_msg() { echo -e "\033[42m\033[1m成功${white}$@"; }
+_info_msg() { echo -e "\033[48;5;220m\033[1minfo${white} $@"; }
+_err_msg() { echo -e "\033[41m\033[1merror${white} $@"; }
+_suc_msg() { echo -e "\033[42m\033[1msuccess${white} $@"; }
 
-app_name_path="$(cd "$(dirname "$0")" && ls *app_server)"
+app_name_path="$(find . -maxdepth 1 -type f -iname "*app_server" | xargs realpath)"
 app_name="$(basename "$app_name_path")"
 
 running() {
@@ -41,7 +41,7 @@ stop() {
         _suc_msg "$(_green "server stop: $(<pid.txt)")"
         [ -f "pid.txt" ] && rm -f pid.txt
     else
-        _err_msg "$(_yellow 'server is not running')"
+        _err_msg "$(_red 'server is not running')"
     fi
 }
 
@@ -50,7 +50,7 @@ reload() {
         kill -SIGUSR1 "$(<pid.txt)"
         _suc_msg "$(_green "server reload: $(<pid.txt)")"
     else
-        _err_msg "$(_yellow 'server is not running')"
+        _err_msg "$(_red 'server is not running')"
     fi
 }
 
@@ -59,7 +59,7 @@ flush() {
         kill -SIGUSR2 "$(<pid.txt)"
         _suc_msg "$(_green "server flush: $(<pid.txt)")"
     else
-        _err_msg "$(_yellow 'server is not running')"
+        _err_msg "$(_red 'server is not running')"
     fi
 }
 
