@@ -3,6 +3,8 @@
 # Description: The game server is stopped in parallel.
 #
 # Copyright (C) 2024 honeok <honeok@duck.com>
+#
+# Archive on GitHub: https://github.com/honeok/archive/raw/master/jds/game-allstop.sh
 
 yellow='\033[93m'
 red='\033[31m'
@@ -12,7 +14,7 @@ _yellow() { echo -e ${yellow}$@${white}; }
 _red() { echo -e ${red}$@${white}; }
 _green() { echo -e ${green}$@${white}; }
 
-server_range=$(seq 1 5) # 服务器范围
+server_range=$(seq 1 5)
 
 clear
 cd /data/tool
@@ -26,7 +28,7 @@ else
 fi
 
 cd /data/server/login/ && ./server.sh stop
-cd /data/server/gate/ && ./server.sh stop && sleep 120s
+cd /data/server/gate/ && ./server.sh stop && sleep 60
 _green "login和gate服务器已停止"
 
 for i in $server_range; do
@@ -34,7 +36,7 @@ for i in $server_range; do
         _yellow "正在处理server$i"
         cd /data/server$i/game/
         ./server.sh flush
-        sleep 60s
+        sleep 60
         ./server.sh stop
     ) &
 done

@@ -3,8 +3,8 @@
 # Description: Update and start game server after maintenance.
 #
 # Copyright (C) 2024 honeok <honeok@duck.com>
-# Blog: www.honeok.com
-# https://github.com/honeok/archive/blob/master/jds/game-updatestart.sh
+#
+# Archive on GitHub: https://github.com/honeok/archive/raw/master/jds/game-updatestart.sh
 
 yellow='\033[93m'
 red='\033[31m'
