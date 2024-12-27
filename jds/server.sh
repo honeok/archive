@@ -39,7 +39,7 @@ stop() {
     if running >/dev/null 2>&1; then
         kill -SIGKILL "$(<pid.txt)"
         _suc_msg "$(_green "server stop: $(<pid.txt)")"
-        rm -f pid.txt
+        [ -f "pid.txt" ] && rm -f pid.txt
     else
         _err_msg "$(_yellow 'server is not running')"
     fi
