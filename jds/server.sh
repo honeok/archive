@@ -21,7 +21,7 @@ app_name_path="$(cd "$(dirname "$0")" && ls *app_server)"
 app_name="$(basename "$app_name_path")"
 
 running() {
-    [ -f "pid.txt" ] && [ -f "/proc/$(<pid.txt)/comm" ] && [ "$(cat /proc/$(<pid.txt)/comm)" == "${app_name}" ] && return 0 || return 1
+    [ -f "pid.txt" ] && [ -f "/proc/$(<pid.txt)/comm" ] && [ "$(cat /proc/$(<pid.txt)/comm)" == "$app_name" ] && return 0 || return 1
 }
 
 start() {
