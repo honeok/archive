@@ -134,17 +134,14 @@ fi
 
 # 远程命令构建
 remote_command="\
+if ! pgrep -f /data/server${server_number}/game >/dev/null 2>&1; then exit 1; fi && \
 # 进入游戏目录，修改开服时间
 cd /data/server${server_number}/game || exit 1 && \
 [ -f lua/config/open_time.lua ] || exit 1 && \
 sed -i '/^\s*open_server_time\s*=/s|\"[^\"]*\"|\"'"$openserver_time"'\"|' lua/config/open_time.lua || exit 1 && \
 grep -q \"^\s*open_server_time\s*=\s*\"$openserver_time\"\" lua/config/open_time.lua || exit 1 && \
-
 # 检查文件是否在过去1分钟内被修改
-if ! find lua/config/open_time.lua -mmin -1 >/dev/null 2>&1; then
-    exit 1
-fi && \
-
+if ! find lua/config/open_time.lua -mmin -1 >/dev/null 2>&1; then exit 1; fi && \
 # 重载游戏服务器
 ./server.sh reload || exit 1 && \
 
@@ -157,13 +154,8 @@ if [ -f etc/white_list.txt ]; then
     ! grep -q '^\s*'"${server_number}"'\s*$' etc/white_list.txt || exit 1 && \
 
     # 检查文件是否在过去1分钟内被修改
-    if ! find etc/white_list.txt -mmin -1 >/dev/null 2>&1; then
-        exit 1
-    fi
-else
-    exit 1
+    find etc/white_list.txt -mmin -1 >/dev/null 2>&1 || exit 1 && \
 fi && \
-
 # 重载登录服务器
 ./server.sh reload || exit 1"
 
