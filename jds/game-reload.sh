@@ -23,7 +23,7 @@ server_range=$(find /data/ -maxdepth 1 -type d -name "server*" | sed 's:.*/::' |
 reload_pid='/tmp/reload.pid'
 local_update_dir='/data/update'
 remote_update_file='/data/update/updategame.tar.gz'
-update_host='10.46.96.254'
+update_host='192.168.1.1'
 
 # 操作系统和权限校验
 os_info=$(grep ^ID= /etc/*release | awk -F'=' '{print $2}' | sed 's/"//g')
