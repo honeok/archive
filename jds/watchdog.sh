@@ -97,13 +97,16 @@ declare -A server_ips=(
 # 查找匹配的服务器IP
 for server_range in "${!server_ips[@]}"; do
     # 将逗号分隔的服务器号转换为数组
-    IFS=',' read -r -a range_numbers <<< "$server_range"
-    for number in "${range_numbers[@]}"; do
-        if (( server_number == number )); then
-            server_ip="${server_ips[$server_range]}"
-            break 2  # 找到匹配的服务器号后，跳出两层循环
-        fi
-    done
+    (
+        IFS=','
+        read -r -a range_numbers <<< "$server_range"
+        for number in "${range_numbers[@]}"; do
+            if (( server_number == number )); then
+                server_ip="${server_ips[$server_range]}"
+                break 2  # 找到匹配的服务器号后跳出两层循环
+            fi
+        done
+    )
 done
 [[ -z "$server_ip" ]] && _exit
 
