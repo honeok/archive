@@ -89,19 +89,21 @@ fi
 
 # 服务器IP匹配
 declare -A server_ips=(
-    ["1-5"]="10.46.99.216"
-    ["6-10"]="127.0.0.1"
-    ["11-15"]="127.0.0.1"
+    ["1,2,3,4,5"]="192.168.1.1"
+    ["6,7,8,9,10"]="192.168.1.2"
+    ["11,12,13,14,15"]="192.168.1.3"
 )
 
 # 查找匹配的服务器IP
 for server_range in "${!server_ips[@]}"; do
-    start_range=${server_range%%-*}  # 获取区间的开始值
-    end_range=${server_range##*-}    # 获取区间的结束值
-    if (( server_number >= start_range && server_number <= end_range )); then
-        server_ip="${server_ips[$server_range]}"
-        break
-    fi
+    # 将逗号分隔的服务器号转换为数组
+    IFS=',' read -r -a range_numbers <<< "$server_range"
+    for number in "${range_numbers[@]}"; do
+        if (( server_number == number )); then
+            server_ip="${server_ips[$server_range]}"
+            break 2  # 找到匹配的服务器号后，跳出两层循环
+        fi
+    done
 done
 [[ -z "$server_ip" ]] && _exit
 
