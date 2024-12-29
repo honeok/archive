@@ -21,13 +21,14 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4.1.6
+        uses: actions/checkout@v4
 
       - name: Install shellcheck
         run: |
-          if ! command -v shellcheck >/dev/null 2>&1; then
-            sudo apt-get update && sudo apt-get install shellcheck -y
+          if ! command -v shellcheck > /dev/null 2>&1; then
+            sudo apt-get update && sudo apt-get install -y shellcheck
           fi
+
       - name: Lint changed *.sh files
         run: |
           # 遍历所有.sh文件
@@ -40,4 +41,4 @@ jobs:
           repository: ${{ github.repository }}
           retain_days: 0
           keep_minimum_runs: 0
-          delete_run_by_conclusion_pattern: "cancelled, skipped, success"
+          delete_run_by_conclusion_pattern: 'cancelled, skipped, success'
