@@ -1,18 +1,14 @@
 #!/usr/bin/env bash
 #
-# Description: 
+# Description: initialization script file.
 #
-# Copyright (C) 2024 honeok <honeok@duck.com>
-# Blog: www.honeok.com
-# https://github.com/honeok/archive/blob/master/base.sh
+# Copyright (C) 2000 honeok <honeok@duck.com>
+#
+# https://github.com/honeok/archive/raw/master/base.sh
 
 # shellcheck disable=all
 
-# MAJOR: 重大更新通常会导致向后不兼容的变化
-# MINOR: 小功能更新或向后兼容的改动
-# PATCH: 小修复和bug修复
-
-script_v="v0.0.0"
+script_v='v0.0.0 (2000.01.01)' # major: 重大更新通常会导致向后不兼容的变化 minor: 小功能更新或向后兼容的改动 patch: 小修复和bug修复
 
 yellow='\033[93m'
 red='\033[31m'
@@ -31,23 +27,16 @@ _cyan() { echo -e ${cyan}$@${white}; }
 _purple() { echo -e ${purple}$@${white}; }
 _gray() { echo -e ${gray}$@${white}; }
 _orange() { echo -e ${orange}$@${white}; }
+_white() { echo -e ${white}$@${white}; }
 
-bg_yellow='\033[48;5;220m'
-bg_red='\033[41m'
-bg_green='\033[42m'
-bold='\033[1m'
-_bg_yellow() { echo -e "${bg_yellow}${bold}$@${white}"; }
-_bg_red() { echo -e "${bg_red}${bold}$@${white}"; }
-_bg_green() { echo -e "${bg_green}${bold}$@${white}"; }
+_info_msg() { echo -e "\033[48;5;220m\033[1m提示${white} $@"; }
+_err_msg() { echo -e "\033[41m\033[1m警告${white} $@"; }
+_suc_msg() { echo -e "\033[42m\033[1m成功${white} $@"; }
 
-info_msg=$(_bg_yellow 提示)
-err_msg=$(_bg_red 警告)
-suc_msg=$(_bg_green 成功)
-_info_msg() { echo -e "$info_msg $@"; }
-_err_msg() { echo -e "$err_msg $@"; }
-_suc_msg() { echo -e "$suc_msg $@"; }
+short_separator() { printf "%-20s\n" "-" | sed 's/\s/-/g'; }
+long_separator() { printf "%-40s\n" "-" | sed 's/\s/-/g'; }
 
-# export LANG=en_US.UTF-8
+export LANG=en_US.UTF-8
 export DEBIAN_FRONTEND=noninteractive
 
 if [ "$(cd -P -- "$(dirname -- "$0")" && pwd -P)" != "/root" ]; then
