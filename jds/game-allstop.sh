@@ -34,7 +34,7 @@ _green "login和gate服务器已停止"
 for server_num in $server_range; do
     (
         _yellow "正在处理server$server_num"
-        cd "/data/server$server_num/game" || continue
+        cd "/data/server$server_num/game" || return
         ./server.sh flush
         sleep 60
         ./server.sh stop
