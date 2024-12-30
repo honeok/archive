@@ -84,8 +84,11 @@ china_time=$(
 [[ -z "$china_time" ]] && china_time=$(date -u -d '+8 hours' +"%Y-%m-%d %H:%M:%S")
 
 # 获取服务器密码 usage: echo "xxxxxxxxxxxx" > "$HOME/password.txt" && chmod 600 "$HOME/password.txt"
-[ -f "$HOME/password.txt" ] && [ -s "$HOME/password.txt" ] || cleanup_exit
-remote_server_passwd=$(head -n 1 "$HOME/password.txt" | tr -d '[:space:]')
+if [ -f "$HOME/password.txt" ] && [ -s "$HOME/password.txt" ]; then
+    remote_server_passwd=$(head -n 1 "$HOME/password.txt" | tr -d '[:space:]')
+else
+    cleanup_exit
+fi
 [ -n "$remote_server_passwd" ] || remote_server_passwd=$(awk 'NR==1 {gsub(/^[ \t]+|[ \t]+$/, ""); print}' "$HOME/password.txt")
 [ -n "$remote_server_passwd" ] || cleanup_exit
 
