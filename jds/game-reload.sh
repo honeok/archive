@@ -35,7 +35,7 @@ os_info=$(grep ^ID= /etc/*release | awk -F'=' '{print $2}' | sed 's/"//g')
 trap "cleanup_exit ; echo "" ; exit 0" SIGINT SIGQUIT SIGTERM EXIT
 
 cleanup_exit() {
-    [ -f "$watchdog_pid" ] && rm -f "$watchdog_pid"
+    [ -f "$reload_pid" ] && rm -f "$reload_pid"
 }
 
 if [ -f "$reload_pid" ] && kill -0 "$(cat "$reload_pid")" 2>/dev/null; then
