@@ -15,6 +15,7 @@ white='\033[0m'
 _yellow() { echo -e "${yellow}$*${white}"; }
 _red() { echo -e "${red}$*${white}"; }
 _green() { echo -e "${green}$*${white}"; }
+_err_msg() { echo -e "\033[41m\033[1m警告${white} $*"; }
 short_separator() { printf "%-20s\n" "-" | sed 's/\s/-/g'; }
 
 export DEBIAN_FRONTEND=noninteractive
@@ -28,7 +29,7 @@ update_host='192.168.1.1'
 # 操作系统和权限校验
 os_info=$(grep ^ID= /etc/*release | awk -F'=' '{print $2}' | sed 's/"//g')
 [[ "$os_info" != "debian" && "$os_info" != "ubuntu" && "$os_info" != "centos" && "$os_info" != "rhel" && "$os_info" != "rocky" && "$os_info" != "almalinux" ]] && exit 0
-[ "$(id -u)" -ne "0" ] && exit 1
+[ "$(id -u)" -ne "0" ] && _err_msg "$(_red '需要root用户才能运行！')" && exit 1
 
 trap "cleanup_exit ; echo "" ; exit 0" SIGINT SIGQUIT SIGTERM EXIT
 
