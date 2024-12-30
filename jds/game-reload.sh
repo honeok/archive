@@ -12,9 +12,9 @@ yellow='\033[93m'
 red='\033[31m'
 green='\033[92m'
 white='\033[0m'
-_yellow() { echo -e ${yellow}$*${white}; }
-_red() { echo -e ${red}$*${white}; }
-_green() { echo -e ${green}$*${white}; }
+_yellow() { echo -e "${yellow}$*${white}"; }
+_red() { echo -e "${red}$*${white}"; }
+_green() { echo -e "${green}$*${white}"; }
 short_separator() { printf "%-20s\n" "-" | sed 's/\s/-/g'; }
 
 export DEBIAN_FRONTEND=noninteractive
@@ -27,25 +27,40 @@ update_host='192.168.1.1'
 
 # 操作系统和权限校验
 os_info=$(grep ^ID= /etc/*release | awk -F'=' '{print $2}' | sed 's/"//g')
+
 [[ "$os_info" != "debian" && "$os_info" != "ubuntu" && "$os_info" != "centos" && "$os_info" != "rhel" && "$os_info" != "rocky" && "$os_info" != "almalinux" ]] && exit 0
+
 [ "$(id -u)" -ne "0" ] && exit 1
 
-trap _exit INT QUIT TERM EXIT
+trap "cleanup_exit ; echo "" ; exit 0" SIGINT SIGQUIT SIGTERM EXIT
 
-_exit() { echo ""; [ -f "$reload_pid" ] && rm -f "$reload_pid" >/dev/null 2>&1; exit 0; }
+cleanup_exit() {
+    [ -f "$watchdog_pid" ] && rm -f "$watchdog_pid"
+}
 
-if [ -f "$reload_pid" ] && kill -0 $(cat "$reload_pid") 2>/dev/null; then
+if [ -f "$reload_pid" ] && kill -0 "$(cat "$reload_pid")" 2>/dev/null; then
     exit 1
 fi
 
 echo $$ > "$reload_pid"
 
 # 检查Server目录
-[ -z "$server_range" ] && _red "未找到任何有效的server目录！" && _exit
+if [ -z "$server_range" ]; then
+    _red "未找到任何有效的server目录！"
+    cleanup_exit
+fi
 # 获取服务器密码 usage: echo "xxxxxxxxxxxx" > "$HOME/password.txt" && chmod 600 "$HOME/password.txt"
-[ -f "$HOME/password.txt" ] && [ -s "$HOME/password.txt" ] || _exit
-update_host_passwd=$(head -n 1 "$HOME/password.txt" | tr -d '[:space:]') || update_host_passwd=$(awk 'NR==1 {gsub(/^[ \t]+|[ \t]+$/, ""); print}' "$HOME/password.txt")
-[ -n "$update_host_passwd" ] || _exit
+if [ -f "$HOME/password.txt" ] && [ -s "$HOME/password.txt" ]; then
+    update_host_passwd=$(head -n 1 "$HOME/password.txt" | tr -d '[:space:]')
+else
+    cleanup_exit
+fi
+if [ -z "$update_host_passwd" ]; then
+    update_host_passwd=$(awk 'NR==1 {gsub(/^[ \t]+|[ \t]+$/, ""); print}' "$HOME/password.txt")
+fi
+if [ -z "$update_host_passwd" ]; then
+    cleanup_exit
+fi
 
 if ! command -v sshpass >/dev/null 2>&1 && type -P sshpass >/dev/null 2>&1; then
     if command -v dnf >/dev/null 2>&1; then
@@ -57,24 +72,29 @@ if ! command -v sshpass >/dev/null 2>&1 && type -P sshpass >/dev/null 2>&1; then
     elif command -v apt >/dev/null 2>&1; then
         apt update -y && apt install sshpass -y
     else
-        _exit
+        cleanup_exit
     fi
 fi
 
 _yellow "当前脚本版本: ${version}"
 
-cd "$local_update_dir" || _exit
-rm -rf *
+cd "$local_update_dir" || cleanup_exit
+rm -rf ./*
 
 if ! sshpass -p "$update_host_passwd" scp -o StrictHostKeyChecking=no -o ConnectTimeout=30 "root@$update_host:$remote_update_file" "$local_update_dir/"; then
-    _red "下载失败，请检查网络连接或密码" && _exit
+    _red "下载失败，请检查网络连接或密码" && cleanup_exit
 fi
 if [ ! -f "$local_update_dir/updategame.tar.gz" ]; then
-    _red "更新包未正确下载，请检查！" && _exit
+    _red "更新包未正确下载，请检查！" && cleanup_exit
 fi
 _green "从中心拉取updategame.tar.gz成功！"
 
-tar zxvf "$local_update_dir/updategame.tar.gz" && _green "解压成功" || { _red "解压失败"; _exit; }
+if tar zxvf "$local_update_dir/updategame.tar.gz"; then
+    _green "解压成功"
+else
+    _red "解压失败" 
+    cleanup_exit
+fi
 
 for server_num in $server_range; do
     reach_dir="/data/server${server_num}/game"
@@ -86,7 +106,7 @@ for server_num in $server_range; do
     fi
 
     \cp -rf "${local_update_dir}/app/"* "$reach_dir/"
-    cd "$reach_dir" || _exit
+    cd "$reach_dir" || cleanup_exit
     ./server.sh reload
     _green "server${server_num}更新成功！"
     short_separator
