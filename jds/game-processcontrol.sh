@@ -15,7 +15,7 @@ base_path="/data/server"
 # api回调
 send_message() {
     local action="$1"
-    local country=$(curl -fskL ipinfo.io/country || echo "unknown")
+    local country=$(curl -fsL ipinfo.io/country || echo "unknown")
     local os_info=$(grep '^PRETTY_NAME=' /etc/os-release | cut -d '"' -f 2 | sed 's/ (.*)//')
     local cpu_arch=$(uname -m)
 
