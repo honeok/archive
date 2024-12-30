@@ -95,15 +95,15 @@ fi
 
 for server_num in $server_range; do
     reach_dir="/data/server${server_num}/game"
-    _yellow "正在处理server${server_num}"
 
     if [ ! -d "$reach_dir" ]; then
         _red "目录${reach_dir}不存在，跳过server${server_num}更新！"
         continue
     fi
 
+    _yellow "正在处理server${server_num}"
     \cp -rf "${local_update_dir}/app/"* "$reach_dir/"
-    cd "$reach_dir" || cleanup_exit
+    cd "$reach_dir"
     ./server.sh reload
     _green "server${server_num}更新成功！"
     short_separator
