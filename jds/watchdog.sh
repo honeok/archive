@@ -148,8 +148,8 @@ if ! pgrep -f /data/server${server_number}/game >/dev/null 2>&1; then exit 1; fi
 # 进入游戏目录，修改开服时间
 cd /data/server${server_number}/game || exit 1 && \
 [ -f lua/config/open_time.lua ] || exit 1 && \
-sed -i '/^\s*open_server_time\s*=/s|\"[^\"]*\"|\"'"$open_server_time"'\"|' lua/config/open_time.lua || exit 1 && \
-grep -q \"^\s*open_server_time\s*=\s*\"$open_server_time\"\" lua/config/open_time.lua || exit 1 && \
+sed -i '/^\s*open_server_time\s*=/s|\"[^\"]*\"|\"${open_server_time}\"|' lua/config/open_time.lua || exit 1 && \
+grep -q \"^\s*open_server_time\s*=\s*\"${open_server_time}\"\" lua/config/open_time.lua || exit 1 && \
 # 检查文件是否在过去1分钟内被修改
 if ! find lua/config/open_time.lua -mmin -1 >/dev/null 2>&1; then exit 1; fi && \
 # 重载游戏服务器
@@ -159,9 +159,9 @@ if ! find lua/config/open_time.lua -mmin -1 >/dev/null 2>&1; then exit 1; fi && 
 cd /data/server/login || exit 1 && \
 if [ -f etc/white_list.txt ]; then
     # 删除白名单中的当前服务器号
-    sed -i '/^\s*'"${server_number}"'\s*$/d' etc/white_list.txt || exit 1 && \
+    sed -i '/^\s*${server_number}\s*$/d' etc/white_list.txt || exit 1 && \
     # 确保服务器号没有再出现在白名单文件中
-    ! grep -q '^\s*'"${server_number}"'\s*$' etc/white_list.txt || exit 1 && \
+    ! grep -q '^\s*${server_number}\s*$' etc/white_list.txt || exit 1 && \
     # 检查文件是否在过去1分钟内被修改
     find etc/white_list.txt -mmin -1 >/dev/null 2>&1 || exit 1 && \
 fi && \
