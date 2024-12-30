@@ -103,7 +103,7 @@ for server_num in $server_range; do
 
     _yellow "正在处理server${server_num}"
     \cp -rf "${local_update_dir}/app/"* "$reach_dir/"
-    cd "$reach_dir"
+    cd "$reach_dir" || continue
     ./server.sh reload
     _green "server${server_num}更新成功！"
     short_separator
