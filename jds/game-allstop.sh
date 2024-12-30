@@ -10,9 +10,9 @@ yellow='\033[93m'
 red='\033[31m'
 green='\033[92m'
 white='\033[0m'
-_yellow() { echo -e "${yellow}$*${white}"; }
-_red() { echo -e "${red}$*${white}"; }
-_green() { echo -e "${green}$*${white}"; }
+_yellow() { echo -e "${yellow}$@${white}"; }
+_red() { echo -e "${red}$@${white}"; }
+_green() { echo -e "${green}$@${white}"; }
 
 server_range=$(find /data/ -maxdepth 1 -type d -name "server*" | sed 's:.*/::' | grep -E '^server[0-9]+$' | sed 's/server//' | sort -n)
 
@@ -53,4 +53,4 @@ for server_num in $server_range; do
 done
 # 等待所有并行操作完成
 wait
-_green "所有Game服务器已完成flush和stop操作"
+_green "所有game服务器已完成flush和stop操作"
