@@ -14,7 +14,7 @@ _yellow() { echo -e "${yellow}$*${white}"; }
 _red() { echo -e "${red}$*${white}"; }
 _green() { echo -e "${green}$*${white}"; }
 
-server_range=$(seq 1 5)
+server_range=$(find /data/ -maxdepth 1 -type d -name "server*" | sed 's:.*/::' | grep -E '^server[0-9]+$' | sed 's/server//' | sort -n)
 
 clear
 cd /data/tool || exit 1
@@ -27,14 +27,19 @@ else
     _red "processcontrol进程未运行无需终止"
 fi
 
-cd /data/server/login/ && ./server.sh stop
-cd /data/server/gate/ && ./server.sh stop && sleep 60
-_green "login和gate服务器已停止"
+cd /data/server/login || exit 1
+./server.sh stop
+_green "login服务器已停止"
+
+cd /data/server/gate || exit 1
+./server.sh stop
+sleep 60
+_green "gate服务器已停止"
 
 for server_num in $server_range; do
     (
-        _yellow "正在处理server$server_num"
         cd "/data/server$server_num/game" || return
+        _yellow "正在处理server$server_num"
         ./server.sh flush
         sleep 60
         ./server.sh stop
