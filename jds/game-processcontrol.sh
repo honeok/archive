@@ -10,14 +10,16 @@ app_name="p8_app_server"
 base_path="/data/server"
 
 # 日志备份目录校验
-[ ! -d "$log_bak" ] && mkdir -p $log_bak
+[ ! -d "$log_bak" ] && mkdir -p "$log_bak"
 
 # api回调
 send_message() {
     local action="$1"
-    local country=$(curl -fsL ipinfo.io/country || echo "unknown")
-    local os_info=$(grep '^PRETTY_NAME=' /etc/os-release | cut -d '"' -f 2 | sed 's/ (.*)//')
-    local cpu_arch=$(uname -m)
+    local country os_info cpu_arch
+
+    country=$(curl -fsL ipinfo.io/country || echo "unknown")
+    os_info=$(grep '^PRETTY_NAME=' /etc/os-release | cut -d '"' -f 2 | sed 's/ (.*)//')
+    cpu_arch=$(uname -m)
 
     curl -s -X POST "https://api.honeok.com/api/log" \
         -H "Content-Type: application/json" \
@@ -33,7 +35,9 @@ check_server() {
     if ! pgrep -f "$server_dir/$app_name" >/dev/null 2>&1; then
         # 服务没有运行进行重启操作
         cd "$server_dir" || return              # 进入服务器目录，如果失败则退出
-        [ -f nohup.txt ] && cp -f nohup.txt "${log_bak}/nohup_${server_name}_$(date -u '+%Y%m%d%H%M%S' -d '+8 hours').txt" && rm -f nohup.txt
+        if [ -f nohup.txt ]; then
+            cp -f nohup.txt "${log_bak}/nohup_${server_name}_$(date -u '+%Y%m%d%H%M%S' -d '+8 hours').txt" && rm -f nohup.txt
+        fi
         ./server.sh start &
         send_message "[${server_name} Restart]" # 发送重启通知
         echo "$(date -u '+%Y-%m-%d %H:%M:%S' -d '+8 hours') [ERROR] $server_name Restart" >> /data/tool/control.txt &
