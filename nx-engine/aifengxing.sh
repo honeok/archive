@@ -63,7 +63,7 @@ check_image() {
 deploy_image() {
     local runcon old_img_log
     runcon=$(docker ps -q -f "name=${svc_name}")
-    old_img_log=$(docker ps --format "{{.Image}}" | egrep -i "${svc_name}")
+    old_img_log=$(docker ps --format "{{.Image}}" | grep -Ei "${svc_name}")
 
     _yellow "Beginning to (update|deploy)"
 
