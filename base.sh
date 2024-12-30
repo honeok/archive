@@ -6,8 +6,6 @@
 #
 # https://github.com/honeok/archive/raw/master/base.sh
 
-# shellcheck disable=all
-
 script_v='v0.0.0 (2000.01.01)' # major: 重大更新通常会导致向后不兼容的变化 minor: 小功能更新或向后兼容的改动 patch: 小修复和bug修复
 
 yellow='\033[93m'
