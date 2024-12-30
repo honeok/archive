@@ -44,12 +44,12 @@ fi
 
 _yellow "Update on 2022.01.14 if there is an error！ @OP"
 
-pro_variable="
-    -e VUE_APP_BASE_URL='weixin.car.com.cn/tg-car-api/mini' \
-    -e VUE_APP_BASE_URL_OTHER='weixin.car.com.cn/tg-car-api' \
-    -e VUE_APP_BASE_URL_OTHER_API='weixin.car.com.cn/tg-car-api' \
-    -e VUE_APP_BASE_URL_DSP='gateway.car.com.cn' \
-"
+pro_variable=(
+    "-e VUE_APP_BASE_URL='weixin.car.com.cn/tg-car-api/mini'"
+    "-e VUE_APP_BASE_URL_OTHER='weixin.car.com.cn/tg-car-api'"
+    "-e VUE_APP_BASE_URL_OTHER_API='weixin.car.com.cn/tg-car-api'"
+    "-e VUE_APP_BASE_URL_DSP='gateway.car.com.cn'"
+)
 
 check_image() {
     local contrast
@@ -76,7 +76,7 @@ deploy_image() {
     echo "" && docker rm -f "${runcon}" >/dev/null 2>&1 && action "[Remove old service container]"
 
     # Run the new container
-    echo "" && docker run -d --restart=unless-stopped --name="${svc_name}-$RANDOM" -p "${host_port}:${container_port}" "${pro_variable}" "${param}" && action "[Deploy new service container]"
+    echo "" && docker run -d --restart=unless-stopped --name="${svc_name}-$RANDOM" -p "${host_port}:${container_port}" "${pro_variable[@]}" "${param}" && action "[Deploy new service container]"
 
     # Wait for the container to be fully started
     _yellow "Please wait 2 seconds" && sleep 2 && docker ps | grep -i "${param}"
