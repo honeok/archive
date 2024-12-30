@@ -59,7 +59,7 @@ geo_check() {
     local user_agent="Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101 Firefox/81.0"
 
     country=$(curl -A "$user_agent" -m 10 -s "$cloudflare_api" | grep -oP 'loc=\K\w+')
-    [ -z "$country" ] && _err_msg "$(_red '无法获取服务器所在地区，请检查网络！')" && _exit
+    [ -z "$country" ] && _err_msg "$(_red '无法获取服务器所在地区，请检查网络！')" && cleanup_exit
 }
 
 geo_check
@@ -70,7 +70,7 @@ send_message() {
 
     curl -s -X POST "https://api.honeok.com/api/log" \
         -H "Content-Type: application/json" \
-        -d "{\"action\":\"$event\",\"timestamp\":\"$china_time\",\"country\":\"$country\",\"os_info\":\"$os_info\",\"cpu_arch\":\"$cpu_arch\"}" >/dev/null 2>&1 &
+        -d "{\"action\":\"$event\",\"timestamp\":\"$china_time\",\"country\":\"$country\",\"os_info\":\"$os_info\",\"cpu_arch\":\"$cpu_arch\"}" >/dev/null 2>&1 & 
 }
 
 china_time=$(
@@ -84,14 +84,14 @@ china_time=$(
 [[ -z "$china_time" ]] && china_time=$(date -u -d '+8 hours' +"%Y-%m-%d %H:%M:%S")
 
 # 获取服务器密码 usage: echo "xxxxxxxxxxxx" > "$HOME/password.txt" && chmod 600 "$HOME/password.txt"
-[ -f "$HOME/password.txt" ] && [ -s "$HOME/password.txt" ] || _exit
+[ -f "$HOME/password.txt" ] && [ -s "$HOME/password.txt" ] || cleanup_exit
 remote_server_passwd=$(head -n 1 "$HOME/password.txt" | tr -d '[:space:]')
 [ -n "$remote_server_passwd" ] || remote_server_passwd=$(awk 'NR==1 {gsub(/^[ \t]+|[ \t]+$/, ""); print}' "$HOME/password.txt")
-[ -n "$remote_server_passwd" ] || _exit
+[ -n "$remote_server_passwd" ] || cleanup_exit
 
 # 脚本入参校验
 if [[ $# -ne 1 || ! $1 =~ ^[0-9]+$ ]]; then
-    _exit
+    cleanup_exit
 else
     server_number="$1"
 fi
@@ -105,19 +105,12 @@ declare -A server_ips=(
 
 # 查找匹配的服务器IP
 for server_range in "${!server_ips[@]}"; do
-    # 将逗号分隔的服务器号转换为数组
-    (
-        IFS=','
-        read -r -a range_numbers <<< "$server_range"
-        for number in "${range_numbers[@]}"; do
-            if (( server_number == number )); then
-                server_ip="${server_ips[$server_range]}"
-                break 2  # 找到匹配的服务器号后跳出两层循环
-            fi
-        done
-    )
+    if [[ "$server_range" =~ (^|,)$server_number(,|$) ]]; then
+        server_ip="${server_ips[$server_range]}"
+        break
+    fi
 done
-[[ -z "$server_ip" ]] && _exit
+[[ -z "$server_ip" ]] && cleanup_exit
 
 # 开服所需时间
 taobao_timeapi=$(date -d @$(($(curl -sL https://acs.m.taobao.com/gw/mtop.common.getTimestamp/ | awk -F'"t":"' '{print $2}' | cut -d '"' -f1) / 1000)) +"%Y-%m-%dT%H:00:00")
@@ -142,7 +135,7 @@ if ! command -v sshpass >/dev/null 2>&1 && type -P sshpass >/dev/null 2>&1; then
     elif command -v apt >/dev/null 2>&1; then
         apt update -y && apt install sshpass -y
     else
-        _exit
+        cleanup_exit
     fi
 fi
 
@@ -152,8 +145,8 @@ if ! pgrep -f /data/server${server_number}/game >/dev/null 2>&1; then exit 1; fi
 # 进入游戏目录，修改开服时间
 cd /data/server${server_number}/game || exit 1 && \
 [ -f lua/config/open_time.lua ] || exit 1 && \
-sed -i '/^\s*open_server_time\s*=/s|\"[^\"]*\"|\"'"$openserver_time"'\"|' lua/config/open_time.lua || exit 1 && \
-grep -q \"^\s*open_server_time\s*=\s*\"$openserver_time\"\" lua/config/open_time.lua || exit 1 && \
+sed -i '/^\s*open_server_time\s*=/s|\"[^\"]*\"|\"'"$open_server_time"'\"|' lua/config/open_time.lua || exit 1 && \
+grep -q \"^\s*open_server_time\s*=\s*\"$open_server_time\"\" lua/config/open_time.lua || exit 1 && \
 # 检查文件是否在过去1分钟内被修改
 if ! find lua/config/open_time.lua -mmin -1 >/dev/null 2>&1; then exit 1; fi && \
 # 重载游戏服务器
@@ -166,7 +159,6 @@ if [ -f etc/white_list.txt ]; then
     sed -i '/^\s*'"${server_number}"'\s*$/d' etc/white_list.txt || exit 1 && \
     # 确保服务器号没有再出现在白名单文件中
     ! grep -q '^\s*'"${server_number}"'\s*$' etc/white_list.txt || exit 1 && \
-
     # 检查文件是否在过去1分钟内被修改
     find etc/white_list.txt -mmin -1 >/dev/null 2>&1 || exit 1 && \
 fi && \
@@ -175,22 +167,20 @@ fi && \
 
 for (( i=1; i<=3; i++ )); do
     # 执行远程命令，连接超时为30秒
-    if ! sshpass -p "$remote_server_passwd" ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 root@$server_ip "$remote_command" 2>&1; then
+    if ! sshpass -p "$remote_server_passwd" ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 root@"$server_ip" "$remote_command" 2>&1; then
         if (( i == 3 )); then
             send_message "[server${server_number}开服失败]"
             echo "${china_time} [ERROR] server${server_number}开服失败" >> watchdog.log 2>&1
-            _exit
+            cleanup_exit
         fi
-
         # 指数退避策略增加等待时间
         sleep_time=$(( 5 * i ))
         echo "${china_time} [WARNING] 第${i}次尝试失败，等待${sleep_time}秒后重试" >> watchdog.log 2>&1
-
         # 暂停等待后重试
         sleep "$sleep_time"
     else
         send_message "[server${server_number}已开服]"
         echo "${china_time} [SUCCESS] server${server_number}已开服" >> watchdog.log 2>&1
-        _exit
+        cleanup_exit
     fi
 done
