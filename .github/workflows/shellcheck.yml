@@ -2,14 +2,8 @@ name: CI
 
 on:
   push:
-    paths:
-      - '*.sh'
-      - '**/*.sh'
-  pull_request:
-    paths:
-      - '*.sh'
-      - '**/*.sh'
-  workflow_dispatch:
+    branches:
+      - dev
 
 permissions:
   contents: write
