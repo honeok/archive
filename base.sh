@@ -17,19 +17,19 @@ purple='\033[95m'
 gray='\033[37m'
 orange='\033[38;5;214m'
 white='\033[0m'
-_yellow() { echo -e ${yellow}$@${white}; }
-_red() { echo -e ${red}$@${white}; }
-_green() { echo -e ${green}$@${white}; }
-_blue() { echo -e ${blue}$@${white}; }
-_cyan() { echo -e ${cyan}$@${white}; }
-_purple() { echo -e ${purple}$@${white}; }
-_gray() { echo -e ${gray}$@${white}; }
-_orange() { echo -e ${orange}$@${white}; }
-_white() { echo -e ${white}$@${white}; }
+_yellow() { echo -e "${yellow}$*${white}"; }
+_red() { echo -e "${red}$*${white}"; }
+_green() { echo -e "${green}$*${white}"; }
+_blue() { echo -e "${blue}$*${white}"; }
+_cyan() { echo -e "${cyan}$*${white}"; }
+_purple() { echo -e "${purple}$*${white}"; }
+_gray() { echo -e "${gray}$*${white}"; }
+_orange() { echo -e "${orange}$*${white}"; }
+_white() { echo -e "${white}$*${white}"; }
 
-_info_msg() { echo -e "\033[48;5;220m\033[1m提示${white} $@"; }
-_err_msg() { echo -e "\033[41m\033[1m警告${white} $@"; }
-_suc_msg() { echo -e "\033[42m\033[1m成功${white} $@"; }
+_info_msg() { echo -e "\033[48;5;220m\033[1m提示${white} $*"; }
+_err_msg() { echo -e "\033[41m\033[1m警告${white} $*"; }
+_suc_msg() { echo -e "\033[42m\033[1m成功${white} $*"; }
 
 short_separator() { printf "%-20s\n" "-" | sed 's/\s/-/g'; }
 long_separator() { printf "%-40s\n" "-" | sed 's/\s/-/g'; }
