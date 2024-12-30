@@ -4,9 +4,9 @@
 #
 # Copyright (C) 2024 honeok <honeok@duck.com>
 #
-# Archive on GitHub: https://github.com/honeok/archive/raw/master/jds/game-reload.sh
+# https://github.com/honeok/archive/raw/master/jds/game-reload.sh
 
-version='v0.0.2 (2024.12.27)'
+version='v0.0.2 (2024.12.30)'
 
 yellow='\033[93m'
 red='\033[31m'
@@ -31,11 +31,13 @@ os_info=$(grep ^ID= /etc/*release | awk -F'=' '{print $2}' | sed 's/"//g')
 [ "$(id -u)" -ne "0" ] && exit 1
 
 trap _exit INT QUIT TERM EXIT
-_exit() { [ -f "$reload_pid" ] && rm -f "$reload_pid" >/dev/null 2>&1; echo -e '\n'; exit 0; }
+
+_exit() { echo ""; [ -f "$reload_pid" ] && rm -f "$reload_pid" >/dev/null 2>&1; exit 0; }
 
 if [ -f "$reload_pid" ] && kill -0 $(cat "$reload_pid") 2>/dev/null; then
     exit 1
 fi
+
 echo $$ > "$reload_pid"
 
 # 检查Server目录
