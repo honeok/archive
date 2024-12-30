@@ -4,7 +4,9 @@
 #
 # Copyright (C) 2024 honeok <honeok@duck.com>
 #
-# Archive on GitHub: https://github.com/honeok/archive/raw/master/jds/game-updatestart.sh
+# https://github.com/honeok/archive/raw/master/jds/game-updatestart.sh
+
+# shellcheck disable=all
 
 yellow='\033[93m'
 red='\033[31m'
