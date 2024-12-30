@@ -38,7 +38,13 @@ _green "gate服务器已停止"
 
 for server_num in $server_range; do
     (
-        cd "/data/server$server_num/game" || return
+        if [ ! -d "/data/server$server_num/game" ]; then
+            _red "server${server_num}不存在"
+            exit 1 # 子进程中的退出，防止继续执行
+        fi
+
+        cd "/data/server$server_num/game" 2>/dev/null || exit 1
+
         _yellow "正在处理server$server_num"
         ./server.sh flush
         sleep 60
