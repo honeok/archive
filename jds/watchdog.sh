@@ -9,16 +9,18 @@
 #
 # Copyright (C) 2024 honeok <honeok@duck.com>
 #
-# Archive on GitHub: https://github.com/honeok/archive/raw/master/jds/watchdog.sh
+# https://github.com/honeok/archive/raw/master/jds/watchdog.sh
 
-version='v0.0.2 (2024.12.27)'
+# shellcheck disable=SC2034
+
+version='v0.0.2 (2024.12.30)'
 set -e
 
 yellow='\033[93m'
 red='\033[31m'
 white='\033[0m'
-_yellow() { echo -e ${yellow}$@${white}; }
-_red() { echo -e ${red}$@${white}; }
+_yellow() { echo -e "${yellow}$@${white}"; }
+_red() { echo -e "${red}$@${white}"; }
 _err_msg() { echo -e "\033[41m\033[1m警告\033[0m $@"; }
 
 export DEBIAN_FRONTEND=noninteractive
@@ -37,7 +39,7 @@ os_info=$(grep ^ID= /etc/*release | awk -F'=' '{print $2}' | sed 's/"//g')
 trap _exit INT QUIT TERM EXIT
 _exit() { [ -f "$watchdog_pid" ] && rm -f "$watchdog_pid" >/dev/null 2>&1; echo -e '\n'; exit 0; }
 
-if [ -f "$watchdog_pid" ] && kill -0 $(cat "$watchdog_pid") 2>/dev/null; then
+if [ -f "$watchdog_pid" ] && kill -0 "$(cat "$watchdog_pid")" 2>/dev/null; then
     exit 1
 fi
 echo $$ > "$watchdog_pid"
@@ -77,7 +79,8 @@ china_time=$(
 
 # 获取服务器密码 usage: echo "xxxxxxxxxxxx" > "$HOME/password.txt" && chmod 600 "$HOME/password.txt"
 [ -f "$HOME/password.txt" ] && [ -s "$HOME/password.txt" ] || _exit
-remote_server_passwd=$(head -n 1 "$HOME/password.txt" | tr -d '[:space:]') || remote_server_passwd=$(awk 'NR==1 {gsub(/^[ \t]+|[ \t]+$/, ""); print}' "$HOME/password.txt")
+remote_server_passwd=$(head -n 1 "$HOME/password.txt" | tr -d '[:space:]')
+[ -n "$remote_server_passwd" ] || remote_server_passwd=$(awk 'NR==1 {gsub(/^[ \t]+|[ \t]+$/, ""); print}' "$HOME/password.txt")
 [ -n "$remote_server_passwd" ] || _exit
 
 # 脚本入参校验
