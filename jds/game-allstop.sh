@@ -4,7 +4,7 @@
 #
 # Copyright (C) 2024 honeok <honeok@duck.com>
 #
-# Archive on GitHub: https://github.com/honeok/archive/raw/master/jds/game-allstop.sh
+# https://github.com/honeok/archive/raw/master/jds/game-allstop.sh
 
 yellow='\033[93m'
 red='\033[31m'
@@ -20,12 +20,8 @@ clear
 cd /data/tool || exit 1
 if pgrep -f processcontrol-allserver.sh >/dev/null 2>&1; then
     pkill -9 -f processcontrol-allserver.sh
-    if [ -f "control.txt" ]; then
-        > control.txt
-    fi
-    if [ -f "dump.txt" ]; then
-        > dump.txt
-    fi
+    [ -f "control.txt" ] && : > control.txt
+    [ -f "dump.txt" ] && : > dump.txt
     _green "processcontrol进程已终止文件已清空"
 else
     _red "processcontrol进程未运行无需终止"
@@ -38,7 +34,7 @@ _green "login和gate服务器已停止"
 for server_num in $server_range; do
     (
         _yellow "正在处理server$server_num"
-        cd /data/server$server_num/game/
+        cd "/data/server$server_num/game" || continue
         ./server.sh flush
         sleep 60
         ./server.sh stop
