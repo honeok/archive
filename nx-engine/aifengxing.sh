@@ -4,8 +4,8 @@
 #
 # Copyright (C) 2021 - 2022 nx-engine <yihao.he@nx-engine.com>
 #
-# Originally written on: 2022.01.14, archived after updates on: 2024.12.25
-# Company site: https://www.nx-engine.com
+# Archived after updates on: 2024.12.25
+# Website: https://www.nx-engine.com
 #
 # https://github.com/honeok/archive/raw/master/nx-engine/aifengxing.sh
 
@@ -20,14 +20,15 @@ yellow='\033[93m'
 red='\033[31m'
 green='\033[92m'
 white='\033[0m'
-_yellow() { echo -e ${yellow}$@${white}; }
-_red() { echo -e ${red}$@${white}; }
-_green() { echo -e ${green}$@${white}; }
+_yellow() { echo -e "${yellow}$*${white}"; }
+_red() { echo -e "${red}$*${white}"; }
+_green() { echo -e "${green}$*${white}"; }
+_err_msg() { echo -e "\033[41m\033[1m警告${white} $*"; }
 
 # Check OS type
-os_name=$(grep ^ID= /etc/*release | awk -F'=' '{print $2}' | sed 's/"//g')
-[[ "$os_name" != "centos" && "$os_name" != "rhel" && "$os_name" != "rocky" && "$os_name" != "almalinux" ]] && exit 0
-[ "$(id -u)" -ne "0" ] && exit 1
+os_info=$(grep ^ID= /etc/*release | awk -F'=' '{print $2}' | sed 's/"//g')
+[[ "$os_info" != "centos" && "$os_info" != "rhel" && "$os_info" != "rocky" && "$os_info" != "almalinux" ]] && exit 0
+[ "$(id -u)" -ne "0" ] && _err_msg "$(_red '需要root用户才能运行！')" && exit 1
 
 # Ensure running from root directory
 if [ "$(cd -P -- "$(dirname -- "$0")" && pwd -P)" != "/root" ]; then
