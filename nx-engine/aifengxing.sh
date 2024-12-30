@@ -67,16 +67,16 @@ deploy_image() {
 
     _yellow "Beginning to (update|deploy)"
 
-    docker pull ${param} || { _red "Please check your image name and try again！"; exit 1; }
+    docker pull "${param}" || { _red "Please check your image name and try again！"; exit 1; } 
 
     echo "$(date -u -d '+8 hours' +'%Y-%m-%d %H:%M:%S') changed [${old_img_log}]" >> ./live_oldimage.log
 
     # Stop and remove the old container
-    echo "" && docker stop ${runcon} >/dev/null 2>&1 && action "[Stop old service container]"
-    echo "" && docker rm -f ${runcon} >/dev/null 2>&1 && action "[Remove old service container]"
+    echo "" && docker stop "${runcon}" >/dev/null 2>&1 && action "[Stop old service container]"
+    echo "" && docker rm -f "${runcon}" >/dev/null 2>&1 && action "[Remove old service container]"
 
     # Run the new container
-    echo "" && docker run -d --restart=unless-stopped --name=${svc_name}-$RANDOM -p ${host_port}:${container_port} ${pro_variable} ${param} && action "[Deploy new service container]"
+    echo "" && docker run -d --restart=unless-stopped --name="${svc_name}-$RANDOM" -p "${host_port}:${container_port}" "${pro_variable}" "${param}" && action "[Deploy new service container]"
 
     # Wait for the container to be fully started
     _yellow "Please wait 2 seconds" && sleep 2 && docker ps | grep -i "${param}"
