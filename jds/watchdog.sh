@@ -66,7 +66,8 @@ geo_check
 
 send_message() {
     local event="$1"
-    local cpu_arch=$(uname -m 2>/dev/null || lscpu | awk -F ': +' '/Architecture/{print $2}' || echo "Full Unknown")
+    local cpu_arch
+    cpu_arch=$(uname -m 2>/dev/null || lscpu | awk -F ': +' '/Architecture/{print $2}' || echo "Full Unknown")
 
     curl -s -X POST "https://api.honeok.com/api/log" \
         -H "Content-Type: application/json" \
