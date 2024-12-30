@@ -45,14 +45,15 @@ fi
 _yellow "Update on 2022.01.14 if there is an error！ @OP"
 
 pro_variable="
-    -e VUE_APP_BASE_URL="weixin.car.com.cn/tg-car-api/mini" \
-    -e VUE_APP_BASE_URL_OTHER="weixin.car.com.cn/tg-car-api" \
-    -e VUE_APP_BASE_URL_OTHER_API="weixin.car.com.cn/tg-car-api" \
-    -e VUE_APP_BASE_URL_DSP="gateway.car.com.cn" \
+    -e VUE_APP_BASE_URL='weixin.car.com.cn/tg-car-api/mini' \
+    -e VUE_APP_BASE_URL_OTHER='weixin.car.com.cn/tg-car-api' \
+    -e VUE_APP_BASE_URL_OTHER_API='weixin.car.com.cn/tg-car-api' \
+    -e VUE_APP_BASE_URL_DSP='gateway.car.com.cn' \
 "
 
 check_image() {
-    local contrast=$(docker images --format '{{.Repository}}:{{.Tag}}')
+    local contrast
+    contrast=$(docker images --format '{{.Repository}}:{{.Tag}}')
 
     if echo "${contrast}" | grep -q "$param"; then
         _red "Mirror exists！Or Please use \"docker run\" function！" && exit 1
@@ -60,8 +61,9 @@ check_image() {
 }
 
 deploy_image() {
-    local runcon=$(docker ps -q -f "name=${svc_name}")
-    local old_img_log=$(docker ps --format "{{.Image}}" | egrep -i "${svc_name}")
+    local runcon old_img_log
+    runcon=$(docker ps -q -f "name=${svc_name}")
+    old_img_log=$(docker ps --format "{{.Image}}" | egrep -i "${svc_name}")
 
     _yellow "Beginning to (update|deploy)"
 
