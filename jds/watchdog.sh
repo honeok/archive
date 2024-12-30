@@ -11,7 +11,7 @@
 #
 # https://github.com/honeok/archive/raw/master/jds/watchdog.sh
 
-# shellcheck disable=SC2034
+# shellcheck disable=SC2034,SC2145
 
 version='v0.0.2 (2024.12.30)'
 set -e
