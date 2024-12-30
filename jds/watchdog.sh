@@ -11,16 +11,14 @@
 #
 # https://github.com/honeok/archive/raw/master/jds/watchdog.sh
 
-# shellcheck disable=SC2034,SC2145
-
 version='v0.0.2 (2024.12.30)'
 set -e
 
 yellow='\033[93m'
 red='\033[31m'
 white='\033[0m'
-_yellow() { echo -e "${yellow}$@${white}"; }
-_red() { echo -e "${red}$@${white}"; }
+_yellow() { echo -e "${yellow}$*${white}"; }
+_red() { echo -e "${red}$*${white}"; }
 _err_msg() { echo -e "\033[41m\033[1m警告\033[0m $@"; }
 
 export DEBIAN_FRONTEND=noninteractive
@@ -32,11 +30,10 @@ server_number=""
 server_ip=""
 open_server_time=""
 
+# 操作系统和权限校验
 os_info=$(grep ^ID= /etc/*release | awk -F'=' '{print $2}' | sed 's/"//g')
-
 [[ "$os_info" != "debian" && "$os_info" != "ubuntu" && "$os_info" != "centos" && "$os_info" != "rhel" && "$os_info" != "rocky" && "$os_info" != "almalinux" ]] && exit 0
-
-[ "$(id -u)" -ne "0" ] && exit 1
+[ "$(id -u)" -ne "0" ] && _err_msg "$(_red '需要root用户才能运行！')" && exit 1
 
 trap "cleanup_exit ; echo "" ; exit 0" SIGINT SIGQUIT SIGTERM EXIT
 
@@ -47,7 +44,6 @@ cleanup_exit() {
 if [ -f "$watchdog_pid" ] && kill -0 "$(cat "$watchdog_pid")" 2>/dev/null; then
     exit 1
 fi
-
 echo $$ > "$watchdog_pid"
 
 if [ "$(cd -P -- "$(dirname -- "$0")" && pwd -P)" != "/root" ]; then
@@ -92,6 +88,8 @@ else
 fi
 [ -n "$remote_server_passwd" ] || remote_server_passwd=$(awk 'NR==1 {gsub(/^[ \t]+|[ \t]+$/, ""); print}' "$HOME/password.txt")
 [ -n "$remote_server_passwd" ] || cleanup_exit
+
+_yellow "当前脚本版本: ${version}"
 
 # 脚本入参校验
 if [[ $# -ne 1 || ! $1 =~ ^[0-9]+$ ]]; then
