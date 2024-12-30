@@ -6,9 +6,12 @@
 # Blog: www.honeok.com
 # https://github.com/honeok/archive/blob/master/base.sh
 
+# shellcheck disable=all
+
 # MAJOR: 重大更新通常会导致向后不兼容的变化
 # MINOR: 小功能更新或向后兼容的改动
 # PATCH: 小修复和bug修复
+
 script_v="v0.0.0"
 
 yellow='\033[93m'
