@@ -19,7 +19,7 @@ red='\033[31m'
 white='\033[0m'
 _yellow() { echo -e "${yellow}$*${white}"; }
 _red() { echo -e "${red}$*${white}"; }
-_err_msg() { echo -e "\033[41m\033[1m警告\033[0m $@"; }
+_err_msg() { echo -e "\033[41m\033[1m警告${white} $*"; }
 
 export DEBIAN_FRONTEND=noninteractive
 
