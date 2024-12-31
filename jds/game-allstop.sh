@@ -6,6 +6,8 @@
 #
 # https://github.com/honeok/archive/raw/master/jds/game-allstop.sh
 
+version='v0.0.3 (2024.12.31)'
+
 yellow='\033[93m'
 red='\033[31m'
 green='\033[92m'
@@ -21,7 +23,14 @@ _suc_msg() { echo -e "\033[42m\033[1m成功${white} $*"; }
 server_range=$(find /data/ -maxdepth 1 -type d -name "server*" | sed 's:.*/::' | grep -E '^server[0-9]+$' | sed 's/server//' | sort -n)
 
 clear
-cd /data/tool || exit 1
+_yellow "当前脚本版本: $version"
+
+# 操作系统和权限校验
+os_info=$(grep ^ID= /etc/*release | awk -F'=' '{print $2}' | sed 's/"//g')
+[[ "$os_info" != "debian" && "$os_info" != "ubuntu" && "$os_info" != "centos" && "$os_info" != "rhel" && "$os_info" != "rocky" && "$os_info" != "almalinux" ]] && exit 0
+[ "$(id -ru)" -ne "0" ] && _err_msg "$(_red '需要root用户才能运行！')" && exit 1
+
+cd /data/tool || { _err_msg "$(_red '/data/tool路径错误')" && exit 1; }
 if pgrep -f processcontrol-allserver.sh >/dev/null 2>&1; then
     pkill -9 -f processcontrol-allserver.sh
     [ -f "control.txt" ] && : > control.txt
@@ -55,6 +64,7 @@ for server_num in $server_range; do
         ./server.sh stop
     ) &
 done
+
 wait # 等待并行任务
 
 _suc_msg "$(_green '所有game服务器已完成flush和stop操作')"
