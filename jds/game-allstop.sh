@@ -40,7 +40,7 @@ allserver_stop() {
         [ -f "dump.txt" ] && : > dump.txt
         _suc_msg "$(_green 'processcontrol进程已终止文件已清空')"
     else
-        _info_msg "$(_red 'processcontrol进程未运行无需终止')"
+        _err_msg "$(_red 'processcontrol进程未运行无需终止')"
     fi
 
     cd /data/server/login || { _err_msg "$(_red 'login服务器路径错误')" && exit 1; }
@@ -74,7 +74,7 @@ allserver_stop() {
 
 # 解析命令行参数
 if [ $# -eq 0 ]; then
-    echo -n "$(_yellow '当前为停服操作，确认后按任意键继续\040')"
+    _info_msg "$(_yellow '当前为停服操作，确认后按任意键继续')"
     read -n 1 -s -r -p ""
     allserver_stop
 else
