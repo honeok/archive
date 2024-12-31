@@ -11,10 +11,12 @@ version='v0.0.4 (2025.01.01)'
 yellow='\033[93m'
 red='\033[31m'
 green='\033[92m'
+cyan='\033[96m'
 white='\033[0m'
 _yellow() { echo -e "${yellow}$*${white}"; }
 _red() { echo -e "${red}$*${white}"; }
 _green() { echo -e "${green}$*${white}"; }
+_cyan() { echo -e "${cyan}$*${white}"; }
 
 _info_msg() { echo -e "\033[48;5;220m\033[1m提示${white} $*"; }
 _err_msg() { echo -e "\033[41m\033[1m警告${white} $*"; }
@@ -23,7 +25,7 @@ _suc_msg() { echo -e "\033[42m\033[1m成功${white} $*"; }
 server_range=$(find /data/ -maxdepth 1 -type d -name "server*" | sed 's:.*/::' | grep -E '^server[0-9]+$' | sed 's/server//' | sort -n)
 
 clear
-_yellow "当前脚本版本: $version"
+_cyan "当前脚本版本: $version\n"
 
 # 操作系统和权限校验
 [ "$(id -ru)" -ne "0" ] && _err_msg "$(_red '需要root用户才能运行！')" && exit 1
@@ -33,7 +35,7 @@ os_info=$(grep ^ID= /etc/*release | awk -F'=' '{print $2}' | sed 's/"//g')
 allserver_stop() {
     cd /data/tool || { _err_msg "$(_red '/data/tool路径错误')" && exit 1; }
     if pgrep -f processcontrol-allserver.sh >/dev/null 2>&1; then
-        pkill -9 -f processcontrol-allserver.sh
+        pkill -9 -f processcontrol-allserver.sh 1>/dev/null
         [ -f "control.txt" ] && : > control.txt
         [ -f "dump.txt" ] && : > dump.txt
         _suc_msg "$(_green 'processcontrol进程已终止文件已清空')"
@@ -67,23 +69,22 @@ allserver_stop() {
     done
 
     wait # 等待并行任务
-
     _suc_msg "$(_green '所有game服务器已完成flush和stop操作')"
 }
 
 # 解析命令行参数
 if [ $# -eq 0 ]; then
-    _info_msg "$(_yellow '当前为停服操作，确认后按任意键继续')"
+    echo -n "$(_yellow '当前为停服操作，确认后按任意键继续\040')"
     read -n 1 -s -r -p ""
     allserver_stop
 else
     for arg in "$@"; do
         case $arg in
-            -y)
+            -y|y|-Y|Y)
                 allserver_stop
                 ;;
             *)
-                _err_msg "$(_red '无效参数！')"
+                _err_msg "$(_red '无效选项，请重新输入！')"
                 exit 1
                 ;;
         esac
