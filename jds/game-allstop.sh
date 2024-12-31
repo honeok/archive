@@ -26,9 +26,9 @@ clear
 _yellow "当前脚本版本: $version"
 
 # 操作系统和权限校验
+[ "$(id -ru)" -ne "0" ] && _err_msg "$(_red '需要root用户才能运行！')" && exit 1
 os_info=$(grep ^ID= /etc/*release | awk -F'=' '{print $2}' | sed 's/"//g')
 [[ "$os_info" != "debian" && "$os_info" != "ubuntu" && "$os_info" != "centos" && "$os_info" != "rhel" && "$os_info" != "rocky" && "$os_info" != "almalinux" ]] && exit 0
-[ "$(id -ru)" -ne "0" ] && _err_msg "$(_red '需要root用户才能运行！')" && exit 1
 
 cd /data/tool || { _err_msg "$(_red '/data/tool路径错误')" && exit 1; }
 if pgrep -f processcontrol-allserver.sh >/dev/null 2>&1; then
