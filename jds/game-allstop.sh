@@ -31,11 +31,11 @@ else
     _info_msg "$(_red 'processcontrol进程未运行无需终止')"
 fi
 
-cd /data/server/login || $(_err_msg "$(_red 'login服务器路径错误')" && exit 1)
+cd /data/server/login || { _err_msg "$(_red 'login服务器路径错误')" && exit 1; }
 ./server.sh stop
 _suc_msg "$(_green 'login服务器已停止')"
 
-cd /data/server/gate || $(_err_msg "$(_red 'gate服务器路径错误')" && exit 1)
+cd /data/server/gate || { _err_msg "$(_red 'gate服务器路径错误')" && exit 1; }
 ./server.sh stop
 sleep 60
 _suc_msg "$(_green 'gate服务器已停止')"
@@ -47,7 +47,7 @@ for server_num in $server_range; do
             exit 1 # 子进程中的退出，防止继续执行
         fi
 
-        cd "/data/server$server_num/game" 2>/dev/null || $(_err_msg "$(_red "server${server_num}路径错误")" && exit 1)
+        cd "/data/server$server_num/game" 2>/dev/null || { _err_msg "$(_red "server${server_num}路径错误")" && exit 1; }
 
         _yellow "正在处理server$server_num"
         ./server.sh flush
