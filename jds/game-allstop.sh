@@ -74,7 +74,7 @@ allserver_stop() {
 
 # 解析命令行参数
 if [ $# -eq 0 ]; then
-    _info_msg "$(_yellow '当前为停服操作，确认后按任意键继续')"
+    echo -n "$(_info_msg "$(_yellow '当前为停服操作，确认后按任意键继续\040')")"
     read -n 1 -s -r -p ""
     allserver_stop
 else
