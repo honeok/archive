@@ -3,8 +3,6 @@
 # Copyright (C) 2024 - 2025 honeok <honeok@duck.com>
 # https://www.honeok.com
 # https://github.com/honeok/cross/raw/master/bi.sh
-#
-# shellcheck disable=SC2317
 
 yellow='\033[1;33m'
 red='\033[1;31m'
@@ -125,9 +123,7 @@ install_conda() {
     aerich init -t aerich_env.TORTOISE_ORM
     aerich init-db
 
-    # 安装完成
-    _green "安装成功"
-    exit 0
+    _suc_msg "$(_green "安装成功")"
 }
 
 remove_condaenv_init() {
