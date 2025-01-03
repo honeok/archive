@@ -131,11 +131,11 @@ install_conda() {
 remove_condaenv_init() {
     grep -q '# >>> conda initialize >>>' ~/.bashrc && \
         sed -i '/# >>> conda initialize >>>/,/# <<< conda initialize <<<$/d' ~/.bashrc && \
-        _green "已删除.bashrc中的Conda初始化配置块"
+        _suc_msg "$(_green '已删除.bashrc中的Conda初始化配置块')"
 
     grep -q '# commented out by conda initialize' ~/.bashrc && \
         sed -i '/# commented out by conda initialize/d' ~/.bashrc && \
-        _green "已删除.bashrc中的Conda路径配置"
+        _suc_msg "$(_green '已删除.bashrc中的Conda路径配置')"
 }
 
 uninstall_conda() {
@@ -144,9 +144,9 @@ uninstall_conda() {
     # 删除Miniconda安装目录
     if [ -d "$conda_dir" ]; then
         _yellow "删除Miniconda安装目录$conda_dir"
-        rm -rf "$conda_dir" || { _red "删除Miniconda目录失败"; exit 1; }
+        rm -rf "$conda_dir" || { _err_msg "$(_red '删除Miniconda目录失败')"; exit 1; }
     else
-        _red "${install_dir}不存在，跳过删除"
+        _err_msg "$(_red "${conda_dir}不存在，跳过删除")"
     fi
 
     # 删除环境变量
@@ -168,19 +168,20 @@ uninstall_conda() {
 }
 
 clear
+
 if [ "$#" -eq 0 ]; then
     install_conda
     exit 0
-else
-    for arg in "$@"; do
-        case $arg in
-            -d|d|-D|D)
-                uninstall_conda
-                exit 0
-                ;;
-            *)
-                _err_msg "$(_red "无效选项, 当前参数${arg}不被支持！")"
-                ;;
-        esac
-    done
 fi
+
+for arg in "$@"; do
+    case $arg in
+        -d|d|-D|D)
+            uninstall_conda
+            exit 0
+            ;;
+        *)
+            _err_msg "$(_red "无效选项, 当前参数${arg}不被支持！")"
+            ;;
+    esac
+done
