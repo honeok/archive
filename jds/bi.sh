@@ -81,7 +81,7 @@ install_conda() {
         echo "export PATH=\"$install_dir/bin:\$PATH\"" >> ~/.bashrc
     fi
 
-    source ~/.bashrc
+    source "$HOME/.bashrc"
 
     # 验证Miniconda安装
     if ! conda --version >/dev/null 2>&1; then
@@ -89,7 +89,7 @@ install_conda() {
         # 删除安装目录和环境变量文件
         [ -d "$install_dir" ] && rm -rf "$install_dir"
         remove_condaenv_init
-        source ~/.bashrc
+        source "$HOME/.bashrc"
         exit 1
     fi
 
@@ -109,7 +109,7 @@ install_conda() {
         # 删除安装目录和环境变量文件
         [ -d "$install_dir" ] && rm -rf "$install_dir"
         remove_condaenv_init
-        source ~/.bashrc
+        source "$HOME/.bashrc"
         exit 1
     fi
 
