@@ -3,6 +3,8 @@
 # Copyright (C) 2024 - 2025 honeok <honeok@duck.com>
 # https://www.honeok.com
 # https://github.com/honeok/cross/raw/master/bi.sh
+#
+# shellcheck disable=SC2317
 
 yellow='\033[1;33m'
 red='\033[1;31m'
