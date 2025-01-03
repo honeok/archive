@@ -162,7 +162,6 @@ uninstall_conda() {
     fi
 
     _suc_msg "$(_green '卸载成功')"
-    exit 0
 }
 
 clear
