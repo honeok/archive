@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 #
+# Description: sets up the BI environment by installing Miniconda3 and other dependencies.
+#
 # Copyright (C) 2024 - 2025 honeok <honeok@duck.com>
 # https://www.honeok.com
 # https://github.com/honeok/cross/raw/master/bi.sh
@@ -18,9 +20,10 @@ _suc_msg() { echo -e "\033[42m\033[1m成功${white} $*"; }
 
 export DEBIAN_FRONTEND=noninteractive
 
-conda_dir='/data/conda3'
-conda_script='Miniconda3-py39_24.3.0-0-Linux-x86_64.sh'
-apiserver_dir='/data/bi/apiserver'
+conda_dir="/data/conda3"
+# conda_script="Miniconda3-py39_24.3.0-0-Linux-x86_64.sh"
+conda_script="Miniconda3-py39_24.3.0-0-$(uname -s)-$(uname -m).sh"
+apiserver_dir="/data/bi/apiserver"
 
 geo_check() {
     local country=""
@@ -39,7 +42,6 @@ geo_check() {
 
     if [ -z "$country" ]; then
         _err_msg "$(_red '无法获取服务器所在地区，请检查网络后重试！')"
-        end_message
         exit 1
     fi
 }
@@ -65,7 +67,7 @@ install_conda() {
     # 下载和安装Miniconda
     if [ ! -f "$conda_script" ]; then
         _yellow "下载Miniconda安装脚本"
-        curl -sL -O "$repo_url" || { _err_msg "$(_red '下载Miniconda安装脚本失败')"; exit 1; }
+        curl -L -O "$repo_url" || { _err_msg "$(_red '下载Miniconda安装脚本失败')"; exit 1; }
     fi
 
     _yellow "安装Miniconda到${conda_dir}"
@@ -74,9 +76,9 @@ install_conda() {
     [ -f "$conda_script" ] && rm -f "$conda_script"
 
     # 配置全局环境变量
-    if ! grep -q "$conda_dir/bin" ~/.bashrc; then
+    if ! grep -q "$conda_dir/bin" "$HOME/.bashrc"; then
         _yellow "正在配置全局环境变量"
-        echo "export PATH=\"$conda_dir/bin:\$PATH\"" >> ~/.bashrc
+        echo "export PATH=\"$conda_dir/bin:\$PATH\"" >> "$HOME/.bashrc"
     fi
 
     source "$HOME/.bashrc"
@@ -85,7 +87,7 @@ install_conda() {
     if ! conda --version >/dev/null 2>&1; then
         _err_msg "$(_red 'Conda安装错误')"
         # 删除安装目录和环境变量文件
-        [ -d "$conda_dir" ] && rm -rf "$conda_dir"
+        [ -d "$conda_dir" ] && rm -rf "$conda_dir" >/dev/null 2>&1
         remove_condaenv_init
         source "$HOME/.bashrc"
         exit 1
