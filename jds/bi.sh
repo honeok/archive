@@ -172,16 +172,16 @@ clear
 if [ "$#" -eq 0 ]; then
     install_conda
     exit 0
+else
+    for arg in "$@"; do
+        case $arg in
+            -d|d|-D|D)
+                uninstall_conda
+                exit 0
+                ;;
+            *)
+                _err_msg "$(_red "无效选项, 当前参数${arg}不被支持！")"
+                ;;
+        esac
+    done
 fi
-
-for arg in "$@"; do
-    case $arg in
-        -d|d|-D|D)
-            uninstall_conda
-            exit 0
-            ;;
-        *)
-            _err_msg "$(_red "无效选项, 当前参数${arg}不被支持！")"
-            ;;
-    esac
-done
