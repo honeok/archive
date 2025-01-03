@@ -4,6 +4,7 @@
 # https://www.honeok.com
 # https://github.com/honeok/cross/raw/master/bi.sh
 #
+# shellcheck disable=SC2317
 
 yellow='\033[1;33m'
 red='\033[1;31m'
@@ -115,7 +116,7 @@ install_conda() {
 
     _yellow "安装所需的Python包"
     cd "$apiserver_dir" || exit 1
-    python -m pip install -i "$pypi_url" --trusted-host $(echo $pypi_url | awk -F/ '{print $3}') -r requirements.txt || { _red "从requirements.txt安装包失败"; exit 1; }
+    python -m pip install -i "$pypi_url" --trusted-host "$(echo "$pypi_url" | awk -F/ '{print $3}')" -r requirements.txt || { _red "从requirements.txt安装包失败"; exit 1; }
 
     _yellow "初始化数据库"
     python manager.py initdb || { _red "初始化数据库失败"; exit 1; }
