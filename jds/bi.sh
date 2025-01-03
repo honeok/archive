@@ -3,8 +3,6 @@
 # Copyright (C) 2024 - 2025 honeok <honeok@duck.com>
 # https://www.honeok.com
 # https://github.com/honeok/cross/raw/master/bi.sh
-#
-# shellcheck disable=SC2317
 
 yellow='\033[1;33m'
 red='\033[1;31m'
@@ -15,13 +13,12 @@ _yellow() { echo -e "${yellow}$*${white}"; }
 _red() { echo -e "${red}$*${white}"; }
 _green() { echo -e "${green}$*${white}"; }
 
-_info_msg() { echo -e "\033[48;5;178m\033[1m\033[97m提示${white} $*"; }
 _err_msg() { echo -e "\033[41m\033[1m警告${white} $*"; }
 _suc_msg() { echo -e "\033[42m\033[1m成功${white} $*"; }
 
 export DEBIAN_FRONTEND=noninteractive
 
-install_dir='/data/conda3'
+conda_dir='/data/conda3'
 conda_script='Miniconda3-py39_24.3.0-0-Linux-x86_64.sh'
 apiserver_dir='/data/bi/apiserver'
 
@@ -67,48 +64,48 @@ install_conda() {
 
     # 下载和安装Miniconda
     if [ ! -f "$conda_script" ]; then
-        _yellow "下载Miniconda安装程序"
-        curl -sL -O "$repo_url" || { _red "下载安装程序失败"; exit 1; }
+        _yellow "下载Miniconda安装脚本"
+        curl -sL -O "$repo_url" || { _err_msg "$(_red '下载Miniconda安装脚本失败')"; exit 1; }
     fi
 
-    _yellow "安装Miniconda到$install_dir"
-    bash -bfp "$conda_script" "$install_dir" || { _red "Miniconda安装失败"; exit 1; }
+    _yellow "安装Miniconda到${conda_dir}"
+    bash -bfp "$conda_script" "$conda_dir" || { _err_msg "$(_red 'Miniconda安装失败')"; exit 1; }
 
     [ -f "$conda_script" ] && rm -f "$conda_script"
 
     # 配置全局环境变量
-    if ! grep -q "$install_dir/bin" ~/.bashrc; then
+    if ! grep -q "$conda_dir/bin" ~/.bashrc; then
         _yellow "正在配置全局环境变量"
-        echo "export PATH=\"$install_dir/bin:\$PATH\"" >> ~/.bashrc
+        echo "export PATH=\"$conda_dir/bin:\$PATH\"" >> ~/.bashrc
     fi
 
     source "$HOME/.bashrc"
 
     # 验证Miniconda安装
     if ! conda --version >/dev/null 2>&1; then
-        _red "Conda安装错误"
+        _err_msg "$(_red 'Conda安装错误')"
         # 删除安装目录和环境变量文件
-        [ -d "$install_dir" ] && rm -rf "$install_dir"
+        [ -d "$conda_dir" ] && rm -rf "$conda_dir"
         remove_condaenv_init
         source "$HOME/.bashrc"
         exit 1
     fi
 
     _yellow "更新Conda并安装Python3.9"
-    conda install -y python=3.9 || { _red "安装Python3.9失败"; exit 1; }
-    conda update -y conda || { _red "更新Conda失败"; exit 1; }
-    conda clean --all --yes || { _red "清理Conda缓存失败"; exit 1; }
+    conda install -y python=3.9 || { _err_msg "$(_red 'Conda安装Python3.9失败')"; exit 1; }
+    conda update -y conda || { _err_msg "$(_red '更新Conda失败')"; exit 1; }
+    conda clean --all --yes || { _err_msg "$(_red '清理Conda缓存失败')"; exit 1; }
 
-    _yellow "创建python39虚拟环境"
-    conda create -n py39 python=3.9 --yes || { _red "创建python39环境失败"; exit 1; }
-    source "${install_dir}/etc/profile.d/conda.sh" || { _red "加载Conda配置失败"; exit 1; }
-    conda init || { _red "初始化Conda失败"; exit 1; }
-    conda activate py39 || { _red "激活py39环境失败"; exit 1; }
+    _yellow "创建Python39虚拟环境"
+    conda create -n py39 python=3.9 --yes || { _err_msg "$(_red '创建Python39环境失败')"; exit 1; }
+    source "${conda_dir}/etc/profile.d/conda.sh" || { _err_msg "$(_red '加载Conda配置失败')"; exit 1; }
+    conda init || { _err_msg "$(_red '初始化Conda失败')"; exit 1; }
+    conda activate py39 || { _err_msg "$(_red '激活py39环境失败')"; exit 1; }
 
     if [ ! -d "$apiserver_dir" ]; then
-        _red "$apiserver_dir目录不存在请检查路径"
+        _err_msg "$(_red "${apiserver_dir}目录不存在请检查路径")"
         # 删除安装目录和环境变量文件
-        [ -d "$install_dir" ] && rm -rf "$install_dir"
+        [ -d "$conda_dir" ] && rm -rf "$conda_dir"
         remove_condaenv_init
         source "$HOME/.bashrc"
         exit 1
@@ -118,8 +115,10 @@ install_conda() {
     cd "$apiserver_dir" || exit 1
     python -m pip install -i "$pypi_url" --trusted-host "$(echo "$pypi_url" | awk -F/ '{print $3}')" -r requirements.txt || { _red "从requirements.txt安装包失败"; exit 1; }
 
+    [ -d "migrations/models" ] && rm -rf migrations/models
+
     _yellow "初始化数据库"
-    python manager.py initdb || { _red "初始化数据库失败"; exit 1; }
+    python manager.py initdb || { _err_msg "$(_red '初始化数据库失败')"; exit 1; }
 
     aerich init -t aerich_env.TORTOISE_ORM
     aerich init-db
@@ -143,11 +142,11 @@ uninstall_conda() {
     _yellow "卸载Miniconda和相关配置"
 
     # 删除Miniconda安装目录
-    if [ -d "$install_dir" ]; then
-        _yellow "删除Miniconda安装目录$install_dir"
-        rm -rf "$install_dir" || { _red "删除Miniconda目录失败"; exit 1; }
+    if [ -d "$conda_dir" ]; then
+        _yellow "删除Miniconda安装目录$conda_dir"
+        rm -rf "$conda_dir" || { _red "删除Miniconda目录失败"; exit 1; }
     else
-        _red "$install_dir不存在，跳过删除"
+        _red "${install_dir}不存在，跳过删除"
     fi
 
     # 删除环境变量
@@ -168,4 +167,20 @@ uninstall_conda() {
     exit 0
 }
 
-install_conda
+clear
+if [ "$#" -eq 0 ]; then
+    install_conda
+    exit 0
+else
+    for arg in "$@"; do
+        case $arg in
+            -d|d|-D|D)
+                uninstall_conda
+                exit 0
+                ;;
+            *)
+                _err_msg "$(_red "无效选项, 当前参数${arg}不被支持！")"
+                ;;
+        esac
+    done
+fi
