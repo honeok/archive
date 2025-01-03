@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 #
 # Description: h5 container rolling update.
+# System Required:  centos7+ rhel8+ rocky8+ alma8+
 #
 # Copyright (C) 2021 - 2022 nx-engine <yihao.he@nx-engine.com>
-#
-# Archived after updates on: 2024.12.25
-# Website: https://www.nx-engine.com
-#
+# https://www.nx-engine.com
 # https://github.com/honeok/archive/raw/master/nx-engine/aifengxing.sh
+#
+# Archived after Updates On: 2024.12.25
 
 set -e
 clear
