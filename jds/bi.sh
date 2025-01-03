@@ -114,7 +114,7 @@ install_conda() {
     fi
 
     _yellow "安装所需的Python包"
-    cd "$apiserver_dir"
+    cd "$apiserver_dir" || exit 1
     python -m pip install -i "$pypi_url" --trusted-host $(echo $pypi_url | awk -F/ '{print $3}') -r requirements.txt || { _red "从requirements.txt安装包失败"; exit 1; }
 
     _yellow "初始化数据库"
@@ -155,12 +155,15 @@ uninstall_conda() {
     # 检查并删除虚拟环境
     if conda info --envs | grep -q 'py39'; then
         _yellow "删除Conda虚拟环境py39"
-        conda remove -n py39 --all --yes || { _red "删除py3.9虚拟环境失败"; exit 1; }
+        if ! conda remove -n py39 --all --yes; then
+            _err_msg "$(_red '删除py3.9虚拟环境失败')"
+            exit 1
+        fi
     else
-        _red "未找到py39虚拟环境，本次跳过"
+        _err_msg "$(_red '未找到py39虚拟环境，本次跳过')"
     fi
 
-    _green "卸载成功"
+    _suc_msg "$(_green '卸载成功')"
     exit 0
 }
 
