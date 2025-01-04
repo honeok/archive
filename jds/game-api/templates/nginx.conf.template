@@ -16,20 +16,20 @@
 # See https://github.com/openresty/docker-openresty/blob/master/README.md#nginx-config-files
 #
 
-# user  nobody;
+#user  nobody;
 user nginx;
-# worker_processes 1;
+#worker_processes 1;
 worker_processes ${{NUM_WORKERS}};
 
 # Enables the use of JIT for regular expressions to speed-up their processing.
 pcre_jit on;
 
-# error_log  logs/error.log;
-# error_log  logs/error.log  notice;
-# error_log  logs/error.log  info;
-error_log  stderr          notice;
+#error_log  logs/error.log;
+#error_log  logs/error.log  notice;
+#error_log  logs/error.log  info;
+error_log  stderr  notice;
 
-# pid        logs/nginx.pid;
+#pid        logs/nginx.pid;
 pid        logs/nginx.pid;
 
 events {
@@ -49,30 +49,30 @@ http {
     #                  '"$http_user_agent" "$http_x_forwarded_for"';
     # access_log  logs/access.log  main;
 
-    # Log in JSON Format
-    # log_format nginxlog_json escape=json '{ "timestamp": "$time_iso8601", '
-    # '"remote_addr": "$remote_addr", '
-    #  '"body_bytes_sent": $body_bytes_sent, '
-    #  '"request_time": $request_time, '
-    #  '"response_status": $status, '
-    #  '"request": "$request", '
-    #  '"request_method": "$request_method", '
-    #  '"host": "$host",'
-    #  '"upstream_addr": "$upstream_addr",'
-    #  '"http_x_forwarded_for": "$http_x_forwarded_for",'
-    #  '"http_referrer": "$http_referer", '
-    #  '"http_user_agent": "$http_user_agent", '
-    #  '"http_version": "$server_protocol", '
-    #  '"nginx_access": true }';
-    # access_log /dev/stdout nginxlog_json;
+        # Log in JSON Format
+        # log_format nginxlog_json escape=json '{ "timestamp": "$time_iso8601", '
+        # '"remote_addr": "$remote_addr", '
+        #  '"body_bytes_sent": $body_bytes_sent, '
+        #  '"request_time": $request_time, '
+        #  '"response_status": $status, '
+        #  '"request": "$request", '
+        #  '"request_method": "$request_method", '
+        #  '"host": "$host",'
+        #  '"upstream_addr": "$upstream_addr",'
+        #  '"http_x_forwarded_for": "$http_x_forwarded_for",'
+        #  '"http_referrer": "$http_referer", '
+        #  '"http_user_agent": "$http_user_agent", '
+        #  '"http_version": "$server_protocol", '
+        #  '"nginx_access": true }';
+        # access_log /dev/stdout nginxlog_json;
 
     # See Move default writable paths to a dedicated directory (#119)
     # https://github.com/openresty/docker-openresty/issues/119
-    # client_body_temp_path /var/run/openresty/nginx-client-body;
-    # proxy_temp_path       /var/run/openresty/nginx-proxy;
-    # fastcgi_temp_path     /var/run/openresty/nginx-fastcgi;
-    # uwsgi_temp_path       /var/run/openresty/nginx-uwsgi;
-    # scgi_temp_path        /var/run/openresty/nginx-scgi;
+    #client_body_temp_path /var/run/openresty/nginx-client-body;
+    #proxy_temp_path       /var/run/openresty/nginx-proxy;
+    #fastcgi_temp_path     /var/run/openresty/nginx-fastcgi;
+    #uwsgi_temp_path       /var/run/openresty/nginx-uwsgi;
+    #scgi_temp_path        /var/run/openresty/nginx-scgi;
 
     client_body_temp_path temp/client-body;
     proxy_temp_path       temp/proxy;
@@ -92,12 +92,12 @@ http {
     }
 
     sendfile        on;
-    # tcp_nopush     on;
+    #tcp_nopush     on;
 
-    # keepalive_timeout  0;
+    #keepalive_timeout  0;
     keepalive_timeout  65;
 
-    # gzip  on;
+    #gzip  on;
 
     server {
         listen ${{PORT}};
