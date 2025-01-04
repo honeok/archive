@@ -1,11 +1,16 @@
 #!/bin/sh
 #
-# Copyright (C) 2025 honeok <honeok@duck.com>
+# Description: Configure dependencies for the gameapi Docker image.
 #
+# Copyright (C) 2025 honeok <honeok@duck.com>
+# https://www.honeok.com
+# https://github.com/honeok/archive/raw/master/jds/game-api/build_dep.sh
 
 geo_check() {
-    local country=""
-    local cloudflare_api ipinfo_api ipsb_api
+    country=""
+    cloudflare_api=""
+    ipinfo_api=""
+    ipsb_api=""
 
     cloudflare_api=$(curl -A "Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101 Firefox/81.0" -m 10 -s "https://dash.cloudflare.com/cdn-cgi/trace" | sed -n 's/.*loc=\([^ ]*\).*/\1/p')
     ipinfo_api=$(curl -fsL --connect-timeout 5 https://ipinfo.io/country)
@@ -37,7 +42,7 @@ repo_check() {
         exit 1
     fi
 
-    if [[ "$country" == "CN" ]]; then
+    if [ "$country" = "CN" ]; then
         sed -i "s|dl-cdn.alpinelinux.org|mirrors.aliyun.com|g" /etc/apk/repositories
     fi
 }
