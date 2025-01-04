@@ -88,7 +88,7 @@ install_conda() {
         _err_msg "$(_red 'Conda安装错误')"
         # 删除安装目录和环境变量文件
         [ -d "$conda_dir" ] && rm -rf "$conda_dir" >/dev/null 2>&1
-        remove_condaenv_init
+        remove_condaenv
         source "$HOME/.bashrc"
         exit 1
     fi
@@ -108,7 +108,7 @@ install_conda() {
         _err_msg "$(_red "${apiserver_dir}目录不存在请检查路径")"
         # 删除安装目录和环境变量文件
         [ -d "$conda_dir" ] && rm -rf "$conda_dir"
-        remove_condaenv_init
+        remove_condaenv
         source "$HOME/.bashrc"
         exit 1
     fi
@@ -128,7 +128,7 @@ install_conda() {
     _suc_msg "$(_green "安装成功")"
 }
 
-remove_condaenv_init() {
+remove_condaenv() {
     grep -q '# >>> conda initialize >>>' ~/.bashrc && \
         sed -i '/# >>> conda initialize >>>/,/# <<< conda initialize <<<$/d' ~/.bashrc && \
         _suc_msg "$(_green '已删除.bashrc中的Conda初始化配置块')"
@@ -150,7 +150,7 @@ uninstall_conda() {
     fi
 
     # 删除环境变量
-    remove_condaenv_init
+    remove_condaenv
 
     # 检查并删除虚拟环境
     if conda info --envs | grep -q 'py39'; then
