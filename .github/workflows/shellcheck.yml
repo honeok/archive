@@ -1,4 +1,4 @@
-name: masterCI
+name: CI
 
 on:
   push:
@@ -40,5 +40,4 @@ jobs:
           repository: ${{ github.repository }}
           retain_days: 0
           keep_minimum_runs: 0
-          delete_workflow_pattern: "masterCI"
           delete_run_by_conclusion_pattern: "cancelled, skipped, success"
