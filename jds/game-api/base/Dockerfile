@@ -50,7 +50,9 @@ RUN chmod +x /app/build_dep.sh && sh /app/build_dep.sh && rm -rf /app && \
     apk add --no-cache bash curl && \
     rm -rf /var/cache/apk/* && \
     addgroup -g 101 -S nginx && \
-    adduser -S -D -H -u 101 -h /var/cache/nginx -s /sbin/nologin -G nginx -g nginx nginx
+    adduser -S -D -H -u 101 -h /var/cache/nginx -s /sbin/nologin -G nginx -g nginx nginx && \
+    (getent group www-data || addgroup -g 82 -S www-data) && \
+    adduser -S -D -H -u 82 -h /var/www -s /usr/sbin/nologin -G www-data -g www-data www-data
 
 ENV PATH="/usr/local/openresty/luajit/bin:/usr/local/openresty/nginx/sbin:/usr/local/openresty/bin:${PATH}"
 ENV LUA_PATH="/usr/local/openresty/lualib/?.lua;/usr/local/openresty/luajit/share/lua/5.1/?.lua;;"
