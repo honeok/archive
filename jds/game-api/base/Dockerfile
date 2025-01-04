@@ -15,7 +15,7 @@ COPY . .
 
 RUN apk update && \
     chmod +x build_dep.sh && sh build_dep.sh && \
-    apk add --no-cache gcc g++ make pcre-dev zlib-dev openssl-dev wget bash tar libtool automake && \
+    apk add --no-cache gcc g++ make pcre-dev zlib-dev openssl-dev wget bash tar git libtool automake && \
     rm -rf /var/cache/apk/*
 
 RUN curl -L https://luarocks.org/releases/luarocks-3.9.2.tar.gz -o /tmp/luarocks-3.9.2.tar.gz && \
