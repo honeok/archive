@@ -13,8 +13,8 @@ WORKDIR /app
 
 COPY . .
 
-RUN apk update && \
-    chmod +x build_dep.sh && sh build_dep.sh && \
+RUN chmod +x build_dep.sh && sh build_dep.sh && \
+    apk update && \
     apk add --no-cache gcc g++ make pcre-dev zlib-dev openssl-dev wget bash tar git libtool automake && \
     rm -rf /var/cache/apk/*
 
