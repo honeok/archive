@@ -1,21 +1,21 @@
-# Dockerfile for openresty based alpine
-#
+# Dockerfile from gameapi basic environment based on alpine
 # Copyright (C) 2025 honeok <honeok@duck.com>
 #
 # Reference:
 # https://openresty.org/cn/linux-packages.html
+# https://github.com/luarocks/luarocks/wiki/Download
 
 FROM openresty/openresty:1.27.1.1-alpine AS build
 
 LABEL maintainer="honeok <honeok@duck.com>"
 
-WORKDIR /root
+WORKDIR /app
 
 COPY . .
 
 RUN apk update && \
-    chmod +x /root/build_dep.sh && sh build_dep.sh && \
-    apk add --no-cache gcc g++ make pcre-dev zlib-dev openssl-dev perl git wget unzip bash curl tar libtool automake && \
+    chmod +x build_dep.sh && sh build_dep.sh && \
+    apk add --no-cache gcc g++ make pcre-dev zlib-dev openssl-dev wget bash curl tar libtool automake && \
     rm -rf /var/cache/apk/*
 
 RUN curl -L https://luarocks.org/releases/luarocks-3.9.2.tar.gz -o /tmp/luarocks-3.9.2.tar.gz && \
