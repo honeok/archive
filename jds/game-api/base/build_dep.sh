@@ -1,10 +1,16 @@
 #!/bin/sh
 #
 # Description: Configure dependencies for the gameapi Docker image.
+# System Required: alpine3.19+
 #
 # Copyright (C) 2025 honeok <honeok@duck.com>
 # https://www.honeok.com
 # https://github.com/honeok/archive/raw/master/jds/game-api/base/build_dep.sh
+
+set -x
+
+os_name=$(grep ^ID= /etc/*release | awk -F'=' '{print $2}' | sed 's/"//g')
+[ "$os_name" != "alpine" ] && echo "This script is only for Alpine Linux." && exit 1
 
 geo_check() {
     country=""
@@ -32,17 +38,16 @@ cmd_check() {
 }
 
 repo_check() {
-    geo_check
-
     if [ ! -f "/etc/apk/repositories" ]; then
-        echo "repositories file not found!"
-        exit 1
+        echo "repositories file not found!" && exit 1
     fi
 
     if [ "$country" = "CN" ]; then
-        sed -i "s|dl-cdn.alpinelinux.org|mirrors.aliyun.com|g" /etc/apk/repositories
+        # s#old#new#g
+        sed -i "s#dl-cdn.alpinelinux.org#mirrors.aliyun.com#g" /etc/apk/repositories
     fi
 }
 
+geo_check
 cmd_check
 repo_check
