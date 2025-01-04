@@ -8,9 +8,6 @@
 
 geo_check() {
     country=""
-    cloudflare_api=""
-    ipinfo_api=""
-    ipsb_api=""
 
     cloudflare_api=$(curl -A "Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101 Firefox/81.0" -m 10 -s "https://dash.cloudflare.com/cdn-cgi/trace" | sed -n 's/.*loc=\([^ ]*\).*/\1/p')
     ipinfo_api=$(curl -fsL --connect-timeout 5 https://ipinfo.io/country)
