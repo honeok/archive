@@ -7,10 +7,19 @@
 # https://www.honeok.com
 # https://github.com/honeok/archive/raw/master/jds/game-api/base/build_dep.sh
 
-set -x
+set \
+    -o errexit \
+    -o nounset \
+    -o xtrace
 
 os_name=$(grep ^ID= /etc/*release | awk -F'=' '{print $2}' | sed 's/"//g')
 [ "$os_name" != "alpine" ] && echo "This script is only for Alpine Linux." && exit 1
+
+cmd_check() {
+    if ! command -v curl >/dev/null; then
+        apk update && apk add curl
+    fi
+}
 
 geo_check() {
     country=""
@@ -31,12 +40,6 @@ geo_check() {
     fi
 }
 
-cmd_check() {
-    if ! command -v curl >/dev/null; then
-        apk update && apk add curl
-    fi
-}
-
 repo_check() {
     if [ ! -f "/etc/apk/repositories" ]; then
         echo "repositories file not found!" && exit 1
@@ -48,6 +51,6 @@ repo_check() {
     fi
 }
 
-geo_check
 cmd_check
+geo_check
 repo_check

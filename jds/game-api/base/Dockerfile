@@ -25,7 +25,7 @@ RUN curl -L https://luarocks.org/releases/luarocks-3.9.2.tar.gz -o /tmp/luarocks
         --with-lua=/usr/local/openresty/luajit \
         --lua-suffix=jit \
         --with-lua-include=/usr/local/openresty/luajit/include/luajit-2.1 && \
-    make && make install && \
+    make -j$(nproc) && make install && \
     rm -rf /tmp/luarocks*
 
 RUN /usr/local/openresty/luajit/bin/luarocks install lpeg && \
@@ -42,7 +42,6 @@ FROM openresty/openresty:1.27.1.1-alpine
 LABEL maintainer="honeok <honeok@duck.com>"
 
 COPY --from=build /usr/local/openresty /usr/local/openresty
-COPY --from=build /etc/apk/keys /etc/apk/keys
 COPY --from=build /app/build_dep.sh /app/build_dep.sh
 
 RUN chmod +x /app/build_dep.sh && sh /app/build_dep.sh && rm -rf /app && \
