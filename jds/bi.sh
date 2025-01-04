@@ -4,13 +4,12 @@
 #
 # Copyright (C) 2024 - 2025 honeok <honeok@duck.com>
 # https://www.honeok.com
-# https://github.com/honeok/cross/raw/master/bi.sh
+# https://github.com/honeok/archive/raw/master/jds/bi.sh
 
 yellow='\033[1;33m'
 red='\033[1;31m'
 green='\033[1;32m'
 white='\033[0m'
-
 _yellow() { echo -e "${yellow}$*${white}"; }
 _red() { echo -e "${red}$*${white}"; }
 _green() { echo -e "${green}$*${white}"; }
