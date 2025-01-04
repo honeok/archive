@@ -29,8 +29,8 @@ _cyan "当前脚本版本: $version\n"
 
 # 操作系统和权限校验
 [ "$(id -ru)" -ne "0" ] && _err_msg "$(_red '需要root用户才能运行！')" && exit 1
-os_info=$(grep ^ID= /etc/*release | awk -F'=' '{print $2}' | sed 's/"//g')
-[[ "$os_info" != "debian" && "$os_info" != "ubuntu" && "$os_info" != "centos" && "$os_info" != "rhel" && "$os_info" != "rocky" && "$os_info" != "almalinux" ]] && { _err_msg "$(_red '当前操作系统不被支持！')" && exit 0 ;}
+os_name=$(grep ^ID= /etc/*release | awk -F'=' '{print $2}' | sed 's/"//g')
+[[ "$os_name" != "debian" && "$os_name" != "ubuntu" && "$os_name" != "centos" && "$os_name" != "rhel" && "$os_name" != "rocky" && "$os_name" != "almalinux" ]] && { _err_msg "$(_red '当前操作系统不被支持！')" && exit 0 ;}
 
 allserver_stop() {
     cd /data/tool || { _err_msg "$(_red '/data/tool路径错误')" && exit 1; }
