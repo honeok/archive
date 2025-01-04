@@ -4,7 +4,7 @@
 #
 # Copyright (C) 2025 honeok <honeok@duck.com>
 # https://www.honeok.com
-# https://github.com/honeok/archive/raw/master/jds/game-api/baseimage/build_dep.sh
+# https://github.com/honeok/archive/raw/master/jds/game-api/base/build_dep.sh
 
 geo_check() {
     country=""
