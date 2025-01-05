@@ -9,7 +9,6 @@ LABEL maintainer="honeok <honeok@duck.com>"
 WORKDIR /
 
 COPY bserver bserver
-
 COPY App.json.template /bserver/config/App.json.template
 
 RUN dnf -y update && \
