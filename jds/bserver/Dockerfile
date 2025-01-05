@@ -8,20 +8,16 @@ LABEL maintainer="honeok <honeok@duck.com>"
 
 WORKDIR /
 
-COPY bserver bserver
-COPY App.json.template /bserver/config/App.json.template
+COPY . .
 
-RUN dnf -y update && \
-    dnf -y install gettext procps && \
-    dnf clean all && \
-    chmod +x /bserver/bserver
+RUN chmod +x build_dep.sh && ./build_dep.sh build
 
 ENV SERVER_PORT="18081"
 ENV ASSERT_PATH="/bserver/config/luban/"
 
-RUN envsubst < /bserver/config/App.json.template > /bserver/config/App.json && \
-    rm -f /bserver/config/App.json.template
+RUN envsubst < App.json.template > /bserver/config/App.json && \
+    ./build_dep.sh clean && rm -f build_dep.sh
 
-EXPOSE ${BSERVER_PORT}
+EXPOSE ${SERVER_PORT}
 
 CMD ["/bserver/bserver"]
