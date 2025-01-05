@@ -6,6 +6,8 @@
 # Copyright (C) 2025 honeok <honeok@duck.com>
 # https://www.honeok.com
 # https://github.com/honeok/archive/raw/master/jds/bserver/build_dep.sh
+#
+# shellcheck disable=SC3030,SC3054
 
 set \
     -o errexit \
