@@ -1,26 +1,28 @@
 # Dockerfile from bserver containerization construction
 # Copyright (C) 2025 honeok <honeok@duck.com>
 
-FROM rockylinux:9.3
+ARG VERSION=9.3
+FROM rockylinux:$VERSION
 
 LABEL maintainer="honeok <honeok@duck.com>"
 
-WORKDIR /data
+WORKDIR /
 
 COPY bserver bserver
 
-COPY App.json.template /data/bserver/config/App.json.template
+COPY App.json.template /bserver/config/App.json.template
 
 RUN dnf -y update && \
-    dnf -y install gettext && \
+    dnf -y install gettext procps && \
     dnf clean all && \
-    chmod +x /data/bserver/bserver
+    chmod +x /bserver/bserver
 
-ENV ASSERT_PATH="/data/bserver/config/luban/"
+ENV BSERVER_PORT="18081"
+ENV ASSERT_PATH="/bserver/config/luban/"
 
-RUN envsubst < /data/bserver/config/App.json.template > /data/bserver/config/App.json && \
-    rm -f /data/bserver/config/App.json.template
+RUN envsubst < /bserver/config/App.json.template > /bserver/config/App.json && \
+    rm -f /bserver/config/App.json.template
 
-EXPOSE 18081
+EXPOSE ${BSERVER_PORT}
 
-CMD ["/data/bserver/bserver"]
+CMD ["/bserver/bserver"]

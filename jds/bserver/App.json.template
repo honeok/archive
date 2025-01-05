@@ -1,4 +1,4 @@
 {
-  "url": "http://+:18081/",
+  "url": "http://+:${BSERVER_PORT}/",
   "assert_path": "${ASSERT_PATH}"
 }
