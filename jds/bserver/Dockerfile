@@ -7,7 +7,7 @@ LABEL maintainer="honeok <honeok@duck.com>"
 
 WORKDIR /
 
-COPY bserver .
+COPY bserver /bserver
 
 COPY App.json.template /bserver/config/App.json.template
 
@@ -22,4 +22,4 @@ RUN envsubst < /bserver/config/App.json.template > /bserver/config/App.json
 
 EXPOSE 18081
 
-CMD [ "/bserver/bserver" ]
+CMD ["/bserver/bserver"]
