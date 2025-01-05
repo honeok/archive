@@ -53,11 +53,11 @@ repo_check() {
 }
 
 cmd_check() {
-    commands="gettext procps"
+    commands=( gettext procps )
 
     dnf -y update
 
-    for cmd in $commands; do
+    for cmd in "${commands[@]}"; do
         if ! command -v "$cmd" >/dev/null 2>&1; then
             dnf -y install "$cmd"
         fi
