@@ -1,7 +1,7 @@
 # Dockerfile from bserver containerization construction
 # Copyright (C) 2025 honeok <honeok@duck.com>
 
-ARG ROCKY_VERSION=9.3
+ARG ROCKY_VERSION=9.5
 FROM rockylinux:${ROCKY_VERSION}
 
 LABEL maintainer="honeok <honeok@duck.com>"
