@@ -1,8 +1,8 @@
 # Dockerfile from bserver containerization construction
 # Copyright (C) 2025 honeok <honeok@duck.com>
 
-ARG VERSION=9.3
-FROM rockylinux:$VERSION
+ARG ROCKY_VERSION=9.3
+FROM rockylinux:${ROCKY_VERSION}
 
 LABEL maintainer="honeok <honeok@duck.com>"
 
@@ -16,7 +16,7 @@ RUN dnf -y update && \
     dnf clean all && \
     chmod +x /bserver/bserver
 
-ENV BSERVER_PORT="18081"
+ENV SERVER_PORT="18081"
 ENV ASSERT_PATH="/bserver/config/luban/"
 
 RUN envsubst < /bserver/config/App.json.template > /bserver/config/App.json && \
