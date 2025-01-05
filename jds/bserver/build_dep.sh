@@ -45,19 +45,19 @@ repo_check() {
 
     if [ "$country" = "CN" ]; then
         #s#old#new#g
-        sed -e 's|^mirrorlist=|#mirrorlist=|g' \
-            -e 's|^#baseurl=http://dl.rockylinux.org/$contentdir|baseurl=https://mirrors.aliyun.com/rockylinux|g' \
+        sed -e "s|^mirrorlist=|#mirrorlist=|g" \
+            -e "s|^#baseurl=http://dl.rockylinux.org/\$contentdir|baseurl=https://mirrors.aliyun.com/rockylinux|g" \
             -i.bak \
             /etc/yum.repos.d/[Rr]ocky*.repo
     fi
 }
 
 cmd_check() {
-    local commands=( gettext procps )
+    commands="gettext procps"
 
     dnf -y update
 
-    for cmd in "${commands[@]}"; do
+    for cmd in $commands; do
         if ! command -v "$cmd" >/dev/null 2>&1; then
             dnf -y install "$cmd"
         fi
