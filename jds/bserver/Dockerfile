@@ -20,4 +20,6 @@ RUN envsubst < App.json.template > /bserver/config/App.json && \
 
 EXPOSE ${SERVER_PORT}
 
+ENTRYPOINT ["entrypoint.sh"]
+
 CMD ["/bserver/bserver"]

@@ -70,21 +70,55 @@ run_check() {
     if [ ! -x "/bserver/bserver" ]; then
         chmod +x /bserver/bserver
     fi
+
+    if [ -e "docker-entrypoint.sh" ]; then
+        if [ ! -x "docker-entrypoint.sh" ]; then
+            install -m 755 docker-entrypoint.sh /usr/local/bin/entrypoint.sh
+        fi
+        ln -sf /usr/local/bin/entrypoint.sh entrypoint.sh
+    else
+        echo "entrypoint.sh file not found!" && exit 1
+    fi
 }
 
 last_clean() {
     if [ -e "App.json.template" ]; then
-        rm -f App.json.template
+        rm -f App.json.template >/dev/null 2>&1
     fi
 
     if [ -e "Dockerfile" ]; then
-        rm -f Dockerfile
+        rm -f Dockerfile >/dev/null 2>&1
+    fi
+
+    if [ -e "docker-entrypoint.sh" ]; then
+        rm -f docker-entrypoint.sh >/dev/null 2>&1
+    fi
+
+    if [ -e "build.sh" ]; then
+        rm -f build.sh >/dev/null 2>&1
     fi
 
     if command -v gettext >/dev/null 2>&1; then
         dnf remove -y gettext
     fi
+
     dnf clean all && rm -rf /var/cache/dnf/*
+}
+
+pre_check() {
+    rm -rf /opt/bserver >/dev/null 2>&1 && mkdir -p /opt/bserver/config/luban >/dev/null 2>&1 && mkdir -p /opt/bserver/BattleSimulator >/dev/null 2>&1
+
+    if [ -d "/bserver/config/luban" ]; then
+        mv /bserver/config/luban/* /opt/bserver/config/luban/
+    else
+        echo "config directory not found!" && exit 1
+    fi
+
+    if [ -d "/bserver/BattleSimulator" ]; then
+        mv /bserver/BattleSimulator/* /opt/bserver/BattleSimulator/
+    else
+        echo "log directory not found!" && exit 1
+    fi
 }
 
 case "$1" in
@@ -96,6 +130,7 @@ case "$1" in
         ;;
     clean)
         last_clean
+        pre_check
         ;;
     *)
         echo "Usage: $0 {check|clean}"
