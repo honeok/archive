@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 # Description: Configure dependencies for the gm-server Docker image.
-# System Required: rocky8+
+# System Required: alpine3.18+
 #
 # Copyright (C) 2025 honeok <honeok@duck.com>
 # https://www.honeok.com
