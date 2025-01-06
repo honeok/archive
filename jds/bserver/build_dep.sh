@@ -109,13 +109,13 @@ pre_check() {
     rm -rf /opt/bserver >/dev/null 2>&1 && mkdir -p /opt/bserver/config/luban >/dev/null 2>&1 && mkdir -p /opt/bserver/BattleSimulator >/dev/null 2>&1
 
     if [ -d "/bserver/config/luban" ]; then
-        mv /bserver/config/luban/* /opt/bserver/config/luban/
+        \cp -rf /bserver/config/luban/* /opt/bserver/config/luban/
     else
         echo "config directory not found!" && exit 1
     fi
 
     if [ -d "/bserver/BattleSimulator" ]; then
-        mv /bserver/BattleSimulator/* /opt/bserver/BattleSimulator/
+        \cp -rf /bserver/BattleSimulator/* /opt/bserver/BattleSimulator/
     else
         echo "log directory not found!" && exit 1
     fi
