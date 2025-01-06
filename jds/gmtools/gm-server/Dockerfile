@@ -1,5 +1,7 @@
 # Dockerfile from gm-server containerization construction
 # Copyright (C) 2025 honeok <honeok@duck.com>
+#
+# https://www.honeok.com
 
 ARG NODE_VERSION=16.20.2
 

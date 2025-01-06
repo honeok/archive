@@ -69,17 +69,13 @@ repo_check() {
     fi
 }
 
-dir_check() {
+pre_check() {
     if [ -d "gm-server" ]; then
         cd gm-server || exit 1
     fi
-    if [ -d "node_modules" ]; then
-        rm -rf node_modules >/dev/null 2>&1
+    if [ ! -d "node_modules" ]; then
+        npm install
     fi
-}
-
-pre_build() {
-    npm install
 }
 
 case "$1" in
@@ -89,7 +85,6 @@ case "$1" in
         date_check
         repo_check
         dir_check
-        pre_build
         ;;
     *)
         echo "Usage: $0 build"
