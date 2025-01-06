@@ -13,10 +13,6 @@ on:
       - '**/*.sh'
   workflow_dispatch:
 
-permissions:
-  contents: write
-  actions: write
-
 jobs:
   shellcheck:
     name: Shellcheck
