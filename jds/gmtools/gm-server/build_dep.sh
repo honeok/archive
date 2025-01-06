@@ -84,7 +84,7 @@ case "$1" in
         cmd_check
         date_check
         repo_check
-        dir_check
+        pre_check
         ;;
     *)
         echo "Usage: $0 build"
