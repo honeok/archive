@@ -82,21 +82,11 @@ run_check() {
 }
 
 last_clean() {
-    if [ -e "App.json.template" ]; then
-        rm -f App.json.template >/dev/null 2>&1
-    fi
+    files=("App.json.template" "Dockerfile" "docker-entrypoint.sh" "build.sh")
 
-    if [ -e "Dockerfile" ]; then
-        rm -f Dockerfile >/dev/null 2>&1
-    fi
-
-    if [ -e "docker-entrypoint.sh" ]; then
-        rm -f docker-entrypoint.sh >/dev/null 2>&1
-    fi
-
-    if [ -e "build.sh" ]; then
-        rm -f build.sh >/dev/null 2>&1
-    fi
+    for file in "${files[@]}"; do
+        [ -e "$file" ] && rm -f "$file" >/dev/null 2>&1
+    done
 
     if command -v gettext >/dev/null 2>&1; then
         dnf remove -y gettext
@@ -106,7 +96,7 @@ last_clean() {
 }
 
 pre_check() {
-    rm -rf /opt/bserver >/dev/null 2>&1 && mkdir -p /opt/bserver/config/luban >/dev/null 2>&1 && mkdir -p /opt/bserver/BattleSimulator >/dev/null 2>&1
+    rm -rf /opt/bserver >/dev/null 2>&1 && mkdir -p /opt/bserver/config/luban >/dev/null 2>&1
 
     if [ -d "/bserver/config/luban" ]; then
         \cp -rf /bserver/config/luban/* /opt/bserver/config/luban/
@@ -114,15 +104,15 @@ pre_check() {
         echo "config directory not found!" && exit 1
     fi
 
-    if [ -d "/bserver/BattleSimulator" ]; then
-        \cp -rf /bserver/BattleSimulator/* /opt/bserver/BattleSimulator/
+    if [ -d "/bserver/BattleSimulator" ] && [ -n "$(ls -A "/bserver/BattleSimulator")" ]; then
+        rm -rf /bserver/BattleSimulator/*
     else
-        echo "log directory not found!" && exit 1
+        echo "log directory not found or is empty!" && exit 1
     fi
 }
 
 case "$1" in
-    check)
+    build)
         geo_check
         repo_check
         cmd_check
