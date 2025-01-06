@@ -88,7 +88,7 @@ last_clean() {
 }
 
 case "$1" in
-    build)
+    check)
         geo_check
         repo_check
         cmd_check
@@ -98,7 +98,7 @@ case "$1" in
         last_clean
         ;;
     *)
-        echo "Usage: $0 {build|clean}"
+        echo "Usage: $0 {check|clean}"
         exit 1
         ;;
 esac

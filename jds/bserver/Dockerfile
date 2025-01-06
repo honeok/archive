@@ -10,7 +10,7 @@ WORKDIR /
 
 COPY . .
 
-RUN chmod +x build_dep.sh && ./build_dep.sh build
+RUN chmod +x build_dep.sh && ./build_dep.sh check
 
 ENV SERVER_PORT="8080"
 ENV TZ=Asia/Shanghai
