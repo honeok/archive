@@ -4,8 +4,11 @@
 #
 # Copyright (C) 2025 honeok <honeok@duck.com>
 # https://www.honeok.com
-# https://github.com/honeok/archive/raw/master/s2i.sh
 #
+# The name was inspired by ChatGPT.
+# Special thanks zhenqiang.Zhang for guidance and support.
+# https://github.com/honeok/archive/raw/master/srcim.sh
+
 # shellcheck disable=all
 
 set \
