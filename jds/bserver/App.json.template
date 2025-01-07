@@ -1,0 +1,4 @@
+{
+  "url": "http://+:${SERVER_PORT}/",
+  "assert_path": "/bserver/config/luban/"
+}
