@@ -44,11 +44,11 @@ fi
 
 if [[ $# -lt 1 ]]; then
     cat <<EOF
-    usage:
-    build for Java|Nodejs| ... source
+Usage:
+    build for Java|Nodejs| ... Source
 
-    $(realpath $0)   /home/user/project
-
+Example:
+    $(realpath $0) /home/user/project
 EOF
     exit 1
 fi
