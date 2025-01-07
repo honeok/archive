@@ -13,6 +13,9 @@ WORKDIR /
 
 COPY . .
 
-RUN chmod +x build_dep.sh && ./build_dep.sh build
+RUN chmod +x build_dep.sh && ./build_dep.sh build && \
+    ./build_dep.sh clean && rm -f build_dep.sh
+
+ENTRYPOINT ["entrypoint.sh"]
 
 CMD ["npm", "--prefix", "gm-server/", "run", "dev"]

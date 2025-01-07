@@ -51,7 +51,7 @@ repo_check() {
 }
 
 cmd_check() {
-    commands="tar wget tzdata ca-certificates"
+    commands="tar wget tzdata ca-certificates gettext"
 
     apk update
 
@@ -63,10 +63,8 @@ cmd_check() {
 }
 
 date_check() {
-    if [ "$country" = "CN" ]; then
-        ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
-        echo "Asia/Shanghai" > /etc/timezone
-    fi
+    ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+    echo "Asia/Shanghai" > /etc/timezone
 }
 
 pre_check() {
@@ -79,6 +77,38 @@ pre_check() {
     if [ ! -d "node_modules" ]; then
         npm install
     fi
+
+    if [ -f "/docker-entrypoint.sh" ]; then
+        if [ ! -x "/docker-entrypoint.sh" ]; then
+            install -m 755 /docker-entrypoint.sh /usr/local/bin/entrypoint.sh
+        fi
+        ln -sf /usr/local/bin/entrypoint.sh entrypoint.sh
+    else
+        echo "Error: docker-entrypoint.sh file not found!" >&2
+        exit 1
+    fi
+}
+
+dir_check() {
+    if [ -d "/opt/template" ]; then
+        rm -rf /opt/template >/dev/null 2>&1
+        mkdir -p /opt/template >/dev/null 2>&1
+    else
+        mkdir -p /opt/template >/dev/null 2>&1
+    fi
+
+    if [ -d "/gm-server/logs" ] && [ -n "$(ls -A /gm-server/logs 2>/dev/null)" ]; then
+        rm -rf /gm-server/logs/* >/dev/null 2>&1
+    fi
+}
+
+last_clean() {
+    apk del ca-certificates
+    rm -rf /var/cache/apk/*
+
+    if [ -f "docker-entrypoint.sh" ]; then
+        rm -f docker-entrypoint.sh >/dev/null 2>&1
+    fi
 }
 
 case "$1" in
@@ -88,6 +118,10 @@ case "$1" in
         cmd_check
         date_check
         pre_check
+        dir_check
+        ;;
+    clean)
+        last_clean
         ;;
     *)
         echo "Usage: $0 build"

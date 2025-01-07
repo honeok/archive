@@ -31,7 +31,7 @@ module.exports = {
         port: 3306
     },
     gmgame: {
-        host: '${GMGAME_HOST}',
-        port: '${GMGAME_PORT}'
+        host: '0.0.0.0',
+        port: '6090'
     }
 }
