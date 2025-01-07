@@ -2,12 +2,12 @@
 #
 # Description: Build Docker image and automatically push it to a container registry.
 #
-# Copyright (C) 2025 honeok <honeok@duck.com>
+# Copyright (C) 2021 - 2025 honeok <honeok@duck.com>
 # https://www.honeok.com
+# https://github.com/honeok/archive/raw/master/srcim.sh
 #
 # The name was inspired by ChatGPT.
-# Special thanks zhenqiang.Zhang for guidance and support.
-# https://github.com/honeok/archive/raw/master/srcim.sh
+# Special thanks to my mentor Zhenqiang Zhang for guidance and support.
 
 # shellcheck disable=all
 
