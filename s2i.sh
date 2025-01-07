@@ -4,7 +4,7 @@
 #
 # Copyright (C) 2025 honeok <honeok@duck.com>
 # https://www.honeok.com
-# https://github.com/honeok/archive/raw/master/build.sh
+# https://github.com/honeok/archive/raw/master/s2i.sh
 
 set \
     -o errexit
