@@ -38,6 +38,18 @@ geo_check() {
     fi
 }
 
+repo_check() {
+    if [ ! -f "/etc/apk/repositories" ]; then
+        echo "repositories file not found!" && exit 1
+    fi
+
+    if [ "$country" = "CN" ]; then
+        #s#old#new#g
+        sed -i "s@dl-cdn.alpinelinux.org@mirrors.aliyun.com@g" /etc/apk/repositories
+        npm config set registry https://r.cnpmjs.org
+    fi
+}
+
 cmd_check() {
     commands="tar wget tzdata ca-certificates"
 
@@ -57,21 +69,12 @@ date_check() {
     fi
 }
 
-repo_check() {
-    if [ ! -f "/etc/apk/repositories" ]; then
-        echo "repositories file not found!" && exit 1
-    fi
-
-    if [ "$country" = "CN" ]; then
-        #s#old#new#g
-        sed -i "s@dl-cdn.alpinelinux.org@mirrors.aliyun.com@g" /etc/apk/repositories
-        npm config set registry https://r.cnpmjs.org
-    fi
-}
-
 pre_check() {
     if [ -d "gm-server" ]; then
         cd gm-server || exit 1
+    fi
+    if [ ! -d "upload" ]; then
+        mkdir -p upload >/dev/null 2>&1
     fi
     if [ ! -d "node_modules" ]; then
         npm install
@@ -81,9 +84,9 @@ pre_check() {
 case "$1" in
     build)
         geo_check
+        repo_check
         cmd_check
         date_check
-        repo_check
         pre_check
         ;;
     *)

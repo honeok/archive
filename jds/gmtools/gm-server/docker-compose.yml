@@ -1,0 +1,20 @@
+services:
+  gmserver:
+    image: gmtools/gmserver:2025.01.07
+    container_name: gmserver
+    restart: unless-stopped
+    ports:
+      - 3000:3000
+      - 6090:6090
+    env_file:
+      - ./gm-server/.env
+    volumes:
+      - ./gm-server/config:/gm-server/config
+      - ./gm-server/logs:/gm-server/logs
+      - ./gm-server/upload:/gm-server/upload
+    networks:
+      - gmtools
+
+networks:
+  gmtools:
+    driver: bridge
