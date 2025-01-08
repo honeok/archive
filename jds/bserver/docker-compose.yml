@@ -8,6 +8,7 @@ services:
     volumes:
       - ./luban:/bserver/config/luban
       - ./BattleSimulator:/bserver/BattleSimulator
+      - ./logs:/bserver/logs
     networks:
       - bserver
     healthcheck:

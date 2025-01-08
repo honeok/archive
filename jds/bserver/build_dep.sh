@@ -67,18 +67,18 @@ cmd_check() {
 }
 
 run_check() {
-    if [ ! -x "/bserver/bserver" ]; then
-        chmod +x /bserver/bserver
-    fi
+    [ ! -x "/bserver/bserver" ] && chmod +x /bserver/bserver
 
     if [ -f "docker-entrypoint.sh" ]; then
-        if [ ! -x "docker-entrypoint.sh" ]; then
-            install -m 755 docker-entrypoint.sh /usr/local/bin/entrypoint.sh
-        fi
+        [ ! -x "docker-entrypoint.sh" ] && install -m 755 docker-entrypoint.sh /usr/local/bin/entrypoint.sh
         ln -sf /usr/local/bin/entrypoint.sh entrypoint.sh
     else
         echo "entrypoint.sh file not found!" && exit 1
     fi
+}
+
+generate_conf() {
+    envsubst < App.json.template > /bserver/config/App.json || { echo "Generate conf fail!" ; exit 1; }
 }
 
 last_clean() {
@@ -96,18 +96,21 @@ last_clean() {
 }
 
 pre_check() {
-    rm -rf /opt/bserver >/dev/null 2>&1 && mkdir -p /opt/bserver/config/luban >/dev/null 2>&1
+    rm -rf /opt/bserver
+    mkdir -p /opt/bserver/config/luban
 
     if [ -d "/bserver/config/luban" ]; then
         \cp -rf /bserver/config/luban/* /opt/bserver/config/luban/
     else
-        echo "config directory not found!" && exit 1
+        echo "Config directory '/bserver/config/luban' not found!" && exit 1
+    fi
+
+    if [ -d "/bserver/logs" ] && [ -n "$(ls -A "/bserver/logs")" ]; then
+        rm -rf /bserver/logs/*
     fi
 
     if [ -d "/bserver/BattleSimulator" ] && [ -n "$(ls -A "/bserver/BattleSimulator")" ]; then
         rm -rf /bserver/BattleSimulator/*
-    else
-        echo "log directory not found or is empty!" && exit 1
     fi
 }
 
@@ -118,12 +121,15 @@ case "$1" in
         cmd_check
         run_check
         ;;
+    genconf)
+        generate_conf
+        ;;
     clean)
         last_clean
         pre_check
         ;;
     *)
-        echo "Usage: $0 {check|clean}"
+        echo "Usage: $0 {build|genconf|clean}"
         exit 1
         ;;
 esac
