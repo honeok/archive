@@ -39,8 +39,6 @@ script_workdir="/data/tool"
 end_of() {
     _yellow "按任意键继续"
     read -n 1 -s -r -p ""
-    echo ""
-    clear
 }
 
 server_runCheck(){
@@ -60,7 +58,7 @@ server_runCheck(){
 
     # 检查是否有运行中的服务器
     if [ ${#running_servers[@]} -eq 0 ]; then
-        _err_msg "$(_red '没有检测到正在运行的 GameServer')"
+        _err_msg "$(_red '没有检测到正在运行的服务器')"
         exit 1
     fi
 
@@ -113,7 +111,7 @@ server_stop() {
 
 # 解析命令行参数
 if [ $# -eq 0 ]; then
-    _red "当前为停服操作"
+    _red "${project_name}停服操作"
     end_of
     server_stop
 else
