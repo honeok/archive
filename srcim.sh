@@ -18,3 +18,4 @@ set \
 
 SCRIPT=$(realpath $(cd "$(dirname "${BASH_SOURCE:-$0}")"; pwd)/$(basename ${BASH_SOURCE:-$0}))
 SCRIPT_DIR=$(dirname $(realpath ${SCRIPT}))
+
