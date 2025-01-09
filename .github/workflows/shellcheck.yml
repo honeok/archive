@@ -3,7 +3,7 @@ name: CI
 on:
   push:
     branches:
-      - dev
+      - cicd
     paths:
       - '*.sh'
       - '**/*.sh'
@@ -12,10 +12,6 @@ on:
       - '*.sh'
       - '**/*.sh'
   workflow_dispatch:
-
-permissions:
-  contents: write
-  actions: write
 
 jobs:
   shellcheck:
@@ -30,5 +26,3 @@ jobs:
         uses: ludeeus/action-shellcheck@2.0.0
         with:
           files: '**/*.sh'
-        env:
-          SHELLCHECK_OPTS: -e SC1091
