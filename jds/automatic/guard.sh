@@ -6,6 +6,8 @@
 #
 # https://www.honeok.com
 # https://github.com/honeok/archive/raw/master/jds/automatic/guard.sh
+#
+# shellcheck disable=SC2034
 
 set \
     -o errexit
@@ -104,7 +106,6 @@ server_runCheck(){
         exit 1
     fi
 
-    # shellcheck disable=SC2034
     # 将运行中的服务器编号输出到server_range
     server_range=$(printf "%s\n" "${running_servers[@]}" | sort -n)
 }
