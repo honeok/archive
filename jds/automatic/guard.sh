@@ -26,7 +26,7 @@ _cyan() { echo -e "${cyan}$*${white}"; }
 _err_msg() { echo -e "\033[41m\033[1m警告${white} $*"; }
 _suc_msg() { echo -e "\033[42m\033[1m成功${white} $*"; }
 
-clear_screen
+clear
 _cyan "当前脚本版本: ${version}\n"
 
 readonly guard_pid="/tmp/guard.pid"
@@ -35,8 +35,9 @@ readonly project_name="p8_app_server"
 # 消息回调开关
 readonly enable_stats="0" # 非0为关
 
-script=$(realpath $(cd "$(dirname "${BASH_SOURCE:-$0}")"; pwd)/$(basename ${BASH_SOURCE:-$0}))
-script_dir=$(dirname $(realpath ${script}))
+script=$(realpath "$(cd "$(dirname "${BASH_SOURCE:-$0}")"; pwd)/$(basename "${BASH_SOURCE:-$0}")")
+script_dir=$(dirname "$(realpath "${script}")")
+
 # 操作系统和权限校验
 [ "$(id -ru)" -ne "0" ] && _err_msg "$(_red '需要root用户才能运行！')" && exit 1
 os_name=$(grep ^ID= /etc/*release | awk -F'=' '{print $2}' | sed 's/"//g')
@@ -103,6 +104,7 @@ server_runCheck(){
         exit 1
     fi
 
+    # shellcheck disable=SC2034
     # 将运行中的服务器编号输出到server_range
     server_range=$(printf "%s\n" "${running_servers[@]}" | sort -n)
 }
