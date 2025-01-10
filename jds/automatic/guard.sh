@@ -1,13 +1,17 @@
 #!/usr/bin/env bash
 #
-# Description: This script exists in a dormant state most of the time and is triggered when needed to automatically start the game server.
+# Description:
+# This script is designed to manage and automatically start game servers based on passed server identifiers.
+# It can be invoked with a list of server IDs, and it will automatically start the corresponding servers.
+# The action is irreversible once executed, so make sure to pass the correct parameters!
+#
+# Example Usage:
+# ./guard.sh 1/2/3/4/5  # Starts the game servers with IDs 1, 2, 3, 4, and 5.
 #
 # Copyright (C) 2025 honeok <honeok@duck.com>
 #
 # https://www.honeok.com
 # https://github.com/honeok/archive/raw/master/jds/automatic/guard.sh
-#
-# shellcheck disable=SC2034
 
 set \
     -o errexit
@@ -31,12 +35,15 @@ _suc_msg() { echo -e "\033[42m\033[1m成功${white} $*"; }
 clear
 _cyan "当前脚本版本: ${version}\n"
 
+# https://unix.stackexchange.com/questions/98401/what-does-readonly-mean-or-do
 readonly guard_pid="/tmp/guard.pid"
 readonly project_name="p8_app_server"
 
 # 消息回调开关
 readonly enable_stats="0" # 非0为关
 
+# https://www.shellcheck.net/wiki/SC2034
+# shellcheck disable=SC2034
 script=$(realpath "$(cd "$(dirname "${BASH_SOURCE:-$0}")"; pwd)/$(basename "${BASH_SOURCE:-$0}")")
 script_dir=$(dirname "$(realpath "${script}")")
 
@@ -58,7 +65,7 @@ cleanup_exit() {
     [ -f "$guard_pid" ] && rm -f "$guard_pid"
 
     printf "\n"
-    exit 0
+    exit 1
 }
 
 if [ -f "$guard_pid" ] && kill -0 "$(cat "$guard_pid")" 2>/dev/null; then
@@ -67,6 +74,14 @@ fi
 
 echo $$ > "$guard_pid"
 
+# 脚本入参校验
+if [[ $# -ne 1 || ! "$1" =~ ^[0-9]+$ ]]; then
+    cleanup_exit
+else
+    readonly server_number="$1"
+fi
+
+# 消息回调
 send_message() {
     if [ "$enable_stats" -ne "0" ]; then
         return
@@ -85,14 +100,34 @@ send_message() {
         -d "{\"action\":\"$event\",\"timestamp\":\"$china_time\",\"country\":\"$country\",\"os_name\":\"$os_info\",\"cpu_arch\":\"$cpu_arch\"}" >/dev/null 2>&1 & 
 }
 
-server_runCheck(){
-    local search_server process_Spell
+# 开服所需时间
+get_openserver_time() {
+    local taobao_timeapi suning_timeapi
+
+    taobao_timeapi=$(date -d @$(($(curl -sL https://acs.m.taobao.com/gw/mtop.common.getTimestamp/ | awk -F'"t":"' '{print $2}' | cut -d '"' -f1) / 1000)) +"%Y-%m-%dT%H:00:00")
+    suning_timeapi=$(date -d @$(($(curl -sL https://f.m.suning.com/api/ct.do | awk -F'"currentTime": ' '{print $2}' | cut -d ',' -f1) / 1000)) +"%Y-%m-%dT%H:00:00")
+
+    # 如果淘宝时间有效，则使用淘宝时间
+    if [[ -n "$taobao_timeapi" && "$taobao_timeapi" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:00:00$ ]]; then
+        open_server_time="$taobao_timeapi"
+    # 如果淘宝时间无效，则尝试使用苏宁时间
+    elif [[ -n "$suning_timeapi" && "$suning_timeapi" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:00:00$ ]]; then
+        open_server_time="$suning_timeapi"
+    fi
+    # 如果没有成功获取时间，使用当前时间并调整为北京时间(UTC+8)
+    if [[ -z "$open_server_time" || ! "$open_server_time" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:00:00$ ]]; then
+        open_server_time=$(date -u -d '+8 hours' +"%Y-%m-%dT%H:00:00")
+    fi
+}
+
+server_runCheck() {
+    local search_dir process_Spell
     local running_servers=() # 初始化数组
 
-    search_server=$(find /data/ -maxdepth 1 -type d -name "server*" | sed 's:.*/::' | grep -E '^server[0-9]+$' | sed 's/server//' | sort -n)
+    search_dir=$(find /data/ -maxdepth 1 -type d -name "server*" | sed 's:.*/::' | grep -E "^server${server_number}$" | sed 's/server//')
 
     # 拼接服务器组校验是否正在运行
-    for run_num in $search_server; do
+    for run_num in $search_dir; do
         process_Spell="/data/server${run_num}/game/${project_name}"
 
         if pgrep -f "${process_Spell}" >/dev/null 2>&1; then
@@ -103,6 +138,7 @@ server_runCheck(){
     # 检查是否有运行中的服务器
     if [ ${#running_servers[@]} -eq 0 ]; then
         _err_msg "$(_red '没有检测到正在运行的服务器')"
+        send_message "没有检测到正在运行的服务器"
         exit 1
     fi
 
