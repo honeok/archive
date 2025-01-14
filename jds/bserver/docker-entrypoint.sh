@@ -12,4 +12,8 @@ if [ -d "$template_dir" ]; then
     rm -rf "$template_dir" 2>/dev/null
 fi
 
-exec "$@"
+if [ "$#" -ne 0 ]; then
+    exec "$@"
+else
+    exec "/bserver/bserver"
+fi

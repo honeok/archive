@@ -2,9 +2,9 @@
 # Copyright (C) 2025 honeok <honeok@duck.com>
 #
 # https://www.honeok.com
+# https://github.com/honeok/archive/raw/master/jds/bserver/Dockerfile
 
 ARG ROCKY_VERSION=9.3
-
 FROM rockylinux:${ROCKY_VERSION}
 
 LABEL maintainer="honeok <honeok@duck.com>"
@@ -13,16 +13,20 @@ WORKDIR /
 
 COPY . .
 
-RUN chmod +x build_dep.sh && ./build_dep.sh build
+ENV SERVER_PORT="8080" TZ=Asia/Shanghai
 
-ENV SERVER_PORT="8080"
-ENV TZ=Asia/Shanghai
-
-RUN ./build_dep.sh genconf && \
-    ./build_dep.sh clean && rm -f build_dep.sh
+RUN set -ex \
+    && dnf -y update && dnf install -y gettext procps \
+    && chmod +x /bserver/bserver && install -m 755 docker-entrypoint.sh /usr/local/bin/entrypoint.sh \
+    && ln -sf /usr/local/bin/entrypoint.sh entrypoint.sh \
+    && envsubst < App.json.template > /bserver/config/App.json \
+    && rm -f App.json.template Dockerfile docker-entrypoint.sh build.sh \
+    && dnf remove -y gettext && dnf clean all && rm -rf /var/cache/dnf/* \
+    && rm -rf /opt/bserver \
+    && mkdir -p /opt/bserver/config/luban \
+    && cp -r /bserver/config/luban/* /opt/bserver/config/luban/ \
+    && rm -rf /bserver/logs/* /bserver/BattleSimulator/*
 
 EXPOSE ${SERVER_PORT}
 
 ENTRYPOINT ["entrypoint.sh"]
-
-CMD ["/bserver/bserver"]
