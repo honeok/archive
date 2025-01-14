@@ -1,9 +1,5 @@
 # Dockerfile from bserver containerization construction
-#
 # Copyright (C) 2025 honeok <honeok@duck.com>
-#
-# https://www.honeok.com
-# https://github.com/honeok/archive/raw/master/jds/bserver/Dockerfile
 
 ARG ROCKY_VERSION=9.3
 FROM rockylinux:${ROCKY_VERSION}
