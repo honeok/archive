@@ -1,17 +1,18 @@
 #!/usr/bin/env bash
 #
-# Description:
 # This script is designed to manage and automatically start game servers based on passed server identifiers.
 # It can be invoked with a list of server IDs, and it will automatically start the corresponding servers.
 # The action is irreversible once executed, so make sure to pass the correct parameters!
 #
 # Example Usage:
-# ./guard.sh 1/2/3/4/5  # Starts the game servers with IDs 1, 2, 3, 4, and 5.
+# ./guard.sh 1/2/3/4/5 ...
 #
 # Copyright (C) 2025 honeok <honeok@duck.com>
 #
 # https://www.honeok.com
 # https://github.com/honeok/archive/raw/master/jds/automatic/guard.sh
+
+# shellcheck disable=all
 
 set \
     -o errexit
