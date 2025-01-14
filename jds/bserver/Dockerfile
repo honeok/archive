@@ -1,4 +1,5 @@
 # Dockerfile from bserver containerization construction
+#
 # Copyright (C) 2025 honeok <honeok@duck.com>
 #
 # https://www.honeok.com
@@ -13,7 +14,7 @@ WORKDIR /
 
 COPY . .
 
-ENV SERVER_PORT="8080" TZ=Asia/Shanghai
+ENV BSERVER_PORT="8080" TZ=Asia/Shanghai
 
 RUN set -ex \
     && dnf -y update && dnf install -y gettext procps \
@@ -27,6 +28,6 @@ RUN set -ex \
     && cp -r /bserver/config/luban/* /opt/bserver/config/luban/ \
     && rm -rf /bserver/logs/* /bserver/BattleSimulator/*
 
-EXPOSE ${SERVER_PORT}
+EXPOSE ${BSERVER_PORT}
 
 ENTRYPOINT ["entrypoint.sh"]
