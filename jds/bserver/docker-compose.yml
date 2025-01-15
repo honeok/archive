@@ -1,6 +1,6 @@
 services:
   bserver:
-    image: bserver:${VERSION}
+    image: registry.cn-chengdu.aliyuncs.com/havario/bserver
     container_name: bserver
     restart: unless-stopped
     ports:
@@ -8,14 +8,15 @@ services:
     volumes:
       - ./luban:/bserver/config/luban
       - ./BattleSimulator:/bserver/BattleSimulator
+      - ./logs:/bserver/logs
     networks:
       - bserver
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://127.0.0.1:8080/api/battle/simulator"]
-      interval: 60s     # 健康检查时间间隔
-      timeout: 10s      # 指定健康检查命令的最大执行时间
-      retries: 3
-      start_period: 30s # 容器启动后健康检查首次运行前的宽限时间
+    #healthcheck:
+    #  test: ["CMD", "curl", "-f", "http://127.0.0.1:8081"]
+    #  interval: 60s     # 健康检查时间间隔
+    #  timeout: 10s      # 指定健康检查命令的最大执行时间
+    #  retries: 3
+    #  start_period: 30s # 容器启动后健康检查首次运行前的宽限时间
 
 networks:
   bserver:
