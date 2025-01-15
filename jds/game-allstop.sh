@@ -4,13 +4,14 @@
 #
 # Copyright (C) 2024 - 2025 honeok <honeok@duck.com>
 #
+# https://www.honeok.com
 # https://github.com/honeok/archive/raw/master/jds/game-allstop.sh
 
 set \
     -o errexit \
     -o nounset
 
-version='v0.0.5 (2025.01.08)'
+readonly version='v0.0.5 (2025.01.15)'
 
 yellow='\033[1;33m'
 red='\033[1;31m'
@@ -24,24 +25,29 @@ _cyan() { echo -e "${cyan}$*${white}"; }
 
 _err_msg() { echo -e "\033[41m\033[1m警告${white} $*"; }
 _suc_msg() { echo -e "\033[42m\033[1m成功${white} $*"; }
+_info_msg() { echo -e "\033[43m\033[1;37m提示${white} $*"; }
 
 clear
 _cyan "当前脚本版本: ${version}"
 
 # 操作系统和权限校验
 [ "$(id -ru)" -ne "0" ] && _err_msg "$(_red '需要root用户才能运行！')" && exit 1
-os_name=$(grep ^ID= /etc/*release | awk -F'=' '{print $2}' | sed 's/"//g')
-[[ "$os_name" != "debian" && "$os_name" != "ubuntu" && "$os_name" != "centos" && "$os_name" != "rhel" && "$os_name" != "rocky" && "$os_name" != "almalinux" ]] && { _err_msg "$(_red '当前操作系统不被支持！')" && exit 1 ;}
+os_name=$(grep "^ID=" /etc/*release | awk -F'=' '{print $2}' | sed 's/"//g')
 
-project_name="p8_app_server"
-script_workdir="/data/tool"
+if [[ "$os_name" != "debian" && "$os_name" != "ubuntu" && "$os_name" != "centos" && "$os_name" != "rhel" && "$os_name" != "rocky" && "$os_name" != "almalinux" ]]; then
+    _err_msg "$(_red '当前操作系统不被支持！')"
+    exit 1
+fi
+
+readonly project_name="p8_app_server"
+readonly script_workdir="/data/tool"
 
 end_of() {
     _yellow "按任意键继续"
     read -n 1 -s -r -p ""
 }
 
-server_runCheck(){
+server_Runcheck() {
     local search_server process_Spell
     local running_servers=() # 初始化数组
 
@@ -51,7 +57,7 @@ server_runCheck(){
     for run_num in $search_server; do
         process_Spell="/data/server${run_num}/game/${project_name}"
 
-        if pgrep -f "${process_Spell}" >/dev/null 2>&1; then
+        if pgrep -f "${process_Spell}" > /dev/null 2>&1; then
             running_servers+=("${run_num}")
         fi
     done
@@ -67,10 +73,10 @@ server_runCheck(){
 }
 
 server_stop() {
-    server_runCheck
+    server_Runcheck
 
     cd "$script_workdir" || { _err_msg "$(_red "${script_workdir}路径错误")" && exit 1; }
-    if pgrep -f processcontrol-allserver.sh >/dev/null 2>&1; then
+    if pgrep -f processcontrol-allserver.sh > /dev/null 2>&1; then
         pkill -9 -f processcontrol-allserver.sh 1>/dev/null
         [ -f "control.txt" ] && : > control.txt
         [ -f "dump.txt" ] && : > dump.txt
@@ -92,7 +98,7 @@ server_stop() {
         (
             if [ ! -d "/data/server$server_num/game" ]; then
                 _err_msg "$(_red "server${server_num}不存在，子进程已退出")"
-                exit 1 # 子进程中的退出，防止继续执行
+                exit 1 # 子进程退出 防止继续执行
             fi
 
             cd "/data/server$server_num/game" 2>/dev/null || { _err_msg "$(_red "server${server_num}路径错误")" && exit 1; }
@@ -110,23 +116,19 @@ server_stop() {
 }
 
 # 解析命令行参数
-if [ $# -eq 0 ]; then
-    _red "${project_name}停服操作"
+if [ "$#" -eq 0 ]; then
+    _info_msg "$(_red "${project_name}停服操作，确认后按任意键继续")"
     end_of
     server_stop
 else
-    for arg in "$@"; do
-        case $arg in
-            -y|y|-Y|Y)
-                server_stop
-                ;;
-            --debug)
-                set -o xtrace
-                ;;
-            *)
-                _err_msg "$(_red '无效选项，请重新输入！')"
-                exit 1
-                ;;
-        esac
-    done
+    case "$1" in
+        -y)
+            shift
+            server_stop
+            ;;
+        *)
+            _err_msg "$(_red '无效选项，请重新输入！')"
+            exit 1
+            ;;
+    esac
 fi
