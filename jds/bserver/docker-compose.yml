@@ -1,6 +1,6 @@
 services:
   bserver:
-    image: registry.cn-chengdu.aliyuncs.com/honeokwork/bserver
+    image: registry.cn-chengdu.aliyuncs.com/havario/bserver
     container_name: bserver
     restart: unless-stopped
     ports:
