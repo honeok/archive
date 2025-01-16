@@ -3,8 +3,17 @@
 # Description: sets up the BI environment by installing Miniconda3 and other dependencies.
 #
 # Copyright (C) 2024 - 2025 honeok <honeok@duck.com>
+#
 # https://www.honeok.com
 # https://github.com/honeok/archive/raw/master/jds/bi.sh
+#      __     __       _____                  
+#  __ / / ___/ /  ___ / ___/ ___ _  __ _  ___ 
+# / // / / _  /  (_-</ (_ / / _ `/ /  ' \/ -_)
+# \___/  \_,_/  /___/\___/  \_,_/ /_/_/_/\__/ 
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License version 3 or later.
+# See <https://www.gnu.org/licenses/>
 
 yellow='\033[1;33m'
 red='\033[1;31m'
@@ -25,7 +34,6 @@ conda_script="Miniconda3-py39_24.3.0-0-$(uname -s)-$(uname -m).sh"
 apiserver_dir="/data/bi/apiserver"
 
 geo_check() {
-    local country=""
     local cloudflare_api ipinfo_api ipsb_api
 
     cloudflare_api=$(curl -A "Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101 Firefox/81.0" -m 10 -s "https://dash.cloudflare.com/cdn-cgi/trace" | sed -n 's/.*loc=\([^ ]*\).*/\1/p')
@@ -80,6 +88,8 @@ install_conda() {
         echo "export PATH=\"$conda_dir/bin:\$PATH\"" >> "$HOME/.bashrc"
     fi
 
+    # https://www.shellcheck.net/wiki/SC1091
+    # shellcheck source=/dev/null
     source "$HOME/.bashrc"
 
     # 验证Miniconda安装
@@ -88,6 +98,7 @@ install_conda() {
         # 删除安装目录和环境变量文件
         [ -d "$conda_dir" ] && rm -rf "$conda_dir" >/dev/null 2>&1
         remove_condaenv
+        # shellcheck source=/dev/null
         source "$HOME/.bashrc"
         exit 1
     fi
@@ -99,6 +110,7 @@ install_conda() {
 
     _yellow "创建Python39虚拟环境"
     conda create -n py39 python=3.9 --yes || { _err_msg "$(_red '创建Python39环境失败')"; exit 1; }
+    # shellcheck source=/dev/null
     source "${conda_dir}/etc/profile.d/conda.sh" || { _err_msg "$(_red '加载Conda配置失败')"; exit 1; }
     conda init || { _err_msg "$(_red '初始化Conda失败')"; exit 1; }
     conda activate py39 || { _err_msg "$(_red '激活py39环境失败')"; exit 1; }
@@ -108,6 +120,7 @@ install_conda() {
         # 删除安装目录和环境变量文件
         [ -d "$conda_dir" ] && rm -rf "$conda_dir"
         remove_condaenv
+        # shellcheck source=/dev/null
         source "$HOME/.bashrc"
         exit 1
     fi
@@ -171,14 +184,15 @@ if [ "$#" -eq 0 ]; then
     install_conda
     exit 0
 else
-    for arg in "$@"; do
-        case $arg in
-            -d|d|-D|D)
+    while [[ "$#" -ge 1 ]]; do
+        case "$1" in
+            -d | -D)
+                shift
                 uninstall_conda
                 exit 0
                 ;;
             *)
-                _err_msg "$(_red "无效选项, 当前参数${arg}不被支持！")"
+                _err_msg "$(_red "无效选项, 当前参数 $1 不被支持！")"
                 ;;
         esac
     done
