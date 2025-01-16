@@ -4,9 +4,21 @@
 #
 # Copyright (C) 2024 - 2025 honeok <honeok@duck.com>
 #
+# https://www.honeok.com
 # https://github.com/honeok/archive/raw/master/jds/game-reload.sh
+#      __     __       _____                  
+#  __ / / ___/ /  ___ / ___/ ___ _  __ _  ___ 
+# / // / / _  /  (_-</ (_ / / _ `/ /  ' \/ -_)
+# \___/  \_,_/  /___/\___/  \_,_/ /_/_/_/\__/ 
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License version 3 or later.
+# See <https://www.gnu.org/licenses/>
 
-version='v0.0.4 (2025.01.04)'
+set \
+    -o nounset
+
+readonly version='v0.1.5 (2025.01.16)'
 
 yellow='\033[93m'
 red='\033[31m'
@@ -16,102 +28,157 @@ _yellow() { echo -e "${yellow}$*${white}"; }
 _red() { echo -e "${red}$*${white}"; }
 _green() { echo -e "${green}$*${white}"; }
 
-_info_msg() { echo -e "\033[48;5;178m\033[1m\033[97m提示${white} $*"; }
 _err_msg() { echo -e "\033[41m\033[1m警告${white} $*"; }
 _suc_msg() { echo -e "\033[42m\033[1m成功${white} $*"; }
+_info_msg() { echo -e "\033[43m\033[1;37m提示${white} $*"; }
 
-short_separator() { printf "%-20s\n" "-" | sed 's/\s/-/g'; }
+separator() { printf "%-20s\n" "-" | sed 's/\s/-/g'; }
 
 export DEBIAN_FRONTEND=noninteractive
 
-server_range=$(find /data/ -maxdepth 1 -type d -name "server*" | sed 's:.*/::' | grep -E '^server[0-9]+$' | sed 's/server//' | sort -n)
-reload_pid='/tmp/reload.pid'
-local_update_dir='/data/update'
-remote_update_file='/data/update/updategame.tar.gz'
-update_host='10.46.96.254'
-
 clear
-_yellow "当前脚本版本: ${version}"
+_yellow "当前脚本版本: ${version} 🛠️ \n"
+
+# 预定义变量
+readonly project_name='p8_app_server'
+readonly gamereload_pid='/tmp/gamereload.pid'
+readonly local_update_dir='/data/update'
+readonly remote_update_file='/data/update/updategame.tar.gz'
+readonly update_host='10.46.96.254'
 
 # 操作系统和权限校验
 [ "$(id -ru)" -ne "0" ] && _err_msg "$(_red '需要root用户才能运行！')" && exit 1
-os_info=$(grep ^ID= /etc/*release | awk -F'=' '{print $2}' | sed 's/"//g')
-[[ "$os_info" != "debian" && "$os_info" != "ubuntu" && "$os_info" != "centos" && "$os_info" != "rhel" && "$os_info" != "rocky" && "$os_info" != "almalinux" ]] && exit 0
 
-trap "cleanup_exit ; echo "" ; exit 0" SIGINT SIGQUIT SIGTERM EXIT
+# Show more info: https://github.com/koalaman/shellcheck/wiki/SC2155
+os_name=$(grep "^ID=" /etc/*release | awk -F'=' '{print $2}' | sed 's/"//g')
+readonly os_name
 
-cleanup_exit() {
-    [ -f "$reload_pid" ] && rm -f "$reload_pid"
-}
-
-if [ -f "$reload_pid" ] && kill -0 "$(cat "$reload_pid")" 2>/dev/null; then
+if [[ "$os_name" != "debian" && "$os_name" != "ubuntu" && "$os_name" != "centos" && "$os_name" != "rhel" && "$os_name" != "rocky" && "$os_name" != "almalinux" && "$os_name" != "fedora" && "$os_name" != "alinux" && "$os_name" != "opencloudos" ]]; then
+    _err_msg "$(_red '当前操作系统不被支持！')"
     exit 1
 fi
-echo $$ > "$reload_pid"
 
-# 检查Server目录
-if [ -z "$server_range" ]; then
-    _err_msg "$(_red '未找到任何有效的server目录！')"
-    cleanup_exit
-fi
-# 获取服务器密码 usage: echo "xxxxxxxxxxxx" > "$HOME/password.txt" && chmod 600 "$HOME/password.txt"
-if [ -f "$HOME/password.txt" ] && [ -s "$HOME/password.txt" ]; then
-    update_host_passwd=$(head -n 1 "$HOME/password.txt" | tr -d '[:space:]')
-else
-    cleanup_exit
-fi
-if [ -z "$update_host_passwd" ]; then
-    update_host_passwd=$(awk 'NR==1 {gsub(/^[ \t]+|[ \t]+$/, ""); print}' "$HOME/password.txt")
-fi
-if [ -z "$update_host_passwd" ]; then
-    cleanup_exit
+# 捕获终止信号并优雅退出
+trap 'rm -f "$gamereload_pid" >/dev/null 2>&1; exit 0' SIGINT SIGQUIT SIGTERM EXIT
+
+if [ -f "$gamereload_pid" ] && kill -0 "$(cat "$gamereload_pid")" 2>/dev/null; then
+    exit 1
 fi
 
-if ! command -v sshpass >/dev/null 2>&1 && type -P sshpass >/dev/null 2>&1; then
-    if command -v dnf >/dev/null 2>&1; then
-        [[ ! $(rpm -q epel-release) ]] && dnf install epel-release -y
-        dnf install sshpass -y
-    elif command -v yum >/dev/null 2>&1; then
-        [[ ! $(rpm -q epel-release) ]] && yum install epel-release -y
-        yum install sshpass -y
-    elif command -v apt >/dev/null 2>&1; then
-        apt install sshpass -y
+# 将当前进程写入PID防止并发执行导致冲突
+echo $$ > "$gamereload_pid"
+
+getserver_passwd() {
+    # 获取服务器密码 usage: echo "xxxxxxxxxxxx" > "$HOME/password.txt" && chmod 600 "$HOME/password.txt"
+    if [ -f "$HOME/password.txt" ] && [ -s "$HOME/password.txt" ]; then
+        update_host_passwd=$(head -n 1 "$HOME/password.txt" | tr -d '[:space:]')
+    fi
+    if [ -z "$update_host_passwd" ]; then
+        update_host_passwd=$(awk 'NR==1 {gsub(/^[ \t]+|[ \t]+$/, ""); print}' "$HOME/password.txt")
+    fi
+    if [ -z "$update_host_passwd" ]; then
+        exit 1
+    fi
+}
+
+gameserver_Runcheck() {
+    local search_server process_Spell
+    local running_servers=() # 初始化数组
+
+    search_server=$(find /data/ -maxdepth 1 -type d -name "server*" | sed 's:.*/::' | grep -E '^server[0-9]+$' | sed 's/server//' | sort -n)
+
+    # 拼接服务器组校验是否正在运行
+    for run_num in $search_server; do
+        process_Spell="/data/server${run_num}/game/${project_name}"
+
+        if pgrep -f "${process_Spell}" >/dev/null 2>&1; then
+            running_servers+=("${run_num}")
+        fi
+    done
+
+    # 检查是否有运行中的服务器
+    if [ ${#running_servers[@]} -eq 0 ]; then
+        _err_msg "$(_red '没有检测到正在运行的服务器')"
+        exit 1
+    fi
+
+    # 将运行中的服务器编号输出到server_range变量
+    server_range=$(printf "%s\n" "${running_servers[@]}" | sort -n)
+}
+
+check_cmd() {
+    if ! command -v sshpass >/dev/null 2>&1 && type -P sshpass >/dev/null 2>&1; then
+        if command -v dnf >/dev/null 2>&1; then
+            [[ ! $(rpm -q epel-release) ]] && dnf install -y epel-release
+            dnf install -y sshpass
+        elif command -v yum >/dev/null 2>&1; then
+            [[ ! $(rpm -q epel-release) ]] && yum install -y epel-release
+            yum install -y sshpass
+        elif command -v apt >/dev/null 2>&1; then
+            apt install -y sshpass
+        else
+            exit 1
+        fi
+    fi
+}
+
+get_Updatefile() {
+    cd "$local_update_dir" || exit 1
+    rm -rf ./*
+
+    if ! sshpass -p "$update_host_passwd" scp -o StrictHostKeyChecking=no -o ConnectTimeout=30 "root@$update_host:$remote_update_file" "$local_update_dir/"; then
+        _err_msg "$(_red '下载失败，请检查网络连接或密码')"
+        exit 1
+    fi
+    if [ ! -e "$local_update_dir/updategame.tar.gz" ]; then
+        _err_msg "$(_red '更新包未正确下载，请检查！')"
+        exit 1
+    fi
+
+    _suc_msg "$(_green '从中心拉取updategame.tar.gz成功！')"
+
+    if tar xvf "$local_update_dir/updategame.tar.gz"; then
+        _suc_msg "$(_green '解压成功 ✅')"
     else
-        cleanup_exit
+        _err_msg "$(_red '解压失败')" 
+        exit 1
     fi
-fi
+}
 
-cd "$local_update_dir" || cleanup_exit
-rm -rf ./*
+exec_update() {
+    if [ -n "$server_range" ]; then
+        for server_num in $server_range; do
+            reach_dir="/data/server${server_num}/game"
 
-if ! sshpass -p "$update_host_passwd" scp -o StrictHostKeyChecking=no -o ConnectTimeout=30 "root@$update_host:$remote_update_file" "$local_update_dir/"; then
-    _err_msg "$(_red '下载失败，请检查网络连接或密码')" && cleanup_exit
-fi
-if [ ! -f "$local_update_dir/updategame.tar.gz" ]; then
-    _err_msg "$(_red '更新包未正确下载，请检查！')" && cleanup_exit
-fi
-_suc_msg "$(_green '从中心拉取updategame.tar.gz成功！')"
+            if [ ! -d "$reach_dir" ]; then
+                _info_msg "$(_yellow "目录${reach_dir}不存在，跳过server${server_num}更新！")"
+                continue
+            fi
 
-if tar zxvf "$local_update_dir/updategame.tar.gz"; then
-    _suc_msg "$(_green '解压成功')"
-else
-    _err_msg "$(_red '解压失败')" 
-    cleanup_exit
-fi
+            printf "\n"
 
-for server_num in $server_range; do
-    reach_dir="/data/server${server_num}/game"
+            _yellow "正在处理server${server_num}"
+            \cp -rf "${local_update_dir}/app/"* "$reach_dir/"
+            cd "$reach_dir" || continue
 
-    if [ ! -d "$reach_dir" ]; then
-        _info_msg "$(_yellow "目录${reach_dir}不存在，跳过server${server_num}更新！")"
-        continue
+            if ./server.sh reload; then
+                _suc_msg "$(_green "server${server_num}更新成功！✅")"
+            fi
+
+            separator
+        done
+    else
+        _err_msg "$(_red '服务器编号为空无法执行后续操作')"
+        exit 1
     fi
+}
 
-    _yellow "正在处理server${server_num}"
-    \cp -rf "${local_update_dir}/app/"* "$reach_dir/"
-    cd "$reach_dir" || continue
-    ./server.sh reload
-    _suc_msg "$(_green "server${server_num}更新成功！")"
+standalone_reload() {
+    getserver_passwd
+    gameserver_Runcheck
+    check_cmd
+    get_Updatefile
+    exec_update
+}
 
-    short_separator
-done
+standalone_reload
