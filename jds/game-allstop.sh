@@ -8,6 +8,14 @@
 #
 # https://www.honeok.com
 # https://github.com/honeok/archive/raw/master/jds/game-allstop.sh
+#      __     __       _____                  
+#  __ / / ___/ /  ___ / ___/ ___ _  __ _  ___ 
+# / // / / _  /  (_-</ (_ / / _ `/ /  ' \/ -_)
+# \___/  \_,_/  /___/\___/  \_,_/ /_/_/_/\__/ 
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License version 3 or later.
+# See <https://www.gnu.org/licenses/>
 
 set \
     -o errexit \
