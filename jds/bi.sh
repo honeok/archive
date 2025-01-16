@@ -193,6 +193,7 @@ else
                 ;;
             *)
                 _err_msg "$(_red "无效选项, 当前参数 $1 不被支持！")"
+                exit 1
                 ;;
         esac
     done
