@@ -47,7 +47,7 @@ _cyan "当前脚本版本: ${version}\n"
 os_name=$(grep "^ID=" /etc/*release | awk -F'=' '{print $2}' | sed 's/"//g')
 readonly os_name
 
-if [[ "$os_name" != "debian" && "$os_name" != "ubuntu" && "$os_name" != "centos" && "$os_name" != "rhel" && "$os_name" != "rocky" && "$os_name" != "almalinux" && "$os_name" != "tencentos" && "$os_name" != "alinux" ]]; then
+if [[ "$os_name" != "debian" && "$os_name" != "ubuntu" && "$os_name" != "centos" && "$os_name" != "rhel" && "$os_name" != "rocky" && "$os_name" != "almalinux" && "$os_name" != "tencentos" && "$os_name" != "alinux" && "$os_name" != "opencloudos" ]]; then
     _err_msg "$(_red '当前操作系统不被支持！')"
     exit 1
 fi
