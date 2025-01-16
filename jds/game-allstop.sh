@@ -49,17 +49,14 @@ readonly project_name='p8_app_server'
 readonly script_workdir='/data/tool'
 readonly gamestop_pid='/tmp/gamestop.pid'
 
-# 终止信号捕获，意外退出能优雅的退出
-trap "cleanup_exit ; exit 0" SIGINT SIGQUIT SIGTERM EXIT
-
-cleanup_exit() {
-    [ -f "$gamestop_pid" ] && rm -f "$gamestop_pid"
-}
+# 捕获终止信号并优雅退出
+trap 'rm -f "$gamestop_pid" >/dev/null 2>&1; exit 0' SIGINT SIGQUIT SIGTERM EXIT
 
 if [ -f "$gamestop_pid" ] && kill -0 "$(cat "$gamestop_pid")" 2>/dev/null; then
     exit 1
 fi
 
+# 将当前进程写入PID防止并发执行导致冲突
 echo $$ > "$gamestop_pid"
 
 end_of() {
