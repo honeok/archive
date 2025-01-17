@@ -11,13 +11,22 @@
 #
 # https://www.honeok.com
 # https://github.com/honeok/archive/raw/master/jds/automatic/guard.sh
+#      __     __       _____                  
+#  __ / / ___/ /  ___ / ___/ ___ _  __ _  ___ 
+# / // / / _  /  (_-</ (_ / / _ `/ /  ' \/ -_)
+# \___/  \_,_/  /___/\___/  \_,_/ /_/_/_/\__/ 
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License version 3 or later.
+# See <https://www.gnu.org/licenses/>
 
 # shellcheck disable=all
 
 set \
-    -o errexit
+    -o errexit \
+    -o nounset
 
-readonly version='v0.0.1 (2025.01.10)'
+readonly version='v0.0.2 (2025.01.17)'
 
 yellow='\033[1;33m'
 red='\033[1;31m'
@@ -34,14 +43,13 @@ _err_msg() { echo -e "\033[41m\033[1m警告${white} $*"; }
 _suc_msg() { echo -e "\033[42m\033[1m成功${white} $*"; }
 
 clear
-_cyan "当前脚本版本: ${version}\n"
+_cyan "当前脚本版本: ${version} 🤖 \n"
 
+# 预定义变量
 # https://unix.stackexchange.com/questions/98401/what-does-readonly-mean-or-do
-readonly guard_pid="/tmp/guard.pid"
-readonly project_name="p8_app_server"
-
-# 消息回调开关
-readonly enable_stats="0" # 非0为关
+readonly project_name='p8_app_server'
+readonly guard_pid='/tmp/guard.pid'
+readonly enable_stats='0' # 消息回调开关，非0为关
 
 # https://www.shellcheck.net/wiki/SC2034
 # shellcheck disable=SC2034
@@ -50,24 +58,17 @@ script_dir=$(dirname "$(realpath "${script}")")
 
 # 操作系统和权限校验
 [ "$(id -ru)" -ne "0" ] && _err_msg "$(_red '需要root用户才能运行！')" && exit 1
-os_name=$(grep ^ID= /etc/*release | awk -F'=' '{print $2}' | sed 's/"//g')
-[[ "$os_name" != "debian" && "$os_name" != "ubuntu" && "$os_name" != "centos" && "$os_name" != "rhel" && "$os_name" != "rocky" && "$os_name" != "almalinux" ]] && { _err_msg "$(_red '当前操作系统不被支持！')" && exit 1 ;}
 
-trap "cleanup_exit" SIGINT SIGQUIT SIGTERM EXIT
+# Show more info: https://github.com/koalaman/shellcheck/wiki/SC2155
+os_name=$(grep "^ID=" /etc/*release | awk -F'=' '{print $2}' | sed 's/"//g')
+readonly os_name
 
-# 安全清屏
-clear_screen() {
-    if [ -t 1 ]; then
-        tput clear 2>/dev/null || echo -e "\033[2J\033[H" || clear
-    fi
-}
-
-cleanup_exit() {
-    [ -f "$guard_pid" ] && rm -f "$guard_pid"
-
-    printf "\n"
+if [[ "$os_name" != "debian" && "$os_name" != "ubuntu" && "$os_name" != "centos" && "$os_name" != "rhel" && "$os_name" != "rocky" && "$os_name" != "almalinux" && "$os_name" != "fedora" && "$os_name" != "alinux" && "$os_name" != "opencloudos" ]]; then
+    _err_msg "$(_red '当前操作系统不被支持！')"
     exit 1
-}
+fi
+
+trap 'rm -f "$guard_pid" >/dev/null 2>&1; exit 0' SIGINT SIGQUIT SIGTERM EXIT
 
 if [ -f "$guard_pid" ] && kill -0 "$(cat "$guard_pid")" 2>/dev/null; then
     exit 1
@@ -77,10 +78,19 @@ echo $$ > "$guard_pid"
 
 # 脚本入参校验
 if [[ $# -ne 1 || ! "$1" =~ ^[0-9]+$ ]]; then
-    cleanup_exit
+    exit 1
 else
-    readonly server_number="$1"
+    server_number="$1"
 fi
+
+readonly "$server_number"
+
+# 安全清屏
+clear_screen() {
+    if [ -t 1 ]; then
+        tput clear 2>/dev/null || echo -e "\033[2J\033[H" || clear
+    fi
+}
 
 # 消息回调
 send_message() {
