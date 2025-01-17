@@ -54,7 +54,7 @@ readonly enable_stats='0' # Message callback switch, not zero is off
 
 # https://www.shellcheck.net/wiki/SC2034
 # shellcheck disable=SC2034
-script=$(realpath "$(cd "$(dirname "${BASH_SOURCE:-$0}")"; pwd)/$(basename "${BASH_SOURCE:-$0}")")
+script=$(realpath "$(cd "$(dirname "${BASH_SOURCE:-$0}")" || exit 1; pwd)/$(basename "${BASH_SOURCE:-$0}")")
 # shellcheck disable=SC2034
 script_dir=$(dirname "$(realpath "${script}")")
 
@@ -124,6 +124,11 @@ server_runcheck() {
     search_Dir=$(find /data/ -maxdepth 1 -type d -name "server*" | sed 's:.*/::' | grep -E "^server${server_number}$" | sed 's/server//')
     process_Spell="/data/server${server_number}/game/${project_name}"
 
+    if "$search_Dir" >/dev/null 2>&1; then
+        _err_msg "$(_red "没有检测到Server${server_number}运行目录")"
+        send_message "没有检测到Server${server_number}运行目录"
+        exit 1
+    fi
     if ! pgrep -f "${process_Spell}" >/dev/null 2>&1; then
         _err_msg "$(_red '没有检测到正在运行的服务器！')"
         send_message "没有检测到正在运行的服务器"
