@@ -145,7 +145,7 @@ get_Updatefile() {
     fi
 }
 
-exec_update() {
+exec_reload() {
     if [ -n "$server_range" ]; then
         for server_num in $server_range; do
             reach_dir="/data/server${server_num}/game"
@@ -178,7 +178,7 @@ standalone_reload() {
     gameserver_Runcheck
     check_cmd
     get_Updatefile
-    exec_update
+    exec_reload
 }
 
 standalone_reload
