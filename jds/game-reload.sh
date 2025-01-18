@@ -143,6 +143,7 @@ get_Updatefile() {
         _err_msg "$(_red '解压失败')" 
         exit 1
     fi
+    printf "\n"
 }
 
 exec_reload() {
@@ -154,8 +155,6 @@ exec_reload() {
                 _info_msg "$(_yellow "目录${reach_dir}不存在，跳过server${server_num}更新！")"
                 continue
             fi
-
-            printf "\n"
 
             _yellow "正在处理server${server_num}"
             \cp -rf "${local_update_dir}/app/"* "$reach_dir/"
