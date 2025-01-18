@@ -98,7 +98,7 @@ delete_oldsql() {
 
 backup_sql() {
     if [ -z "$mysql_password" ] || [ -z "$mysqldump_cmd" ]; then
-        _err_msg "$(_red 'MySQL密码和mysqldump命令不能为空！请检查配置和安装情况。')"
+        _err_msg "$(_red 'MySQL密码和mysqldump命令不能为空！请检查配置和安装情况')"
         exit 1
     fi
 
