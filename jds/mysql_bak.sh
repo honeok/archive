@@ -15,8 +15,6 @@
 # it under the terms of the GNU General Public License version 3 or later.
 # See <https://www.gnu.org/licenses/>
 
-# shellcheck disable=all
-
 set \
     -o errexit \
     -o nounset \
@@ -35,6 +33,8 @@ _green() { echo -e "${green}$*${white}"; }
 _err_msg() { echo -e "\033[41m\033[1m警告${white} $*"; }
 _suc_msg() { echo -e "\033[42m\033[1m成功${white} $*"; }
 
+separator() { printf "%-20s\n" "-" | sed 's/\s/-/g'; }
+
 [ -t 1 ] && tput clear 2>/dev/null || echo -e "\033[2J\033[H" || clear
 _cyan "当前脚本版本: ${version}\n"
 
@@ -44,36 +44,112 @@ _cyan "当前脚本版本: ${version}\n"
 # https://github.com/koalaman/shellcheck/wiki/SC2155
 os_name=$(grep "^ID=" /etc/*release | awk -F'=' '{print $2}' | sed 's/"//g')
 timeStamp=$(date -u -d '+8 hours' +"%Y-%m-%d_%H-%M-%S")
+mysql_bak_pid='/tmp/mysql_bak.pid'
 bakDir='/data/dbbak'
-readonly os_name timeStamp bakDir
+mysql_host='10.46.96.179'
+mysql_password="$(awk 'NR==1 {gsub(/^[ \t]+|[ \t]+$/, ""); print}' "$HOME/mysql_password.txt" 2>/dev/null)"
+mysqldump_cmd="$(which mysqldump 2>/dev/null)"
+readonly os_name timeStamp bakDir mysql_host mysqldump_cmd
 
-# Pre run check
+# 声明全局数组，确保跨函数使用
+declare -a old_sql
+
 if [[ "$os_name" != "debian" && "$os_name" != "ubuntu" && "$os_name" != "centos" && "$os_name" != "rhel" && "$os_name" != "rocky" && "$os_name" != "almalinux" && "$os_name" != "fedora" && "$os_name" != "alinux" && "$os_name" != "opencloudos" ]]; then
     _err_msg "$(_red '当前操作系统不被支持！')"
     exit 1
 fi
-if [ -d "$bakDir" ]; then
-    mkdir -p "$bakDir"
+
+trap 'rm -f "$mysql_bak_pid" >/dev/null 2>&1; exit 0' SIGINT SIGQUIT SIGTERM EXIT
+
+if [ -f "$mysql_bak_pid" ] && kill -0 "$(cat "$mysql_bak_pid")" 2>/dev/null; then
+    exit 1
 fi
 
-clean_oldsql() {
-    find "$bakDir" -mtime +3 -name "*.sql" | xargs rm -f
+echo $$ > "$mysql_bak_pid"
+
+search_oldsql() {
+    old_sql=()
+
+    find "$bakDir" -mtime +3 -name "*.sql" | while read -r line; do
+        old_sql+=("$line")
+    done
+
+    if [ "${#old_sql[@]}" -eq 0 ]; then
+        _yellow "没有需要被删除的旧SQL备份"
+        return
+    fi
+
+    _green "找到${#old_sql[@]}个旧的SQL文件"
+    separator
 }
 
-/usr/bin/mysqldump --no-defaults --single-transaction --set-gtid-purged=OFF -h 10.46.96.179 -P 3306 -u root -pxxxxxxxxxxx -R cbt4_game_1 > /data/dbback/cbt4_game_1_$(date +%Y%m%d%H%M%S).sql
-/usr/bin/mysqldump --no-defaults --single-transaction --set-gtid-purged=OFF -h 10.46.96.179 -P 3306 -u root -pxxxxxxxxxxx -R cbt4_game_2 > /data/dbback/cbt4_game_2_$(date +%Y%m%d%H%M%S).sql
-/usr/bin/mysqldump --no-defaults --single-transaction --set-gtid-purged=OFF -h 10.46.96.179 -P 3306 -u root -pxxxxxxxxxxx -R cbt4_game_3 > /data/dbback/cbt4_game_3_$(date +%Y%m%d%H%M%S).sql
-/usr/bin/mysqldump --no-defaults --single-transaction --set-gtid-purged=OFF -h 10.46.96.179 -P 3306 -u root -pxxxxxxxxxxx -R cbt4_game_4 > /data/dbback/cbt4_game_4_$(date +%Y%m%d%H%M%S).sql
-/usr/bin/mysqldump --no-defaults --single-transaction --set-gtid-purged=OFF -h 10.46.96.179 -P 3306 -u root -pxxxxxxxxxxx -R cbt4_game_5 > /data/dbback/cbt4_game_5_$(date +%Y%m%d%H%M%S).sql
+delete_oldsql() {
+    if [ "${#old_sql[@]}" -eq 0 ]; then
+        _yellow "没有旧的SQL文件可删除"
+        return
+    fi
 
-/usr/bin/mysqldump --no-defaults --single-transaction --set-gtid-purged=OFF -h 10.46.96.179 -P 3306 -u root -pxxxxxxxxxxx -R cbt4_common > /data/dbback/cbt4_common_$(date +%Y%m%d%H%M%S).sql
+    # 遍历索引取值
+    for sql_file in "${old_sql[@]}"; do
+        rm -f "$sql_file"
+        _suc_msg "$(_green "已删除旧SQL文件: $sql_file")"
+    done
+}
 
-/usr/bin/mysqldump --no-defaults --single-transaction --set-gtid-purged=OFF -h 10.46.96.179 -P 3306 -u root -pxxxxxxxxxxx -R cbt4_account > /data/dbback/cbt4_account_$(date +%Y%m%d%H%M%S).sql
+backup_sql() {
+    if [ -z "$mysql_password" ] || [ -z "$mysqldump_cmd" ]; then
+        _err_msg "$(_red 'MySQL密码和mysqldump命令不能为空！请检查配置和安装情况。')"
+        exit 1
+    fi
 
-/usr/bin/mysqldump --no-defaults --single-transaction --set-gtid-purged=OFF -h 10.46.96.179 -P 3306 -u root -pxxxxxxxxxxx -R cbt4_center > /data/dbback/cbt4_center_$(date +%Y%m%d%H%M%S).sql
+    # 配置数据库连接参数
+    local db_user="root"
+    local db_password="$mysql_password"
+    local db_host="$mysql_host"
+    local db_port="3306"
 
-#/usr/bin/mysqldump --no-defaults --single-transaction --set-gtid-purged=OFF -h 10.46.96.179 -P 3306 -u root -pxxxxxxxxxxx -R cbt4_log > /data/dbback/cbt4_log_$(date +%Y%m%d%H%M%S).sql
+    # --no-defaults: 忽略默认的配置文件，希望 mysqldump 命令不受系统默认配置文件中的设置影响，或者你担心默认配置文件中的某些设置会干扰备份过程（例如，某些连接设置或插件），可以使用该选项
+    # --single-transaction: 用于在备份过程中保持数据库的一致性，mysqldump 会在开始时创建一个事务，然后在整个备份过程中保持这个事务，以确保数据的一致性。它适用于支持事务的存储引擎（如 InnoDB）
+    # --set-gtid-purged=OFF: 控制 GTID（全局事务标识符）的导出。GTID 用于 MySQL 的复制功能，它确保每个事务有一个唯一的标识符，以便于复制和故障恢复
 
-/usr/bin/mysqldump --no-defaults --single-transaction --set-gtid-purged=OFF -h 10.46.96.179 -P 3306 -u root -pxxxxxxxxxxx -R cbt4_report > /data/dbback/cbt4_report_$(date +%Y%m%d%H%M%S).sql
+    declare -a special_db
 
-/usr/bin/mysqldump --no-defaults --single-transaction --set-gtid-purged=OFF -h 10.46.96.179 -P 3306 -u root -pxxxxxxxxxxx -R cbt4_gm > /data/dbback/cbt4_gm_$(date +%Y%m%d%H%M%S).sql
+    if [ ! -d "$bakDir" ]; then
+        mkdir -p "$bakDir" || {
+            _err_msg "$(_red '创建备份目录失败')"
+            exit 1
+        }
+    fi
+
+    # 游戏数据库
+    for game_db_num in $(seq 1 7); do
+        if "$mysqldump_cmd" --no-defaults --single-transaction --set-gtid-purged=OFF \
+            -h "$db_host" -P "$db_port" -u "$db_user" -p"$db_password" -R "cbt4_game_$game_db_num" > "$bakDir/cbt4_game_${game_db_num}_$timeStamp.sql"; then
+            _suc_msg "$(_green "备份 cbt4_game_${game_db_num} 完成")"
+        else
+            _err_msg "$(_red "备份 cbt4_game_${game_db_num} 失败，暂时跳过！")"
+            continue
+        fi
+    done
+
+    # 其余数据库单独处理
+    special_db=( cbt4_common cbt4_account cbt4_center cbt4_report cbt4_gm )
+    for special_db_name in "${special_db[@]}"; do
+        if "$mysqldump_cmd" --no-defaults --single-transaction --set-gtid-purged=OFF \
+            -h "$db_host" -P "$db_port" -u "$db_user" -p"$db_password" -R "$special_db_name" > "$bakDir/${special_db_name}_$timeStamp.sql"; then
+            _suc_msg "$(_green "备份 ${special_db_name} 完成")"
+        else
+            _err_msg "$(_red "备份 ${special_db_name} 失败，暂时跳过！")"
+            continue
+        fi
+    done
+    separator
+}
+
+standalone() {
+    search_oldsql
+    backup_sql
+    delete_oldsql
+}
+
+standalone
