@@ -39,8 +39,8 @@ jobs:
       - name: Build and push Bi baseimage
         uses: docker/build-push-action@v6.11.0
         with:
-          context: .
-          file: jds/bi/Dockerfile_baseImage
+          context: jds/bi
+          file: Dockerfile_baseImage
           push: true
           tags: ${{ env.ALIYUN_REGISTRY }}/${{ env.ALIYUN_NAME_SPACE }}/bi:baseimage-${{ env.TAG }}
           platforms: linux/amd64, linux/arm64
