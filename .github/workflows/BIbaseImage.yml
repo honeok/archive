@@ -1,4 +1,4 @@
-name: Bi Build baseimage
+name: Bi baseImage CI
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - dev
     paths:
       - 'jds/bi/Dockerfile_baseImage'
-      - '.github/workflows/bi_baseimage.yml'
+      - '.github/workflows/BIbaseImage.yml'
   workflow_dispatch:
 
 env:
