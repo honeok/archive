@@ -44,7 +44,7 @@ readonly project_name='p8_app_server'
 readonly gamereload_pid='/tmp/gamereload.pid'
 readonly local_update_dir='/data/update'
 readonly remote_update_file='/data/update/updategame.tar.gz'
-readonly update_host='10.46.96.254'
+readonly update_host='10.46.99.186'
 
 # 操作系统和权限校验
 [ "$(id -ru)" -ne "0" ] && _err_msg "$(_red '需要root用户才能运行！')" && exit 1
