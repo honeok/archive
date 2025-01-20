@@ -20,15 +20,17 @@ set \
     -o nounset \
     -o pipefail
 
-readonly version='v0.0.1 (2025.01.17)'
+readonly version='v0.0.2 (2025.01.20)'
 
 yellow='\033[1;33m'
 red='\033[1;31m'
 green='\033[1;32m'
+cyan='\033[1;36m'
 white='\033[0m'
 _yellow() { echo -e "${yellow}$*${white}"; }
 _red() { echo -e "${red}$*${white}"; }
 _green() { echo -e "${green}$*${white}"; }
+_cyan() { echo -e "${cyan}$*${white}"; }
 
 _err_msg() { echo -e "\033[41m\033[1m警告${white} $*"; }
 _suc_msg() { echo -e "\033[42m\033[1m成功${white} $*"; }
@@ -69,6 +71,13 @@ echo $$ > "$mysql_bak_pid"
 
 search_oldsql() {
     old_sql=()
+
+    if [ ! -d "$bakDir" ]; then
+        mkdir -p "$bakDir" || {
+            _err_msg "$(_red '创建备份目录失败')"
+            exit 1
+        }
+    fi
 
     find "$bakDir" -mtime +3 -name "*.sql" | while read -r line; do
         old_sql+=("$line")
@@ -117,13 +126,6 @@ backup_sql() {
     declare -a game_db
     declare -a special_db
 
-    if [ ! -d "$bakDir" ]; then
-        mkdir -p "$bakDir" || {
-            _err_msg "$(_red '创建备份目录失败')"
-            exit 1
-        }
-    fi
-
     # 游戏数据库
     game_db=( cbt4_game_1 cbt4_game_2 cbt4_game_3 cbt4_game_4 cbt4_game_5 cbt4_game_6 cbt4_game_7 )
     for game_db_name in "${game_db[@]}"; do
@@ -136,7 +138,7 @@ backup_sql() {
     done
 
     # 其余数据库单独处理
-    special_db=( cbt4_common cbt4_account cbt4_center cbt4_report cbt4_gm )
+    special_db=( cbt4_common cbt4_account cbt4_center cbt4_report cbt4_gm cbt4_gameapi )
     for special_db_name in "${special_db[@]}"; do
         if "$mysqldump_cmd" "$mysqldump_options" -h "$db_host" -P "$db_port" -u "$db_user" -p"$db_password" -R "$special_db_name" > "$bakDir/${special_db_name}_$timeStamp.sql"; then
             _suc_msg "$(_green "备份 ${special_db_name} 完成")"
