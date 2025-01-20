@@ -136,24 +136,8 @@ server_runcheck() {
     fi
 }
 
-check_sshpass() {
-    if ! command -v sshpass >/dev/null 2>&1 || type -P sshpass >/dev/null 2>&1; then
-        if command -v dnf >/dev/null 2>&1; then
-            [[ ! $(rpm -q epel-release) ]] && dnf install -y epel-release
-            dnf install -y sshpass
-        elif command -v yum >/dev/null 2>&1; then
-            [[ ! $(rpm -q epel-release) ]] && yum install -y epel-release
-            yum install -y sshpass
-        elif command -v apt >/dev/null 2>&1; then
-            apt install -y sshpass
-        else
-            exit 1
-        fi
-    fi
-}
-
 # 修改开服时间
-build_opentime_cmd() {
+opentime_cmd() {
     if ! pgrep -f "/data/server${server_number}/game" >/dev/null 2>&1; then
         exit 1
     fi
@@ -169,8 +153,20 @@ build_opentime_cmd() {
     ./server.sh reload || exit 1
 }
 
+# 限制注册
+limitRegis_cmd() {
+    cd /data/server/login || exit 1
+    if [ -f etc/limit_create.txt ]; then
+        if [ "$server_number" -ne "1" ]; then
+            echo "$server_number" >> etc/limit_create.txt
+            # 服务器号出现在限制文件中
+            # //////
+        fi
+    fi
+}
+
 # 修改白名单放行登录入口
-build_whitelist_cmd() {
+whitelist_cmd() {
     cd /data/server/login || exit 1
     if [ -f etc/white_list.txt ]; then
         # 删除白名单中的服务器号
@@ -183,9 +179,10 @@ build_whitelist_cmd() {
     ./server.sh reload || exit 1
 }
 
-standalone_build_cmd() {
-    build_opentime_cmd
-    build_whitelist_cmd
+standalone_cmd() {
+    opentime_cmd
+    limitRegis_cmd
+    whitelist_cmd
 }
 
 # 解析传参参数
@@ -200,7 +197,6 @@ else
             server_number="$1"
             get_opentime
             server_runcheck
-            check_sshpass
             standalone_build_cmd
             _suc_msg "$(_green "server${server_number}开服成功")"
             send_message "server${server_number}开服成功"
