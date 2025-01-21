@@ -1,0 +1,37 @@
+---
+- name: Reload uat1
+  hosts: 10.46.97.150
+  remote_user: root
+
+  tasks:
+    - name: clean /data/update directory
+      shell: rm -rf /data/update/*
+      ignore_errors: yes # 即使该目录为空或有错误也不会中断执行
+
+    - name: upload update package
+      copy:
+        src: /data/update/updategame.tar.gz
+        dest: /data/update/updategame.tar.gz
+
+    - name: check update package
+      stat:
+        path: /data/update/updategame.tar.gz
+      register: updategame_file # 文件存在并将结果存储在 updategame_file 变量中
+
+    - name: extract package
+      unarchive:
+        src: /data/update/updategame.tar.gz
+        dest: /data/update/
+        remote_src: yes
+      when: updategame_file.stat.exists # 只有在文件存在时才解压
+
+    - name: copy update files
+      shell: \cp -rf /data/update/app/* /data/uatserver_1
+      args:
+        executable: /bin/bash
+
+    - name: reload server
+      shell: ./server.sh reload
+      args:
+        chdir: /data/uatserver_1 # 确保在目标目录下执行脚本
+        executable: /bin/bash
