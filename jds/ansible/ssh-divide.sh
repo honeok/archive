@@ -22,6 +22,7 @@ set \
 yellow='\033[93m'
 red='\033[31m'
 green='\033[92m'
+white='\033[0m'
 _yellow() { echo -e "${yellow}$*${white}"; }
 _red() { echo -e "${red}$*${white}"; }
 _green() { echo -e "${green}$*${white}"; }
