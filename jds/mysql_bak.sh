@@ -50,10 +50,6 @@ mysql_bak_pid='/tmp/mysql_bak.pid'
 bakDir='/data/dbbak'
 readonly os_name mysql_bak_pid bakDir
 
-# --no-defaults: 忽略默认的配置文件，希望 mysqldump 命令不受系统默认配置文件中的设置影响，或者你担心默认配置文件中的某些设置会干扰备份过程（例如，某些连接设置或插件），可以使用该选项
-# --single-transaction: 用于在备份过程中保持数据库的一致性，mysqldump 会在开始时创建一个事务，然后在整个备份过程中保持这个事务，以确保数据的一致性。它适用于支持事务的存储引擎（如 InnoDB）
-# --set-gtid-purged=OFF: 控制 GTID（全局事务标识符）的导出。GTID 用于 MySQL 的复制功能，它确保每个事务有一个唯一的标识符，以便于复制和故障恢复
-
 if [[ "$os_name" != "debian" && "$os_name" != "ubuntu" && "$os_name" != "centos" && "$os_name" != "rhel" && "$os_name" != "rocky" && "$os_name" != "almalinux" && "$os_name" != "fedora" && "$os_name" != "alinux" && "$os_name" != "opencloudos" ]]; then
     _err_msg "$(_red '当前操作系统不被支持！')"
     exit 1
@@ -85,6 +81,10 @@ mysql_password=$(awk 'NR==1 {gsub(/^[ \t]+|[ \t]+$/, ""); print}' "$HOME/mysql_p
 mysqldump_cmd="$(which mysqldump 2>/dev/null)"
 mysqldump_options="--no-defaults --single-transaction --set-gtid-purged=OFF"
 readonly mysql_db_user mysql_db_port mysql_password mysqldump_cmd mysqldump_options
+
+# --no-defaults: 忽略默认的配置文件，希望 mysqldump 命令不受系统默认配置文件中的设置影响，或者你担心默认配置文件中的某些设置会干扰备份过程（例如，某些连接设置或插件），可以使用该选项
+# --single-transaction: 用于在备份过程中保持数据库的一致性，mysqldump 会在开始时创建一个事务，然后在整个备份过程中保持这个事务，以确保数据的一致性。它适用于支持事务的存储引擎（如 InnoDB）
+# --set-gtid-purged=OFF: 控制 GTID（全局事务标识符）的导出。GTID 用于 MySQL 的复制功能，它确保每个事务有一个唯一的标识符，以便于复制和故障恢复
 
 search_oldsql() {
     old_sql=()
