@@ -5,7 +5,7 @@ on:
     branches:
       - dev
     paths:
-      - 'jds/bi/Dockerfile_baseImage'
+      - 'jds/p8/bi/Dockerfile_baseImage'
       - '.github/workflows/BIbaseImage.yml'
   workflow_dispatch:
 
