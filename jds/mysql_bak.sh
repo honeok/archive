@@ -38,7 +38,7 @@ _suc_msg() { echo -e "\033[42m\033[1m成功${white} $*"; }
 separator() { printf "%-20s\n" "-" | sed 's/\s/-/g'; }
 
 [ -t 1 ] && tput clear 2>/dev/null || echo -e "\033[2J\033[H" || clear
-_cyan "当前脚本版本: ${version}\n 🔕"
+_cyan "当前脚本版本: ${version} 🔕 \n"
 
 # 操作系统和权限校验
 [ "$(id -ru)" -ne "0" ] && _err_msg "$(_red '需要root用户才能运行！')" && exit 1
