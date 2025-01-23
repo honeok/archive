@@ -44,7 +44,7 @@ jobs:
       - name: Build and push Bi baseimage
         uses: docker/build-push-action@v6.11.0
         with:
-          context: "{{defaultContext}}:jds/bi"
+          context: "{{defaultContext}}:jds/p8/bi"
           file: Dockerfile_baseImage
           push: true
           tags: ${{ env.ALIYUN_REGISTRY }}/${{ env.ALIYUN_NAME_SPACE }}/bi-base:${{ env.BUILD_DATE }}-${{ env.SHORT_SHA }}
