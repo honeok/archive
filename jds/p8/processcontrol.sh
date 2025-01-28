@@ -17,14 +17,16 @@
 
 # shellcheck disable=SC2034
 # 仅用于版本控制，脚本中未调用
-readonly version='v0.0.2 (2025.01.24)'
+readonly version='v0.0.3 (2025.01.29)'
 
 # 预定义变量
-server_range=$(seq 1 5) # 服务器范围
 logDir='/data/logbak'
 app_name='p8_app_server'
 base_path='/data/server'
 readonly logDir app_name base_path
+
+# 服务器范围
+server_range=$(find /data/ -maxdepth 1 -type d -name "server*" | sed 's:.*/::' | grep -E '^server[0-9]+$' | sed 's/server//' | sort -n)
 
 # 权限校验
 [ "$EUID" -ne "0" ] && echo "需要root用户才能运行！" && exit 1
@@ -65,11 +67,16 @@ check_server() {
     fi
 }
 
+if [ -z $server_range ]; then
+    echo "服务器编号为空，无法自适配工作路径！"
+    exit 1
+fi
+
 while :; do
-    # 检查server
-    for server_num in $server_range; do
-        server_name="server${server_num}"
-        server_dir="${base_path}${server_num}/game"
+    # 检查game
+    for game_num in $server_range; do
+        server_name="server${game_num}"
+        server_dir="${base_path}${game_num}/game"
         check_server "${server_name}" "${server_dir}"
         sleep 5s
     done
