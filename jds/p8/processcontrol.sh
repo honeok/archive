@@ -67,7 +67,7 @@ check_server() {
     fi
 }
 
-if [ -z $server_range ]; then
+if [ -z "$server_range" ]; then
     echo "服务器编号为空，无法自适配工作路径！"
     exit 1
 fi
