@@ -1,23 +1,27 @@
 #!/usr/bin/env bash
 #
-# Description: Resident daemon in the game server backend.
+# Description: server backend resident daemon for monitoring and management.
 #
 # Copyright (C) 2024 - 2025 honeok <honeok@duck.com>
 #
-# https://www.honeok.com
-# https://github.com/honeok/archive/raw/master/jds/p8/processcontrol.sh
+# Github: https://github.com/honeok/archive/raw/master/jds/p8/processcontrol.sh
 #      __     __       _____                  
 #  __ / / ___/ /  ___ / ___/ ___ _  __ _  ___ 
 # / // / / _  /  (_-</ (_ / / _ `/ /  ' \/ -_)
 # \___/  \_,_/  /___/\___/  \_,_/ /_/_/_/\__/ 
+#                                             
+# License Information:
+# This program is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License, version 3 or later.
 #
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License version 3 or later.
-# See <https://www.gnu.org/licenses/>
+# This program is distributed WITHOUT ANY WARRANTY; without even the implied
+# warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program. If not, see <https://www.gnu.org/licenses/>.
 
-# shellcheck disable=SC2034
-# 仅用于版本控制，脚本中未调用
-readonly version='v0.0.3 (2025.01.29)'
+readonly version='v0.0.3 (2025.02.01)'
 
 # 预定义变量
 logDir='/data/logbak'
@@ -25,16 +29,18 @@ app_name='p8_app_server'
 base_path='/data/server'
 readonly logDir app_name base_path
 
+# 权限校验
+if [ "$(id -ru)" -ne "0" ]; then
+    echo "需要root用户才能运行！" && exit 1
+fi
+
 # 服务器范围
 server_range=$(find /data/ -maxdepth 1 -type d -name "server*" | sed 's:.*/::' | grep -E '^server[0-9]+$' | sed 's/server//' | sort -n)
-
-# 权限校验
-[ "$EUID" -ne "0" ] && echo "需要root用户才能运行！" && exit 1
 
 # 日志备份目录校验
 [ ! -d "$logDir" ] && mkdir -p "$logDir"
 
-# API回调函数
+# api回调函数
 send_message() {
     local action="$1"
     local country os_info cpu_arch
@@ -71,6 +77,9 @@ if [ -z "$server_range" ]; then
     echo "服务器编号为空，无法自适配工作路径！"
     exit 1
 fi
+
+# [ -t 1 ] && tput clear 2>/dev/null || echo -e "\033[2J\033[H" || clear
+echo "当前脚本版本: ${version} 💡 \n"
 
 while :; do
     # 检查game
