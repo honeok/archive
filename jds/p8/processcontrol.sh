@@ -79,7 +79,7 @@ if [ -z "$server_range" ]; then
 fi
 
 # [ -t 1 ] && tput clear 2>/dev/null || echo -e "\033[2J\033[H" || clear
-echo "当前脚本版本: ${version} 💡 \n"
+printf "当前脚本版本: %s 💡 \n" "${version}"
 
 while :; do
     # 检查game
