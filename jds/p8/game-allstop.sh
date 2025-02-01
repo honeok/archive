@@ -1,27 +1,32 @@
 #!/usr/bin/env bash
 #
-# Description:
-# Stops multiple game servers in parallel, with variables designed for Ansible control. 
-# The script is scalable to handle large numbers of servers efficiently.
+# Description: Stops multiple game servers in parallel, with variables designed for Ansible control. 
+#              The script is scalable to handle large numbers of servers efficiently.
 #
 # Copyright (C) 2024 - 2025 honeok <honeok@duck.com>
 #
-# https://www.honeok.com
-# https://github.com/honeok/archive/raw/master/jds/game-allstop.sh
+# Github: https://github.com/honeok/archive/raw/master/jds/p8/game-allstop.sh
 #      __     __       _____                  
 #  __ / / ___/ /  ___ / ___/ ___ _  __ _  ___ 
 # / // / / _  /  (_-</ (_ / / _ `/ /  ' \/ -_)
 # \___/  \_,_/  /___/\___/  \_,_/ /_/_/_/\__/ 
+#                                             
+# License Information:
+# This program is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License, version 3 or later.
 #
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License version 3 or later.
-# See <https://www.gnu.org/licenses/>
+# This program is distributed WITHOUT ANY WARRANTY; without even the implied
+# warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program. If not, see <https://www.gnu.org/licenses/>.
 
 set \
     -o errexit \
     -o nounset
 
-readonly version='v0.1.0 (2025.01.16)'
+readonly version='v0.1.1 (2025.02.01)'
 
 yellow='\033[1;33m'
 red='\033[1;31m'
@@ -37,13 +42,15 @@ _err_msg() { echo -e "\033[41m\033[1m警告${white} $*"; }
 _suc_msg() { echo -e "\033[42m\033[1m成功${white} $*"; }
 _info_msg() { echo -e "\033[43m\033[1;37m提示${white} $*"; }
 
-clear
-_cyan "当前脚本版本: ${version}\n"
+[ -t 1 ] && tput clear 2>/dev/null || echo -e "\033[2J\033[H" || clear
+_cyan "当前脚本版本: ${version} 🛑 \n"
 
 # 操作系统和权限校验
-[ "$(id -ru)" -ne "0" ] && _err_msg "$(_red '需要root用户才能运行！')" && exit 1
+if [ "$(id -ru)" -ne "0" ]; then
+    _err_msg "$(_red '需要root用户才能运行！')" && exit 1
+fi
 
-# Show more info: https://github.com/koalaman/shellcheck/wiki/SC2155
+# https://github.com/koalaman/shellcheck/wiki/SC2155
 os_name=$(grep "^ID=" /etc/*release | awk -F'=' '{print $2}' | sed 's/"//g')
 readonly os_name
 
