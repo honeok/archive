@@ -1,26 +1,32 @@
 #!/usr/bin/env bash
 #
-# Description: This script is designed to back up production environment databases.
+# Description: Automates the backup process for production environment MySQL databases.
 #
 # Copyright (C) 2025 honeok <honeok@duck.com>
 #
-# https://www.honeok.com
-# https://github.com/honeok/archive/raw/master/jds/mysql_bak.sh
+# Github: https://github.com/honeok/archive/raw/master/jds/p8/mysql_bak.sh
 #      __     __       _____                  
 #  __ / / ___/ /  ___ / ___/ ___ _  __ _  ___ 
 # / // / / _  /  (_-</ (_ / / _ `/ /  ' \/ -_)
 # \___/  \_,_/  /___/\___/  \_,_/ /_/_/_/\__/ 
+#                                             
+# License Information:
+# This program is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License, version 3 or later.
 #
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License version 3 or later.
-# See <https://www.gnu.org/licenses/>
+# This program is distributed WITHOUT ANY WARRANTY; without even the implied
+# warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program. If not, see <https://www.gnu.org/licenses/>.
 
 set \
     -o errexit \
     -o nounset \
     -o pipefail
 
-readonly version='v0.1.0 (2025.01.22)'
+readonly version='v0.1.1 (2025.02.01)'
 
 yellow='\033[1;33m'
 red='\033[1;31m'
@@ -41,7 +47,9 @@ separator() { printf "%-20s\n" "-" | sed 's/\s/-/g'; }
 _cyan "当前脚本版本: ${version} 🔕 \n"
 
 # 操作系统和权限校验
-[ "$(id -ru)" -ne "0" ] && _err_msg "$(_red '需要root用户才能运行！')" && exit 1
+if [ "$(id -ru)" -ne "0" ]; then
+    _err_msg "$(_red '需要root用户才能运行！')" && exit 1
+fi
 
 # https://github.com/koalaman/shellcheck/wiki/SC2155
 os_name=$(grep "^ID=" /etc/*release | awk -F'=' '{print $2}' | sed 's/"//g')
