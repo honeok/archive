@@ -4,23 +4,29 @@
 #
 # Copyright (C) 2025 honeok <honeok@duck.com>
 #
-# https://www.honeok.com
-# https://github.com/honeok/archive/raw/master/jds/ansible/ssh-divide.sh
+# https://github.com/honeok/archive/raw/master/jds/p8/ansible/ssh-divide.sh
 #      __     __       _____                  
 #  __ / / ___/ /  ___ / ___/ ___ _  __ _  ___ 
 # / // / / _  /  (_-</ (_ / / _ `/ /  ' \/ -_)
 # \___/  \_,_/  /___/\___/  \_,_/ /_/_/_/\__/ 
+#                                             
+# License Information:
+# This program is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License, version 3 or later.
 #
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License version 3 or later.
-# See <https://www.gnu.org/licenses/>
+# This program is distributed WITHOUT ANY WARRANTY; without even the implied
+# warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program. If not, see <https://www.gnu.org/licenses/>.
 
 set \
     -o errexit \
     -o nounset \
     -o pipefail
 
-readonly version='v0.0.1 (2025.01.23)'
+readonly version='v0.0.1 (2025.02.01)'
 
 yellow='\033[93m'
 red='\033[31m'
