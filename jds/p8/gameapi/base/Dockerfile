@@ -1,13 +1,27 @@
-# Dockerfile from gameapi basic environment based on alpine
-# Copyright (C) 2025 honeok <honeok@duck.com>
+# Description: Dockerfile for the gameapi basic environment based on Alpine
 #
-# Reference:
-# https://github.com/luarocks/luarocks/wiki/Download
-# https://github.com/nginxinc/docker-nginx/blob/master/mainline/alpine-slim/Dockerfile
+# Copyright (C) 2025 honeok <honeok@duck.com>
+#      __     __       _____                  
+#  __ / / ___/ /  ___ / ___/ ___ _  __ _  ___ 
+# / // / / _  /  (_-</ (_ / / _ `/ /  ' \/ -_)
+# \___/  \_,_/  /___/\___/  \_,_/ /_/_/_/\__/ 
+#                                             
+# References:
+# - https://github.com/luarocks/luarocks/wiki/Download
+# - https://github.com/nginxinc/docker-nginx/blob/master/mainline/alpine-slim/Dockerfile
+#
+# License Information:
+# This program is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License, version 3 or later.
+#
+# This program is distributed WITHOUT ANY WARRANTY; without even the implied
+# warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program. If not, see <https://www.gnu.org/licenses/>.
 
-FROM openresty/openresty:1.27.1.1-alpine AS build
-
-LABEL maintainer="honeok <honeok@duck.com>"
+FROM openresty/openresty:1.27.1.1-alpine AS builder
 
 WORKDIR /app
 
@@ -39,10 +53,8 @@ RUN /usr/local/openresty/luajit/bin/luarocks install lpeg && \
 
 FROM openresty/openresty:1.27.1.1-alpine
 
-LABEL maintainer="honeok <honeok@duck.com>"
-
-COPY --from=build /usr/local/openresty /usr/local/openresty
-COPY --from=build /app/build_dep.sh /app/build_dep.sh
+COPY --from=builder /usr/local/openresty /usr/local/openresty
+COPY --from=builder /app/build_dep.sh /app/build_dep.sh
 
 RUN chmod +x /app/build_dep.sh && sh /app/build_dep.sh && rm -rf /app && \
     apk update && \
