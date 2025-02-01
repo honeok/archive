@@ -4,21 +4,28 @@
 #
 # Copyright (C) 2024 - 2025 honeok <honeok@duck.com>
 #
-# https://www.honeok.com
-# https://github.com/honeok/archive/raw/master/jds/game-reload.sh
+# Github: https://github.com/honeok/archive/raw/master/jds/p8/game-reload.sh
 #      __     __       _____                  
 #  __ / / ___/ /  ___ / ___/ ___ _  __ _  ___ 
 # / // / / _  /  (_-</ (_ / / _ `/ /  ' \/ -_)
 # \___/  \_,_/  /___/\___/  \_,_/ /_/_/_/\__/ 
+#                                             
+# License Information:
+# This program is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License, version 3 or later.
 #
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License version 3 or later.
-# See <https://www.gnu.org/licenses/>
+# This program is distributed WITHOUT ANY WARRANTY; without even the implied
+# warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program. If not, see <https://www.gnu.org/licenses/>.
 
 set \
+    -o errexit \
     -o nounset
 
-readonly version='v0.1.5 (2025.01.16)'
+readonly version='v0.1.6 (2025.02.01)'
 
 yellow='\033[93m'
 red='\033[31m'
@@ -32,7 +39,7 @@ _err_msg() { echo -e "\033[41m\033[1m警告${white} $*"; }
 _suc_msg() { echo -e "\033[42m\033[1m成功${white} $*"; }
 _info_msg() { echo -e "\033[43m\033[1;37m提示${white} $*"; }
 
-separator() { printf "%-20s\n" "-" | sed 's/\s/-/g'; }
+short_separator() { printf "%-20s\n" "-" | sed 's/\s/-/g'; }
 
 export DEBIAN_FRONTEND=noninteractive
 
@@ -47,9 +54,11 @@ readonly remote_update_file='/data/update/updategame.tar.gz'
 readonly update_host='10.46.99.186'
 
 # 操作系统和权限校验
-[ "$(id -ru)" -ne "0" ] && _err_msg "$(_red '需要root用户才能运行！')" && exit 1
+if [ "$(id -ru)" -ne "0" ]; then
+    _err_msg "$(_red '需要root用户才能运行！')" && exit 1
+fi
 
-# Show more info: https://github.com/koalaman/shellcheck/wiki/SC2155
+# https://github.com/koalaman/shellcheck/wiki/SC2155
 os_name=$(grep "^ID=" /etc/*release | awk -F'=' '{print $2}' | sed 's/"//g')
 readonly os_name
 
@@ -69,16 +78,18 @@ fi
 echo $$ > "$gamereload_pid"
 
 getserver_passwd() {
-    # 获取服务器密码 usage: echo "xxxxxxxxxxxx" > "$HOME/password.txt" && chmod 600 "$HOME/password.txt"
+    # 获取服务器密码
+    # usage: echo "xxxxxxxxxxxx" > "$HOME/password.txt" && chmod 600 "$HOME/password.txt"
+
     if [ -f "$HOME/password.txt" ] && [ -s "$HOME/password.txt" ]; then
         update_host_passwd=$(head -n 1 "$HOME/password.txt" | tr -d '[:space:]')
     fi
+
     if [ -z "$update_host_passwd" ]; then
         update_host_passwd=$(awk 'NR==1 {gsub(/^[ \t]+|[ \t]+$/, ""); print}' "$HOME/password.txt")
     fi
-    if [ -z "$update_host_passwd" ]; then
-        exit 1
-    fi
+
+    [ -z "$update_host_passwd" ] && exit 1
 }
 
 gameserver_Runcheck() {
@@ -123,7 +134,7 @@ check_cmd() {
 }
 
 get_Updatefile() {
-    cd "$local_update_dir" || exit 1
+    cd "$local_update_dir" || { _err_msg "$(_red "无法进入本地更新包解压路径: $local_update_dir")"; exit 1; }
     rm -rf ./*
 
     if ! sshpass -p "$update_host_passwd" scp -o StrictHostKeyChecking=no -o ConnectTimeout=30 "root@$update_host:$remote_update_file" "$local_update_dir/"; then
@@ -164,7 +175,7 @@ exec_reload() {
                 _suc_msg "$(_green "server${server_num}更新成功！✅")"
             fi
 
-            separator
+            short_separator
         done
     else
         _err_msg "$(_red '服务器编号为空无法执行后续操作')"
