@@ -25,7 +25,6 @@
 set \
     -o errexit \
     -o nounset \
-    -o pipefail \
     -o xtrace
 
 os_name=$(grep ^ID= /etc/*release | awk -F'=' '{print $2}' | sed 's/"//g')
