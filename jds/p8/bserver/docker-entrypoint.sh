@@ -1,14 +1,10 @@
 #!/bin/sh
 
 luban_config_dir="/bserver/config/luban"
-template_luban_config_dir="/opt/config/luban"
+luban_config_dir_temp="/bserver/config/luban_temp"
 
 if [ -d "$luban_config_dir" ] && [ -z "$(ls -A "$luban_config_dir" 2>/dev/null)" ]; then
-    \cp -rf "$template_luban_config_dir"/* "$luban_config_dir/"
-fi
-
-if [ -d "$template_luban_config_dir" ]; then
-    rm -rf "$template_luban_config_dir" 2>/dev/null
+    cp -rf "$luban_config_dir_temp"/* "$luban_config_dir/"
 fi
 
 if [ "$#" -eq 0 ]; then
