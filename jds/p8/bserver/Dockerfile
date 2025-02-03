@@ -17,8 +17,7 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <https://www.gnu.org/licenses/>.
 
-ARG ROCKY_VERSION=9.3
-FROM rockylinux:${ROCKY_VERSION}
+FROM alpine:latest
 
 WORKDIR /bserver
 
@@ -27,16 +26,16 @@ COPY . .
 ENV BSERVER_PORT="8080" TZ=Asia/Shanghai
 
 RUN set -ex \
-    && dnf install -y gettext procps \
+    && apk update && apk add --no-cache libc6-compat libgcc libstdc++ g++ gettext procps \
     && chmod +x bserver && install -m 755 docker-entrypoint.sh /docker-entrypoint.sh \
     && envsubst < App.json.template > config/App.json \
+    && apk del gettext \
     && rm -f App.json.template Dockerfile \
-    && dnf remove -y gettext && dnf clean all && rm -rf /var/cache/dnf/* \
-    && rm -rf /opt/config/luban \
-    && mkdir -p /opt/config/luban \
-    && cp -r config/luban/* /opt/config/luban/ \
-    && rm -rfv logs/* BattleSimulator/*
+    && rm -rf config/luban_temp \
+    && rm -rfv /var/cache/apk/* logs/* BattleSimulator/* \
+    && mkdir -p config/luban_temp \
+    && cp -rfv config/luban/* config/luban_temp/
 
 EXPOSE ${BSERVER_PORT}
 
-ENTRYPOINT ["/docker-entrypoint.sh"]
+ENTRYPOINT [ "/docker-entrypoint.sh" ]
