@@ -1,0 +1,16 @@
+services:
+  nginx:
+    image: honeok/nginx:1.27.3-alpine3.20
+    container_name: nginx
+    restart: unless-stopped
+    ports:
+      - 18000:80
+    environment:
+      - TZ=Asia/Shanghai
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./conf.d/bserver.conf:/etc/nginx/conf.d/bserver.conf
+      - ./logs:/var/log/nginx
+    tmpfs:
+      - /var/cache/nginx:rw,noexec,nosuid,size=512m
+    network_mode: bridge
