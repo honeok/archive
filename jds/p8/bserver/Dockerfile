@@ -23,13 +23,16 @@ WORKDIR /bserver
 
 COPY . .
 
-ENV BSERVER_PORT="8080" TZ=Asia/Shanghai
+ENV BSERVER_PORT="8080"
 
 RUN set -ex \
-        && apk update && apk add --no-cache libc6-compat libgcc libstdc++ g++ gettext \
+        && apk update && apk upgrade \
+        && apk add --no-cache libc6-compat libgcc libstdc++ g++ gettext tzdata \
         && chmod +x bserver && install -m 755 docker-entrypoint.sh /docker-entrypoint.sh \
         && envsubst < App.json.template > config/App.json \
-        && apk del gettext \
+        && ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
+        && echo "Asia/Shanghai" > /etc/timezone \
+        && apk del gettext tzdata \
         && rm -fv App.json.template Dockerfile docker-entrypoint.sh \
         && rm -rf config/luban_temp \
         && rm -rfv /var/cache/apk/* logs/* BattleSimulator/* \
