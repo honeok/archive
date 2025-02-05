@@ -4,7 +4,7 @@
 #
 # Copyright (C) 2024 - 2025 honeok <honeok@duck.com>
 #
-# Github: https://github.com/honeok/archive/raw/master/jds/p8/game-reload.sh
+# https://github.com/honeok/archive/raw/master/jds/p8/game-reload.sh
 #      __     __       _____                  
 #  __ / / ___/ /  ___ / ___/ ___ _  __ _  ___ 
 # / // / / _  /  (_-</ (_ / / _ `/ /  ' \/ -_)
@@ -25,7 +25,7 @@ set \
     -o errexit \
     -o nounset
 
-readonly version='v0.1.6 (2025.02.01)'
+readonly version='v0.1.7 (2025.02.05)'
 
 yellow='\033[93m'
 red='\033[31m'
@@ -81,15 +81,23 @@ getserver_passwd() {
     # 获取服务器密码
     # usage: echo "xxxxxxxxxxxx" > "$HOME/password.txt" && chmod 600 "$HOME/password.txt"
 
-    if [ -f "$HOME/password.txt" ] && [ -s "$HOME/password.txt" ]; then
-        update_host_passwd=$(head -n 1 "$HOME/password.txt" | tr -d '[:space:]')
+    if [ ! -f "$HOME/password.txt" ] || [ ! -s "$HOME/password.txt" ]; then
+        _red "密码文件不存在或为空！"
+        exit 1
     fi
+
+    for pass_cmd in "head -n 1 $HOME/password.txt | tr -d '[:space:]'" "awk 'NR==1 {gsub(/^[ \t]+|[ \t]+$/, \"\"); print}' $HOME/password.txt"; do
+        update_host_passwd=$(eval "$pass_cmd")
+
+        if [ -n "$update_host_passwd" ]; then
+            break
+        fi
+    done
 
     if [ -z "$update_host_passwd" ]; then
-        update_host_passwd=$(awk 'NR==1 {gsub(/^[ \t]+|[ \t]+$/, ""); print}' "$HOME/password.txt")
+        _red "无法从文件中获取主机密码，请检查密码文件内容！"
+        exit 1
     fi
-
-    [ -z "$update_host_passwd" ] && exit 1
 }
 
 gameserver_Runcheck() {
@@ -113,8 +121,8 @@ gameserver_Runcheck() {
         exit 1
     fi
 
-    # 将运行中的服务器编号输出到server_range变量
-    server_range=$(printf "%s\n" "${running_servers[@]}" | sort -n)
+    # 将运行中的服务器编号输出到server_ranges变量
+    server_ranges=$(printf "%s\n" "${running_servers[@]}" | sort -n)
 }
 
 check_cmd() {
@@ -125,8 +133,8 @@ check_cmd() {
         elif command -v yum >/dev/null 2>&1; then
             [[ ! $(rpm -q epel-release) ]] && yum install -y epel-release
             yum install -y sshpass
-        elif command -v apt >/dev/null 2>&1; then
-            apt install -y sshpass
+        elif command -v apt-get >/dev/null 2>&1; then
+            apt-get install -y sshpass
         else
             exit 1
         fi
@@ -158,8 +166,11 @@ get_Updatefile() {
 }
 
 exec_reload() {
-    if [ -n "$server_range" ]; then
-        for server_num in $server_range; do
+    # 将server_ranges解析为数组
+    read -r -a server_range <<< "$server_ranges"
+
+    if [ "${#server_range[@]}" -gt 0 ]; then
+        for server_num in "${server_range[@]}"; do
             reach_dir="/data/server${server_num}/game"
 
             if [ ! -d "$reach_dir" ]; then
