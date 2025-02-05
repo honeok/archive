@@ -32,7 +32,7 @@ RUN set -ex \
         && envsubst < App.json.template > config/App.json \
         && ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
         && echo "Asia/Shanghai" > /etc/timezone \
-        && apk del gettext tzdata \
+        && apk del gettext \
         && rm -fv App.json.template Dockerfile docker-entrypoint.sh \
         && rm -rf config/luban_temp \
         && rm -rfv /var/cache/apk/* logs/* BattleSimulator/* \
