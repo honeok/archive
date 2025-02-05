@@ -30,9 +30,9 @@ RUN set -ex \
         && apk add --no-cache libc6-compat libgcc libstdc++ g++ gettext tzdata \
         && chmod +x bserver && install -m 755 docker-entrypoint.sh /docker-entrypoint.sh \
         && envsubst < App.json.template > config/App.json \
-        && ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
+        && cp -fv /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
         && echo "Asia/Shanghai" > /etc/timezone \
-        && apk del gettext \
+        && apk del gettext tzdata \
         && rm -fv App.json.template Dockerfile docker-entrypoint.sh \
         && rm -rf config/luban_temp \
         && rm -rfv /var/cache/apk/* logs/* BattleSimulator/* \
