@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <https://www.gnu.org/licenses/>.
 
-FROM php:8.1.30-fpm-alpine3.20
+FROM php:8.0.30-fpm-alpine3.16
 
 RUN set -ex \
         && apk update \
