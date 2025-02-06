@@ -70,5 +70,3 @@ ENV PATH="/usr/local/openresty/luajit/bin:/usr/local/openresty/nginx/sbin:/usr/l
     LUA_PATH="/usr/local/openresty/lualib/?.lua;/usr/local/openresty/luajit/share/lua/5.1/?.lua;;" \
     LUA_CPATH="/usr/local/openresty/lualib/?.so;/usr/local/openresty/luajit/lib/lua/5.1/?.so;;" \
     TZ=Asia/Shanghai
-
-EXPOSE 80/tcp 443/tcp 443/udp
