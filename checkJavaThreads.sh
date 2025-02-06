@@ -201,7 +201,7 @@ Miscellaneous:
   -V, --version             display version information and exit.
 EOF
 
-    exit
+    exit 1
 }
 
 progVersion() {
