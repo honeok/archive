@@ -31,6 +31,6 @@ RUN set -ex \
         && rm -fv logs/* docker-entrypoint.sh Dockerfile \
         && rm -rfv migrations/models
 
-EXPOSE 8000
+EXPOSE 8000/tcp
 
 ENTRYPOINT [ "/docker-entrypoint.sh" ]
