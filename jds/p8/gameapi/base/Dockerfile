@@ -31,9 +31,9 @@ WORKDIR /usr/local/src
 RUN set -ex \
         && apk update && apk upgrade \
         && apk add --no-cache gcc g++ make pcre-dev zlib-dev openssl-dev wget bash tar git curl libtool automake \
-        && curl -fsL https://luarocks.github.io/luarocks/releases/luarocks-3.9.2.tar.gz -o /tmp/luarocks-3.9.2.tar.gz \
-        && tar zxpf /tmp/luarocks-3.9.2.tar.gz -C /tmp \
-        && cd /tmp/luarocks-3.9.2 \
+        && curl -fsL -O https://luarocks.github.io/luarocks/releases/luarocks-3.9.2.tar.gz \
+        && tar zxpf luarocks-3.9.2.tar.gz \
+        && cd luarocks-3.9.2 \
         && ./configure --prefix=/usr/local/openresty/luajit \
             --with-lua=/usr/local/openresty/luajit \
             --lua-suffix=jit \
@@ -41,7 +41,7 @@ RUN set -ex \
         && make -j$(nproc) \
         && make install \
         && cd - \
-        && rm -rfv /tmp/luarocks* \
+        && rm -rfv luarocks* \
         && /usr/local/openresty/luajit/bin/luarocks install lpeg \
         && /usr/local/openresty/luajit/bin/luarocks install luasocket \
         && /usr/local/openresty/luajit/bin/luarocks install lua-resty-jit-uuid \
