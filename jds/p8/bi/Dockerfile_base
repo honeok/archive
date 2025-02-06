@@ -25,5 +25,7 @@ WORKDIR /
 COPY requirements.txt .
 
 RUN set -ex \
-    && python3 -m pip install --no-cache-dir -r requirements.txt \
-    && rm -f requirements.txt
+        && apk update \
+        && python3 -m pip install --no-cache-dir -r requirements.txt \
+        && rm -fv requirements.txt \
+        && rm -rfv /var/cache/apk/*
