@@ -18,15 +18,23 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <https://www.gnu.org/licenses/>.
 
-FROM python:3.9.20-alpine3.20
+ARG PYTHON_VERSION=3.9.20-alpine3.20
 
-WORKDIR /
+FROM alpine:latest AS builder
 
+RUN set -ex \
+        && apk update && apk upgrade \
+        && apk add --no-cache gettext \
+        && rm -rfv /var/cache/apk/*
+
+FROM python:${PYTHON_VERSION}
+
+COPY --from=builder /usr/bin/envsubst /usr/bin/envsubst
 COPY requirements.txt .
 
 RUN set -ex \
         && apk update && apk upgrade \
-        && apk add --no-cache gcc libffi-dev python3-dev musl-dev gettext mysql-client \
+        && apk add --no-cache gcc libffi-dev python3-dev musl-dev mysql-client \
         && python3 -m pip install --no-cache-dir -r requirements.txt \
         && rm -fv requirements.txt \
         && rm -rfv /var/cache/apk/*
