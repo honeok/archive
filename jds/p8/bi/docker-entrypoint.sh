@@ -17,6 +17,7 @@ if ! mysql -u "$DB_USER" -P "$DB_PORT" -h "$DB_HOST" -p"$DB_PASSWORD" -e "CREATE
 fi
 
 if [ -d "$work_dir" ]; then
+    cd "$work_dir" || { echo "Failed to enter work path!" && exit 1; }
     envsubst < .env.template > .env
     envsubst < aerich_env.py.template > aerich_env.py
 
