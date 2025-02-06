@@ -1,5 +1,9 @@
 #!/bin/sh
 
+set \
+    -o errexit \
+    -o nounset
+
 work_dir="/bi"
 
 if [ -z "$DB_USER" ] || [ -z "$DB_PASSWORD" ] || [ -z "$DB_HOST" ] || [ -z "$DB_PORT" ] || [ -z "$DB_DATABASE" ]; then
@@ -7,7 +11,7 @@ if [ -z "$DB_USER" ] || [ -z "$DB_PASSWORD" ] || [ -z "$DB_HOST" ] || [ -z "$DB_
     exit 1
 fi
 
-if ! mysql -u "$DB_USER" -P "$DB_PORT" -h "$DB_HOST" -e "CREATE DATABASE IF NOT EXISTS $DB_DATABASE CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;" 2>/dev/null; then
+if ! mysql -u "$DB_USER" -P "$DB_PORT" -h "$DB_HOST" -p"$DB_PASSWORD" -e "CREATE DATABASE IF NOT EXISTS $DB_DATABASE CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;" 2>/dev/null; then
     echo "Failed to create the database $DB_DATABASE. Exiting!"
     exit 1
 fi
