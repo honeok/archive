@@ -17,12 +17,20 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <https://www.gnu.org/licenses/>.
 
-FROM registry.cn-chengdu.aliyuncs.com/havario/bi-base:2025.02.01-8093f14
+ARG BUILD_TAG=2025.02.06
+
+FROM registry.cn-chengdu.aliyuncs.com/havario/bi-base:${BUILD_TAG}
 
 WORKDIR /bi
 
 COPY . .
 
+RUN set -ex \
+        && apk update && apk upgrade \
+        && install -m 755 docker-entrypoint.sh /docker-entrypoint.sh \
+        && rm -fv logs/* docker-entrypoint.sh Dockerfile \
+        && rm -rfv migrations/models
+
 EXPOSE 8000
 
-ENTRYPOINT ["python3", "server.py"]
+ENTRYPOINT [ "/docker-entrypoint.sh" ]
