@@ -2,6 +2,8 @@
 
 maintainer: honeok <honeok@duck.com>
 
+Contact us: <fangwo811@gmail.com>
+
 Copyright © Chengdu Zhidan Network Technology Co., Ltd.
 
 ```shell
