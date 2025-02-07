@@ -7,7 +7,6 @@ services:
       - 80:80 # 20010
     environment:
       HTML_TITLE: p8-demo # index.html title
-      HOST_IP: 192.168.250.250 # eth0内网ip
       GMSERVER_PUBLIC_IP: 8.8.8.8 # 对接gmserver公网
       GMSERVER_PUBLIC_PORT: 3000 # 20011
     volumes:
