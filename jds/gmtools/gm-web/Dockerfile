@@ -30,7 +30,7 @@ RUN set -ex \
         && apk add --no-cache tzdata gettext \
         && install -m 755 docker-entrypoint.sh /docker-entrypoint.sh \
         && rm -rfv node_modules \
-        && npm install \
+        && npm install --legacy-peer-deps \
         && cp -fv /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
         && echo "Asia/Shanghai" > /etc/timezone \
         && apk del tzdata \
