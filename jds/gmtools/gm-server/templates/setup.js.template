@@ -5,33 +5,33 @@ module.exports = {
     gmdb: {
         host: '${GMDB_HOST}',
         database: '${GMDB_DATABASE}',
-        user: 'root',
+        user: '${GMDB_USER}',
         password: '${GMDB_PASSWORD}',
-        port: 3306
+        port: '${GMDB_PORT}',
     },
     reportdb: {
         host: '${REPORTDB_HOST}',
         database: '${REPORTDB_DATABASE}',
-        user: 'root',
+        user: '${REPORTDB_USER}',
         password: '${REPORTDB_PASSWORD}',
-        port: 3306
+        port: '${REPORTDB_PORT}',
     },
     accountdb: {
         host: '${ACCOUNTDB_HOST}',
         database: '${ACCOUNTDB_DATABASE}',
-        user: 'root',
+        user: '${ACCOUNTDB_USER}',
         password: '${ACCOUNTDB_PASSWORD}',
-        port: 3306
+        port: '${ACCOUNTDB_PORT}',
     },
     centerdb: {
         host: '${CENTERDB_HOST}',
         database: '${CENTERDB_DATABASE}',
-        user: 'root',
+        user: '${CENTERDB_USER}',
         password: '${CENTERDB_PASSWORD}',
-        port: 3306
+        port: '${CENTERDB_PORT}',
     },
     gmgame: {
-        host: '0.0.0.0',
-        port: '6090'
-    }
+        host: '${GMGAME_HOST}',
+        port: '${GMGAME_PORT}',
+    },
 }
