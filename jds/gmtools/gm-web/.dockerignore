@@ -1,7 +1,4 @@
-.babelrc
-.eslintrc.js
 .gitignore
-.postcssrc.js
 .travis.yml
 LICENSE
 README.md
