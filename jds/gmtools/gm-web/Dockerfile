@@ -30,13 +30,14 @@ RUN set -ex \
         && apk update && apk upgrade \
         && apk add --no-cache tzdata gettext \
         && install -m 755 docker-entrypoint.sh /docker-entrypoint.sh \
-        && rm -rfv node_modules \
+        && rm -rfv node_modules config \
         && npm install --legacy-peer-deps \
         && cp -fv /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
         && echo "Asia/Shanghai" > /etc/timezone \
         && apk del tzdata \
         && rm -rfv /var/cache/apk/* \
-        && rm -fv Dockerfile docker-entrypoint.sh src/globle/setup.js config/*
+        && mkdir -pv config \
+        && rm -fv Dockerfile docker-entrypoint.sh src/globle/setup.js
 
 EXPOSE 80
 
