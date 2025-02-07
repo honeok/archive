@@ -1,21 +1,43 @@
-# Dockerfile from gm-server containerization construction
-# Copyright (C) 2025 honeok <honeok@duck.com>
+# Description: Dockerfile for building the gm-server container
 #
-# https://www.honeok.com
+# Copyright (C) 2025 honeok <honeok@duck.com>
+#      __     __       _____                  
+#  __ / / ___/ /  ___ / ___/ ___ _  __ _  ___ 
+# / // / / _  /  (_-</ (_ / / _ `/ /  ' \/ -_)
+# \___/  \_,_/  /___/\___/  \_,_/ /_/_/_/\__/ 
+#                                             
+# License Information:
+# This program is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License, version 3 or later.
+#
+# This program is distributed WITHOUT ANY WARRANTY; without even the implied
+# warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program. If not, see <https://www.gnu.org/licenses/>.
 
-ARG NODE_VERSION=16.20.2
+ARG NODE_VERSION=16.20.2-alpine
 
-FROM node:${NODE_VERSION}-alpine
+FROM node:${NODE_VERSION}
 
-LABEL maintainer="honeok <honeok@duck.com>"
-
-WORKDIR /
+WORKDIR /gm-server
 
 COPY . .
 
-RUN chmod +x build_dep.sh && ./build_dep.sh build && \
-    ./build_dep.sh clean && rm -f build_dep.sh
+RUN set -ex \
+        && apk update && apk upgrade \
+        && apk add --no-cache tzdata gettext \
+        && install -m 755 docker-entrypoint.sh /docker-entrypoint.sh \
+        && rm -rfv node_modules logs/* \
+        && npm install \
+        && cp -fv /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
+        && echo "Asia/Shanghai" > /etc/timezone \
+        && apk del tzdata \
+        && rm -rfv /var/cache/apk/* \
+        && rm -rf upload && mkdir -p upload \
+        && rm -fv Dockerfile docker-entrypoint.sh config/gamedb.js
 
-ENTRYPOINT ["entrypoint.sh"]
+EXPOSE 3000
 
-CMD ["npm", "--prefix", "gm-server/", "run", "dev"]
+ENTRYPOINT [ "/docker-entrypoint.sh" ]
