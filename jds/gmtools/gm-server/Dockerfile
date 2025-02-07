@@ -29,14 +29,14 @@ RUN set -ex \
         && apk update && apk upgrade \
         && apk add --no-cache tzdata gettext \
         && install -m 755 docker-entrypoint.sh /docker-entrypoint.sh \
-        && rm -rfv node_modules logs/* \
+        && rm -rfv node_modules upload logs config \
         && npm install \
         && cp -fv /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
         && echo "Asia/Shanghai" > /etc/timezone \
         && apk del tzdata \
         && rm -rfv /var/cache/apk/* \
-        && rm -rf upload && mkdir -p upload \
-        && rm -fv Dockerfile docker-entrypoint.sh config/*
+        && mkdir -pv upload logs config \
+        && rm -fv Dockerfile docker-entrypoint.sh
 
 EXPOSE 3000
 
