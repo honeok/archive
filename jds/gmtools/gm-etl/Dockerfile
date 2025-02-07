@@ -1,4 +1,4 @@
-# Description: Dockerfile for building the gm-web container
+# Description: Dockerfile for building the gm-etl container
 #
 # Copyright (C) 2025 honeok <honeok@duck.com>
 #      __     __       _____                  
