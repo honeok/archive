@@ -39,7 +39,7 @@ services:
       OBS_REFRESH_SECRETKEY: 5a892439-9450-4d67-99b7-e8d609e223d9
       OBS_REFRESH_PROJECTID: ed9f293a-487f-4ef9-bfec-dbc27f7ae84a
     volumes:
-      - ./config:/gm-server/config
+      - ./config:/gm-server/config # 提前创建从本地挂载gamedb.js，与gmetl共享gamedb.js配置文件
       - ./logs:/gm-server/logs
       - ./upload:/gm-server/upload
     network_mode: bridge

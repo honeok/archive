@@ -11,5 +11,5 @@ services:
       GMSERVER_PUBLIC_PORT: 3000 # 20011
     volumes:
       - ./config:/gm-web/config
-      - ./setup.js:/gm-web/src/globle/setup.js
+      - ./setup.js:/gm-web/src/globle/setup.js # 提前创建从本地挂载
     network_mode: bridge
