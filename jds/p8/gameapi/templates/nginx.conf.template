@@ -16,7 +16,6 @@
 # See https://github.com/openresty/docker-openresty/blob/master/README.md#nginx-config-files
 #
 
-#user  nobody;
 user nginx;
 #worker_processes 1;
 worker_processes ${{NUM_WORKERS}};
@@ -33,12 +32,13 @@ error_log  stderr  notice;
 pid        logs/nginx.pid;
 
 events {
-    worker_connections  1024;
+    worker_connections  10240;
 }
 
 http {
     include       mime.types;
     default_type  application/octet-stream;
+    charset       utf-8;
 
     # Enables or disables the use of underscores in client request header fields.
     # When the use of underscores is disabled, request header fields whose names contain underscores are marked as invalid and become subject to the ignore_invalid_headers directive.
@@ -96,6 +96,7 @@ http {
 
     #keepalive_timeout  0;
     keepalive_timeout  65;
+    server_tokens  off;
 
     #gzip  on;
 
