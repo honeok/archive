@@ -6,7 +6,7 @@ module.exports = {
     Notic_Key: '${OBS_NOTIC_KEY}',
     Serverlist_Key: '${OBS_SERVERLIST_KEY}',
     Serverlist_Name: '${OBS_SERVERLIST_NAME}',
-    Upload_DIR: '/gmtools/upload',
+    Upload_DIR: '/gm-server/upload',
     Refresh_AccessKey: '${OBS_REFRESH_ACCESSKEY}',
     Refresh_SecretKey: '${OBS_REFRESH_SECRETKEY}',
     Refresh_ProjectId: '${OBS_REFRESH_PROJECTID}',
