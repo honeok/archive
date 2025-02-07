@@ -35,7 +35,8 @@ RUN set -ex \
         && cp -fv config/task.json templates/task.json \
         && echo "Asia/Shanghai" > /etc/timezone \
         && apk del tzdata \
-        && rm -rfv /var/cache/apk/* data/* logs/* \
-        && rm -fv Dockerfile docker-entrypoint.sh config/*
+        && rm -rfv /var/cache/apk/* data logs config \
+        && mkdir -pv data logs config \
+        && rm -fv Dockerfile docker-entrypoint.sh
 
 ENTRYPOINT [ "/docker-entrypoint.sh" ]
