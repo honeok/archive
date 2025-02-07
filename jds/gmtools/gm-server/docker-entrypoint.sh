@@ -1,18 +1,30 @@
 #!/bin/sh
 
-templates_dir="./templates"
-genconf_dir="/opt/template"
-config_dir="/gm-server/config"
+set \
+    -o errexit \
+    -o nounset
 
-for template in "$templates_dir"/*.template.js; do
-    if [ -f "$template" ]; then
-        config_file=$(basename "$template" .template.js).js
-        envsubst < "$template" > "$genconf_dir/$config_file"
+work_dir="/gm-server"
+
+if [ -d "$work_dir" ]; then
+    cd "$work_dir" || { echo "Failed to enter work path!" && exit 1; }
+    if [ ! -f config/gamedb.js ]; then
+        echo "error: You need to first mount gamedb.js file!"
+        exit 1
     fi
-done
-
-if [ -d "$config_dir" ] && [ -z "$(ls -A "$config_dir" 2>/dev/null)" ]; then
-    \cp -rf "$genconf_dir"/* "$config_dir"
+    if [ ! -f config/setup.js ]; then
+        envsubst < templates/setup.js.template > config/setup.js
+    fi
+    if [ ! -f config/obs.js ]; then
+        envsubst < templates/obs.js.template > config/obs.js
+    fi
+else
+    echo "Directory $work_dir does not exist, exiting!"
+    exit 1
 fi
 
-exec "$@"
+if [ "$#" -eq 0 ]; then
+    exec npm --prefix "$work_dir/" start
+else
+    exec "$@"
+fi
