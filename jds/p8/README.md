@@ -1,3 +1,3 @@
 # p8 🎮
 
-p8 workspace
+p8 Game Operations Workspace. 🛠️
