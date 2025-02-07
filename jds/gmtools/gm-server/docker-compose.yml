@@ -1,20 +1,47 @@
 services:
   gmserver:
-    image: gmtools/gmserver:2025.01.07
+    image: registry.cn-chengdu.aliyuncs.com/havario/gmserver
     container_name: gmserver
     restart: unless-stopped
     ports:
       - 3000:3000
-      - 6090:6090
-    env_file:
-      - ./gm-server/.env
+    environment:
+      TZ: Asia/Shanghai
+      GMDB_HOST: 10.46.98.60
+      GMDB_DATABASE: uat2_gm
+      GMDB_USER: root
+      GMDB_PASSWORD: 1xBSKI7#*6QRdv
+      GMDB_PORT: 3306
+      REPORTDB_HOST: 10.46.98.60
+      REPORTDB_DATABASE: uat2_report
+      REPORTDB_USER: root
+      REPORTDB_PASSWORD: 1xBSKI7#*6QRdv
+      REPORTDB_PORT: 3306
+      ACCOUNTDB_HOST: 10.46.98.60
+      ACCOUNTDB_DATABASE: uat2_account
+      ACCOUNTDB_USER: root
+      ACCOUNTDB_PASSWORD: 1xBSKI7#*6QRdv
+      ACCOUNTDB_PORT: 3306
+      CENTERDB_HOST: 10.46.98.60
+      CENTERDB_DATABASE: uat2_common
+      CENTERDB_USER: root
+      CENTERDB_PASSWORD: 1xBSKI7#*6QRdv
+      CENTERDB_PORT: 3306
+      GMGAME_HOST: 10.46.98.60
+      GMGAME_PORT: 6090 # GM
+      OBS_ACCESS_KEY_ID: 186bc618-4e80-495a-bc8e-202421284093
+      OBS_SECRET_ACCESS_KEY: 03863cbd-87d7-4100-bc5b-a80f43e94f89
+      OBS_SERVER: 4d7857e8-5ada-4373-8d28-aeaad0af2857
+      OBS_BUCKET: 6f48c68e-4dd8-4fd0-9c45-10338f273f2a
+      OBS_NOTIC_KEY: 0402de27-d290-4fbd-b763-b9aa8c5cde00
+      OBS_SERVERLIST_KEY: 56430b48-5e31-4c4d-b939-93e7a602ce52
+      OBS_SERVERLIST_NAME: 7ec1da4e-82cd-4276-a42a-4a2554eb5441
+      OBS_REFRESH_ACCESSKEY: 1f5e8698-4901-4ccc-949a-909b0c1a7b04
+      OBS_REFRESH_SECRETKEY: 5a892439-9450-4d67-99b7-e8d609e223d9
+      OBS_REFRESH_PROJECTID: ed9f293a-487f-4ef9-bfec-dbc27f7ae84a
     volumes:
-      - ./gm-server/config:/gm-server/config
-      - ./gm-server/logs:/gm-server/logs
-      - ./gm-server/upload:/gm-server/upload
-    networks:
-      - gmtools
-
-networks:
-  gmtools:
-    driver: bridge
+      - ./config:/gm-server/config
+      - ./logs:/gm-server/logs
+      - ./upload:/gm-server/upload
+    network_mode: bridge
+    privileged: true
