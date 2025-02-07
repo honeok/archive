@@ -1,3 +1,3 @@
-# Gmtools 🧰
+# gmtools 🧩
 
-Containerized build for Gmtools
+containerized build for gmtools
