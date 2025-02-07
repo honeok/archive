@@ -10,4 +10,7 @@ services:
       HOST_IP: 192.168.250.250 # eth0内网ip
       GMSERVER_PUBLIC_IP: 8.8.8.8 # 对接gmserver公网
       GMSERVER_PUBLIC_PORT: 3000 # 20011
+    volumes:
+      - ./config:/gm-web/config
+      - ./setup.js:/gm-web/src/globle/setup.js
     network_mode: bridge
