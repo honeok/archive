@@ -1,0 +1,13 @@
+services:
+  gmweb:
+    image: registry.cn-chengdu.aliyuncs.com/havario/gmweb
+    container_name: gmweb
+    restart: unless-stopped
+    ports:
+      - 3000:3000
+    environment:
+      TZ: Asia/Shanghai
+      HTML_TITLE: p8-dev
+      HOST_IP: 10.46.98.60
+      GMSERVER_PUBLIC_IP: 192.168.1.1
+      GMSERVER_PUBLIC_PORT: 20011
