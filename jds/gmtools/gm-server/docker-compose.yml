@@ -6,7 +6,6 @@ services:
     ports:
       - 3000:3000
     environment:
-      TZ: Asia/Shanghai
       GMDB_HOST: 10.46.98.60
       GMDB_DATABASE: uat2_gm
       GMDB_USER: root
