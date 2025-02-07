@@ -36,7 +36,7 @@ RUN set -ex \
         && echo "Asia/Shanghai" > /etc/timezone \
         && apk del tzdata \
         && rm -rfv /var/cache/apk/* \
-        && rm -fv Dockerfile docker-entrypoint.sh src/globle/setup.js
+        && rm -fv Dockerfile docker-entrypoint.sh src/globle/setup.js config/*
 
 EXPOSE 80
 

@@ -36,7 +36,7 @@ RUN set -ex \
         && apk del tzdata \
         && rm -rfv /var/cache/apk/* \
         && rm -rf upload && mkdir -p upload \
-        && rm -fv Dockerfile docker-entrypoint.sh config/gamedb.js
+        && rm -fv Dockerfile docker-entrypoint.sh config/*
 
 EXPOSE 3000
 
