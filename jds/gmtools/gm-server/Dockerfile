@@ -1,11 +1,11 @@
 # Description: Dockerfile for building the gm-server container
 #
 # Copyright (C) 2025 honeok <honeok@duck.com>
-#      __     __       _____                  
-#  __ / / ___/ /  ___ / ___/ ___ _  __ _  ___ 
+#      __     __       _____
+#  __ / / ___/ /  ___ / ___/ ___ _  __ _  ___
 # / // / / _  /  (_-</ (_ / / _ `/ /  ' \/ -_)
-# \___/  \_,_/  /___/\___/  \_,_/ /_/_/_/\__/ 
-#                                             
+# \___/  \_,_/  /___/\___/  \_,_/ /_/_/_/\__/
+#
 # License Information:
 # This program is free software: you can redistribute it and/or modify it under
 # the terms of the GNU General Public License, version 3 or later.
