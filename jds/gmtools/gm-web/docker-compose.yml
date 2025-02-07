@@ -4,9 +4,10 @@ services:
     container_name: gmweb
     restart: unless-stopped
     ports:
-      - 3000:3000
+      - 80:80 # 20010
     environment:
-      HTML_TITLE: p8-dev
-      HOST_IP: 10.46.98.60
-      GMSERVER_PUBLIC_IP: 192.168.1.1
-      GMSERVER_PUBLIC_PORT: 20011
+      HTML_TITLE: p8-demo # index.html title
+      HOST_IP: 192.168.250.250 # eth0内网ip
+      GMSERVER_PUBLIC_IP: 8.8.8.8 # 对接gmserver公网
+      GMSERVER_PUBLIC_PORT: 3000 # 20011
+    network_mode: bridge
