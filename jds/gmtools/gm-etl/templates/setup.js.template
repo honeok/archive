@@ -1,0 +1,9 @@
+module.exports = {
+    elt: {
+        host: '${REPORTDB_HOST}',
+        port: ${REPORTDB_PORT},
+        user: '${REPORTDB_USER}',
+        password: '${REPORTDB_PASSWORD}',
+        database: '${REPORTDB_DATABASE}',
+    }
+}
