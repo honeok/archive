@@ -25,6 +25,7 @@ WORKDIR /gm-web
 
 COPY . .
 
+# https://www.reddit.com/r/nextjs/comments/1hflgi6/force_or_legacypeerdeps/?rdt=64358
 RUN set -ex \
         && apk update && apk upgrade \
         && apk add --no-cache tzdata gettext \
