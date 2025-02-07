@@ -1,10 +1,8 @@
 # JdsGame 🎲
 
-Maintainer: honeok <honeok@duck.com> [honeok](mailto:honeok@duck.com)
+maintainer: honeok <honeok@duck.com>
 
 Copyright © Chengdu Zhidan Network Technology Co., Ltd.
-
-Licensed under GPL-3.0 - see LICENSE for details.
 
 ```shell
 #      __     __       _____
@@ -12,3 +10,5 @@ Licensed under GPL-3.0 - see LICENSE for details.
 # / // / / _  /  (_-</ (_ / / _ `/ /  ' \/ -_)
 # \___/  \_,_/  /___/\___/  \_,_/ /_/_/_/\__/
 ```
+
+Licensed under GPL-3.0 - see LICENSE for details.
