@@ -34,7 +34,7 @@ COPY requirements.txt .
 
 RUN set -ex \
         && apk update && apk upgrade \
-        && apk add --no-cache gcc libffi-dev python3-dev tzdata musl-dev mysql-client \
+        && apk add --no-cache gcc libffi-dev python3-dev tzdata musl-dev \
         && python3 -m pip install --no-cache-dir -r requirements.txt \
         && cp -fv /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
         && echo "Asia/Shanghai" > /etc/timezone \
