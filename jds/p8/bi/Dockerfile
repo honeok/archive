@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <https://www.gnu.org/licenses/>.
 
-ARG BUILD_TAG=2025.02.08-slim
+ARG BUILD_TAG=2025.02.08-22bdfa9
 
 FROM registry.cn-chengdu.aliyuncs.com/havario/bi-base:${BUILD_TAG}
 
