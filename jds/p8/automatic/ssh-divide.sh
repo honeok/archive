@@ -2,14 +2,13 @@
 #
 # Description: Automates the distribution of SSH keys across multiple hosts using Ansible for password-less SSH login.
 #
+# Copyright (C) 2025 zzwsec <zzwsec@163.com>
 # Copyright (C) 2025 honeok <honeok@duck.com>
-#
-# https://github.com/honeok/archive/raw/master/jds/p8/ansible/ssh-divide.sh
-#      __     __       _____                  
-#  __ / / ___/ /  ___ / ___/ ___ _  __ _  ___ 
+#      __     __       _____
+#  __ / / ___/ /  ___ / ___/ ___ _  __ _  ___
 # / // / / _  /  (_-</ (_ / / _ `/ /  ' \/ -_)
-# \___/  \_,_/  /___/\___/  \_,_/ /_/_/_/\__/ 
-#                                             
+# \___/  \_,_/  /___/\___/  \_,_/ /_/_/_/\__/
+#
 # License Information:
 # This program is free software: you can redistribute it and/or modify it under
 # the terms of the GNU General Public License, version 3 or later.
@@ -26,7 +25,7 @@ set \
     -o nounset \
     -o pipefail
 
-readonly version='v0.0.1 (2025.02.01)'
+readonly version='v0.0.2 (2025.02.08)'
 
 yellow='\033[93m'
 red='\033[31m'
@@ -60,7 +59,7 @@ declare -a control_hosts
 control_hosts=( 10.46.96.254 10.46.99.216 10.46.97.150 10.46.98.60 )
 
 # sshkey秘钥存储路径
-sshkey_path="$HOME/.ssh/id_ed25519"
+sshkey_path="$HOME/.ssh/id_rsa"
 readonly sshkey_path
 
 install() {
@@ -78,7 +77,7 @@ install() {
             elif command -v yum >/dev/null 2>&1; then
                 yum install -y epel-release
                 yum install -y "$package"
-            elif command -v apt >/dev/null 2>&1; then
+            elif command -v apt-get >/dev/null 2>&1; then
                 apt-get install -y "$package"
             else
                 _red "未知的包管理器！"
@@ -94,7 +93,7 @@ install() {
 get_passwd() {
     # 获取服务器密码 usage: echo "xxxxxxxxxxxx" > "$HOME/password.txt" && chmod 600 "$HOME/password.txt"
 
-    if [ ! -f "$HOME/password.txt" ] || [ ! -s "$HOME/password.txt" ]; then
+    if [ ! -s "$HOME/password.txt" ]; then
         _red "密码文件不存在或为空！"
         exit 1
     fi
@@ -115,38 +114,33 @@ get_passwd() {
 
 check_sshkey() {
     if [ ! -f "$sshkey_path" ]; then
-    install expect
-
-    # https://man.openbsd.org/ssh-keygen.1#ed25519
-        expect <<EOF
-spawn ssh-keygen -t ed25519 -f $sshkey_path
-expect {
-    "Enter file in which to save the key" { send "\r"; exp_continue }
-    "Enter passphrase (empty for no passphrase)" { send "\r"; exp_continue }
-    "Enter same passphrase again" { send "\r"; exp_continue }
-    eof
-}
-EOF
+        if ! ssh-keygen -t rsa -f $sshkey_path -P '' >/dev/null 2>&1; then
+            _err_msg "$(_red '密钥创建失败，请重试！')" && exit 1
+        fi
     fi
 }
 
 send_sshkey() {
     install sshpass
 
-    # 并行执行 10 台主机发送 SSH 密钥，增加效率同时避免主机过多时分发密钥导致管理主机进程崩溃
-    # 使用 BatchMode=yes 以非交互方式连接，ConnectTimeout=5 设置连接超时为 5 秒
-
-    echo "${control_hosts[@]}" | xargs -n 1 -P 10 -I {} bash -c "
-        if ! ssh -o BatchMode=yes -o ConnectTimeout=5 {} exit >/dev/null 2>&1; then
-            sshpass -p \"$host_password\" ssh-copy-id -i \"$sshkey_path.pub\" {}
+    # 并行执行 10 台主机发送 SSH 密钥，提高效率，避免主机过多导致进程崩溃
+    for host in "${control_hosts[@]}"; do
+    {
+        _yellow "正在向 $host 分发公钥"
+        if sshpass -p"${host_password}" ssh-copy-id -i "$sshkey_path" -oStrictHostKeyChecking=no root@"${host}" >/dev/null 2>&1; then
+            _green "公钥分发成功"
+        else
+            _err_msg "$(_red '公钥分发失败！')" && exit 1
         fi
-    "
+    } &
+    done
+    wait
 }
 
-standalone() {
+main() {
     get_passwd
     check_sshkey
     send_sshkey
 }
 
-standalone
+main
