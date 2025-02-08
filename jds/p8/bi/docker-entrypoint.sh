@@ -23,9 +23,9 @@ fi
 
 set +o errexit
 if ! python3 manager.py initdb >/dev/null 2>&1; then
-    echo "database exists, skip execution!"
+    echo "Database $DB_DATABASE already exists. Skipping initialization."
 else
-    echo "initialize the database"
+    echo "Initializing database $DB_DATABASE"
 fi
 set -o errexit
 
