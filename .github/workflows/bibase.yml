@@ -1,12 +1,12 @@
-name: Bi baseimage
+name: build bi base image
 
 on:
-  # push:
-  #   branches:
-  #     - dev
-  #   paths:
-  #     - 'jds/p8/bi/Dockerfile_base'
-  #     - '.github/workflows/bibase.yml'
+  push:
+    branches:
+      - dev
+    paths:
+      - 'jds/p8/bi/Dockerfile_base'
+      - '.github/workflows/bibase.yml'
   workflow_dispatch:
 
 env:
