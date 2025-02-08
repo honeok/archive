@@ -25,7 +25,7 @@ COPY . .
 
 RUN set -ex \
         && apk update && apk upgrade \
-        && apk add --no-cache libc6-compat libgcc libstdc++ g++ tzdata \
+        && apk add --no-cache libstdc++ libc6-compat tzdata \
         && chmod +x bserver && install -m 755 docker-entrypoint.sh /docker-entrypoint.sh \
         && cp -fv templates/App.json.template config/App.json \
         && cp -fv /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
