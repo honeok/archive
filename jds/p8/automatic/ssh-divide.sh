@@ -114,7 +114,7 @@ get_passwd() {
 
 check_sshkey() {
     if [ ! -f "$sshkey_path" ]; then
-        if ! ssh-keygen -t rsa -f $sshkey_path -P '' >/dev/null 2>&1; then
+        if ! ssh-keygen -t rsa -f "$sshkey_path" -P '' >/dev/null 2>&1; then
             _err_msg "$(_red '密钥创建失败，请重试！')" && exit 1
         fi
     fi
@@ -123,14 +123,14 @@ check_sshkey() {
 send_sshkey() {
     install sshpass
 
-    # 并行执行 10 台主机发送 SSH 密钥，提高效率，避免主机过多导致进程崩溃
+    # 并行执行提高效率，子进程报错退出避免主机过多导致进程崩溃
     for host in "${control_hosts[@]}"; do
     {
         _yellow "正在向 $host 分发公钥"
-        if sshpass -p"${host_password}" ssh-copy-id -i "$sshkey_path" -oStrictHostKeyChecking=no root@"${host}" >/dev/null 2>&1; then
-            _green "公钥分发成功"
+        if sshpass -p"${host_password}" ssh-copy-id -i "$sshkey_path" -o StrictHostKeyChecking=no root@"${host}" >/dev/null 2>&1; then
+            _green "$host 公钥分发成功"
         else
-            _err_msg "$(_red '公钥分发失败！')" && exit 1
+            _err_msg "$(_red "$host 公钥分发失败！")" && exit 1
         fi
     } &
     done
