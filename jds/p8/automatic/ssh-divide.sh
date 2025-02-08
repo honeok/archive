@@ -43,7 +43,7 @@ export DEBIAN_FRONTEND=noninteractive
 _yellow "当前脚本版本: ${version} 💨 \n"
 
 # 操作系统和权限校验
-[ "$EUID" -ne "0" ] && _err_msg "$(_red '需要root用户才能运行！')" && exit 1
+[ "$(id -ru)" -ne "0" ] && _err_msg "$(_red '需要root用户才能运行！')" && exit 1
 
 # https://github.com/koalaman/shellcheck/wiki/SC2155
 os_name=$(grep "^ID=" /etc/*release | awk -F'=' '{print $2}' | sed 's/"//g')
@@ -127,11 +127,10 @@ send_sshkey() {
     for host in "${control_hosts[@]}"; do
     {
         _yellow "正在向 $host 分发公钥"
-        if sshpass -p"${host_password}" ssh-copy-id -i "$sshkey_path" -o StrictHostKeyChecking=no root@"${host}" >/dev/null 2>&1; then
-            _green "$host 公钥分发成功"
-        else
+        if ! sshpass -p"${host_password}" ssh-copy-id -i "$sshkey_path" -o StrictHostKeyChecking=no root@"${host}" >/dev/null 2>&1; then
             _err_msg "$(_red "$host 公钥分发失败！")" && exit 1
         fi
+        _green "$host 公钥分发成功"
     } &
     done
     wait
