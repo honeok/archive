@@ -7,39 +7,39 @@ services:
       - 3000:3000  # 20011
     environment:
       GMDB_HOST: 192.168.250.250
-      GMDB_DATABASE: dev_gm
+      GMDB_DATABASE: example_gm
       GMDB_USER: root
-      GMDB_PASSWORD: a4dbb8ac-58dc-476b-9b83-c362dd21c1b1
+      GMDB_PASSWORD: 12345678
       GMDB_PORT: 3306
       REPORTDB_HOST: 192.168.250.250
-      REPORTDB_DATABASE: dev_report
+      REPORTDB_DATABASE: example_report
       REPORTDB_USER: root
-      REPORTDB_PASSWORD: fe219973-afbf-4f7f-804e-46af55b89af0
+      REPORTDB_PASSWORD: 12345678
       REPORTDB_PORT: 3306
       ACCOUNTDB_HOST: 192.168.250.250
-      ACCOUNTDB_DATABASE: dev_account
+      ACCOUNTDB_DATABASE: example_account
       ACCOUNTDB_USER: root
-      ACCOUNTDB_PASSWORD: 0f4e1d5b-1298-4661-9c6e-59f132e6eaa6
+      ACCOUNTDB_PASSWORD: 12345678
       ACCOUNTDB_PORT: 3306
       CENTERDB_HOST: 192.168.250.250
-      CENTERDB_DATABASE: dev_common
+      CENTERDB_DATABASE: example_common
       CENTERDB_USER: root
-      CENTERDB_PASSWORD: bf8b2dd1-e509-43b5-8e47-f6ab146e9ab2
+      CENTERDB_PASSWORD: 12345678
       CENTERDB_PORT: 3306
-      GMGAME_HOST: 192.168.250.251
-      GMGAME_PORT: 6090 # 对接游戏进程GM
-      OBS_ACCESS_KEY_ID: 186bc618-4e80-495a-bc8e-202421284093
-      OBS_SECRET_ACCESS_KEY: 03863cbd-87d7-4100-bc5b-a80f43e94f89
-      OBS_SERVER: 4d7857e8-5ada-4373-8d28-aeaad0af2857
-      OBS_BUCKET: 6f48c68e-4dd8-4fd0-9c45-10338f273f2a
-      OBS_NOTIC_KEY: 0402de27-d290-4fbd-b763-b9aa8c5cde00
-      OBS_SERVERLIST_KEY: 56430b48-5e31-4c4d-b939-93e7a602ce52
-      OBS_SERVERLIST_NAME: 7ec1da4e-82cd-4276-a42a-4a2554eb5441
-      OBS_REFRESH_ACCESSKEY: 1f5e8698-4901-4ccc-949a-909b0c1a7b04
-      OBS_REFRESH_SECRETKEY: 5a892439-9450-4d67-99b7-e8d609e223d9
-      OBS_REFRESH_PROJECTID: ed9f293a-487f-4ef9-bfec-dbc27f7ae84a
+      GMGAME_HOST: 172.17.77.77
+      GMGAME_PORT: 6090  # GM
+      OBS_ACCESS_KEY_ID: ABCDEFGHIJKLMNOPQRSTUVWXYZ1234
+      OBS_SECRET_ACCESS_KEY: ABCD1234EFGH5678IJKL90MNOQRSUVWXY
+      OBS_SERVER: https://obs.example.com
+      OBS_BUCKET: example-bucket-611
+      OBS_NOTIC_KEY: Example20241115/StreamingAssets/WebGL/Notice
+      OBS_SERVERLIST_KEY: example
+      OBS_SERVERLIST_NAME: example.json
+      OBS_REFRESH_ACCESSKEY: EXAMPLEAKJHGF1234NBVF
+      OBS_REFRESH_SECRETKEY: EXAMPLES3CR3TKEY0987XMNF
+      OBS_REFRESH_PROJECTID: abc1234def56789ghij0000klmn1234opqrst
     volumes:
-      - ./config:/gm-server/config # 提前创建从本地挂载gamedb.js，与gmetl共享gamedb.js配置文件
+      - ./config:/gm-server/config # 提前创建从本地挂载gamedb.js
       - ./logs:/gm-server/logs
       - ./upload:/gm-server/upload
     network_mode: bridge

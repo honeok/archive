@@ -7,11 +7,9 @@ services:
       REPORTDB_HOST: 192.168.250.250
       REPORTDB_PORT: 3306
       REPORTDB_USER: root
-      REPORTDB_PASSWORD: fe219973-afbf-4f7f-804e-46af55b89af0
-      REPORTDB_DATABASE: dev_report
+      REPORTDB_PASSWORD: 12345678
+      REPORTDB_DATABASE: example_report
     volumes:
-      # 与gmserver共享gamedb.js 配置
-      - ../gm-server/config/gamedb.js:/gm-etl/config/gamedb.js
       - ./config:/gm-etl/config
       - ./data:/gm-etl/data   # 报表数据目录挂载
       - ./logs:/gm-etl/logs
