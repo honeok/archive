@@ -28,8 +28,10 @@ COPY . .
 RUN set -ex \
         && apk update && apk upgrade \
         && install -m 755 docker-entrypoint.sh /docker-entrypoint.sh \
-        && rm -fv logs/* docker-entrypoint.sh Dockerfile \
-        && rm -rfv migrations/models
+        && rm -fv docker-entrypoint.sh Dockerfile .env aerich_env.py \
+        && rm -rfv migrations/models logs \
+        && mkdir -p logs \
+        && rm -rfv /var/cache/apk/*
 
 EXPOSE 8000/tcp
 
