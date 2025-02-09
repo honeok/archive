@@ -97,14 +97,19 @@ RUN set -ex \
             coreutils \
             curl \
             wget \
+            git \
             gd-dev \
             geoip-dev \
+            libtool \
             libxslt-dev \
             linux-headers \
             make \
+            automake \
+            pcre-dev \
             perl-dev \
             readline-dev \
             zlib-dev \
+            openssl-dev \
             tzdata \
         && apk add --no-cache \
             gd \
