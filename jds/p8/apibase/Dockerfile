@@ -104,12 +104,12 @@ RUN set -ex \
             perl-dev \
             readline-dev \
             zlib-dev \
+            tzdata \
         && apk add --no-cache \
             gd \
             geoip \
             libgcc \
             libxslt \
-            tzdata \
             zlib \
         && cd /tmp \
         && curl -fSL "https://github.com/openssl/openssl/releases/download/openssl-3.0.15/openssl-3.0.15.tar.gz" -o openssl-3.0.15.tar.gz \
@@ -127,7 +127,7 @@ RUN set -ex \
         && cd /tmp \
         && curl -fSL "https://github.com/PCRE2Project/pcre2/releases/download/pcre2-10.44/pcre2-10.44.tar.gz" -o pcre2-10.44.tar.gz \
         && tar xzf pcre2-10.44.tar.gz \
-        && cd /tmp/pcre2-10.44 \
+        && cd pcre2-10.44 \
         && CFLAGS="-g -O3" ./configure \
             --prefix=/usr/local/openresty/pcre2 \
             --libdir=/usr/local/openresty/pcre2/lib \
@@ -137,25 +137,42 @@ RUN set -ex \
         && cd /tmp \
         && curl -fSL https://openresty.org/download/openresty-${RESTY_VERSION}.tar.gz -o openresty-${RESTY_VERSION}.tar.gz \
         && tar xzf openresty-${RESTY_VERSION}.tar.gz \
-        && cd /tmp/openresty-${RESTY_VERSION} \
+        && cd openresty-${RESTY_VERSION} \
         && eval ./configure -j$(nproc) ${_RESTY_CONFIG_DEPS} ${RESTY_CONFIG_OPTIONS} ${RESTY_LUAJIT_OPTIONS} ${RESTY_PCRE_OPTIONS} \
         && make -j$(nproc) \
         && make -j$(nproc) install \
         && cd /tmp \
-        && rm -rfv \
-            openssl-3.0.15.tar.gz openssl-3.0.15 \
-            pcre2-10.44.tar.gz pcre2-10.44 \
-            openresty-${RESTY_VERSION}.tar.gz openresty-${RESTY_VERSION} \
+        && curl -fsL -O https://luarocks.github.io/luarocks/releases/luarocks-3.9.2.tar.gz \
+        && tar zxpf luarocks-3.9.2.tar.gz \
+        && cd luarocks-3.9.2 \
+        && ./configure --prefix=/usr/local/openresty/luajit --with-lua=/usr/local/openresty/luajit --lua-suffix=jit --with-lua-include=/usr/local/openresty/luajit/include/luajit-2.1 \
+        && make -j$(nproc) \
+        && make -j$(nproc) install \
+        && cd .. \
+        && /usr/local/openresty/luajit/bin/luarocks install lpeg \
+        && /usr/local/openresty/luajit/bin/luarocks install luasocket \
+        && /usr/local/openresty/luajit/bin/luarocks install lua-resty-jit-uuid \
+        && /usr/local/openresty/luajit/bin/luarocks install lua-cjson \
+        && /usr/local/openresty/luajit/bin/luarocks install lapis \
+        && /usr/local/openresty/luajit/bin/luarocks install lua-resty-redis-connector \
+        && /usr/local/openresty/luajit/bin/luarocks install lua-resty-mysql \
+        && /usr/local/openresty/luajit/bin/luarocks install lua-resty-mlcache \
+        && cp -fv /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
+        && echo "Asia/Shanghai" > /etc/timezone \
         && apk del .build-deps \
-        && rm -rfv /var/cache/apk/* \
-        && mkdir -pv /var/run/openresty \
+        && rm -rfv /var/cache/apk/* /tmp/* \
+        && mkdir -pv /var/run/openresty /var/cache/nginx \
         && ln -sf /dev/stdout /usr/local/openresty/nginx/logs/access.log \
-        && ln -sf /dev/stderr /usr/local/openresty/nginx/logs/error.log
+        && ln -sf /dev/stderr /usr/local/openresty/nginx/logs/error.log \
+        && addgroup -g 1001 -S nginx \
+        && adduser -S -D -H -u 1001 -h /var/cache/nginx -s /sbin/nologin -G nginx -g nginx nginx \
+        && chown nginx:nginx /var/cache/nginx \
+        && chown -R nginx:nginx /usr/local/openresty /etc/nginx /var/run/openresty
 
-# Add additional binaries into PATH for convenience
 ENV PATH=$PATH:/usr/local/openresty/luajit/bin:/usr/local/openresty/nginx/sbin:/usr/local/openresty/bin
+ENV LUA_PATH=/usr/local/openresty/lualib/?.lua;/usr/local/openresty/luajit/share/lua/5.1/?.lua;;
+ENV LUA_CPATH=/usr/local/openresty/lualib/?.so;/usr/local/openresty/luajit/lib/lua/5.1/?.so;;
 
-# Copy nginx configuration files
 COPY nginx.conf /usr/local/openresty/nginx/conf/nginx.conf
 COPY nginx.vh.default.conf /etc/nginx/conf.d/default.conf
 
