@@ -165,17 +165,16 @@ RUN set -ex \
         && /usr/local/openresty/luajit/bin/luarocks install lua-resty-mlcache \
         && cp -f /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
         && echo "Asia/Shanghai" > /etc/timezone \
-        && rm -rf /tmp/* \
-        && apk del .build-deps \
-        && rm -rf /var/cache/apk/* \
         && mkdir -p /var/run/openresty /var/cache/nginx /etc/nginx/conf.d \
         && curl -fsL https://raw.githubusercontent.com/openresty/docker-openresty/master/nginx.vh.default.conf -o /etc/nginx/conf.d/default.conf \
         && curl -fsL https://raw.githubusercontent.com/openresty/docker-openresty/master/nginx.conf -o /usr/local/openresty/nginx/conf/nginx.conf \
-        && sed -i 's/^#user  nobody;/user nginx;/' /usr/local/openresty/nginx/conf/nginx.conf \
+        && sed -i 's/^#user  nobody;/user  nginx;/' /usr/local/openresty/nginx/conf/nginx.conf \
         && addgroup -g 101 -S nginx \
         && adduser -S -D -H -u 101 -h /var/cache/nginx -s /sbin/nologin -G nginx -g nginx nginx \
-        && chown nginx:nginx /var/cache/nginx \
-        && chown -R nginx:nginx /usr/local/openresty /etc/nginx /var/run/openresty \
+        && chown -R nginx:nginx /usr/local/openresty /var/run/openresty /etc/nginx /var/cache/nginx \
+        && rm -rf /tmp/* \
+        && rm -rf /var/cache/apk/* \
+        && apk del .build-deps \
         && ln -sf /dev/stdout /usr/local/openresty/nginx/logs/access.log \
         && ln -sf /dev/stderr /usr/local/openresty/nginx/logs/error.log
 
