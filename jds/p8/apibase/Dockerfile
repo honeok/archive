@@ -1,11 +1,11 @@
 # Description: Dockerfile for the gameapi basic environment based on Alpine
 #
 # Copyright (C) 2024 - 2025 honeok <honeok@duck.com>
-#      __     __       _____                  
-#  __ / / ___/ /  ___ / ___/ ___ _  __ _  ___ 
+#      __     __       _____
+#  __ / / ___/ /  ___ / ___/ ___ _  __ _  ___
 # / // / / _  /  (_-</ (_ / / _ `/ /  ' \/ -_)
-# \___/  \_,_/  /___/\___/  \_,_/ /_/_/_/\__/ 
-#                                             
+# \___/  \_,_/  /___/\___/  \_,_/ /_/_/_/\__/
+#
 # References:
 # https://github.com/luarocks/luarocks/wiki/Download
 # https://github.com/openresty/docker-openresty/blob/master/alpine/Dockerfile
@@ -40,7 +40,7 @@ RUN set -ex \
             --with-lua-include=/usr/local/openresty/luajit/include/luajit-2.1 \
         && make -j$(nproc) \
         && make install \
-        && cd - \
+        && cd .. \
         && rm -rfv luarocks* \
         && /usr/local/openresty/luajit/bin/luarocks install lpeg \
         && /usr/local/openresty/luajit/bin/luarocks install luasocket \
