@@ -96,6 +96,7 @@ RUN set -ex \
             build-base \
             coreutils \
             curl \
+            wget \
             gd-dev \
             geoip-dev \
             libxslt-dev \
@@ -148,7 +149,7 @@ RUN set -ex \
         && ./configure --prefix=/usr/local/openresty/luajit --with-lua=/usr/local/openresty/luajit --lua-suffix=jit --with-lua-include=/usr/local/openresty/luajit/include/luajit-2.1 \
         && make -j$(nproc) \
         && make -j$(nproc) install \
-        && cd .. \
+        && cd / \
         && /usr/local/openresty/luajit/bin/luarocks install lpeg \
         && /usr/local/openresty/luajit/bin/luarocks install luasocket \
         && /usr/local/openresty/luajit/bin/luarocks install lua-resty-jit-uuid \
