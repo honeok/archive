@@ -55,7 +55,7 @@ apk add --no-cache \
     && curl -fSL https://openresty.org/download/openresty-1.27.1.1.tar.gz -o openresty-1.27.1.1.tar.gz \
     && tar xzf openresty-1.27.1.1.tar.gz \
     && cd openresty-1.27.1.1 \
-    && eval ./configure -j2 --with-pcre \
+    && ./configure -j2 --with-pcre \
         --with-cc-opt='-DNGX_LUA_ABORT_AT_PANIC -I/usr/local/openresty/pcre2/include -I/usr/local/openresty/openssl3/include' \
         --with-ld-opt='-L/usr/local/openresty/pcre2/lib -L/usr/local/openresty/openssl3/lib -Wl,-rpath,/usr/local/openresty/pcre2/lib:/usr/local/openresty/openssl3/lib' \
         --with-compat \
