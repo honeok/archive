@@ -23,10 +23,9 @@
 # this program. If not, see <https://www.gnu.org/licenses/>.
 
 # Docker Build Arguments
-ARG RESTY_IMAGE_BASE="alpine"
-ARG RESTY_IMAGE_TAG="3.21"
+ARG ALPINE_VERSION="3.21"
 
-FROM ${RESTY_IMAGE_BASE}:${RESTY_IMAGE_TAG}
+FROM alpine:${ALPINE_VERSION}
 
 ARG RESTY_VERSION="1.27.1.1"
 
@@ -148,7 +147,8 @@ RUN set -ex \
             pcre2-10.44.tar.gz pcre2-10.44 \
             openresty-${RESTY_VERSION}.tar.gz openresty-${RESTY_VERSION} \
         && apk del .build-deps \
-        && mkdir -p /var/run/openresty \
+        && rm -rfv /var/cache/apk/* \
+        && mkdir -pv /var/run/openresty \
         && ln -sf /dev/stdout /usr/local/openresty/nginx/logs/access.log \
         && ln -sf /dev/stderr /usr/local/openresty/nginx/logs/error.log
 
