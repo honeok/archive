@@ -168,7 +168,10 @@ RUN set -ex \
         && rm -rf /tmp/* \
         && apk del .build-deps \
         && rm -rf /var/cache/apk/* \
-        && mkdir -p /var/run/openresty /var/cache/nginx \
+        && mkdir -p /var/run/openresty /var/cache/nginx /etc/nginx/conf.d \
+        && curl -fsL https://raw.githubusercontent.com/openresty/docker-openresty/master/nginx.vh.default.conf -o /etc/nginx/conf.d/default.conf \
+        && curl -fsL https://raw.githubusercontent.com/openresty/docker-openresty/master/nginx.conf -o /usr/local/openresty/nginx/conf/nginx.conf \
+        && sed -i 's/^#user  nobody;/user nginx;/' /usr/local/openresty/nginx/conf/nginx.conf \
         && addgroup -g 101 -S nginx \
         && adduser -S -D -H -u 101 -h /var/cache/nginx -s /sbin/nologin -G nginx -g nginx nginx \
         && chown nginx:nginx /var/cache/nginx \
@@ -179,9 +182,6 @@ RUN set -ex \
 ENV PATH=$PATH:/usr/local/openresty/luajit/bin:/usr/local/openresty/nginx/sbin:/usr/local/openresty/bin
 ENV LUA_PATH=/usr/local/openresty/lualib/?.lua;/usr/local/openresty/luajit/share/lua/5.1/?.lua;;
 ENV LUA_CPATH=/usr/local/openresty/lualib/?.so;/usr/local/openresty/luajit/lib/lua/5.1/?.so;;
-
-COPY nginx.conf /usr/local/openresty/nginx/conf/nginx.conf
-COPY nginx.vh.default.conf /etc/nginx/conf.d/default.conf
 
 CMD [ "/usr/local/openresty/bin/openresty", "-g", "daemon off;" ]
 
