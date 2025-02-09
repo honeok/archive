@@ -163,17 +163,18 @@ RUN set -ex \
         && /usr/local/openresty/luajit/bin/luarocks install lua-resty-redis-connector \
         && /usr/local/openresty/luajit/bin/luarocks install lua-resty-mysql \
         && /usr/local/openresty/luajit/bin/luarocks install lua-resty-mlcache \
-        && cp -fv /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
+        && cp -f /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
         && echo "Asia/Shanghai" > /etc/timezone \
+        && rm -rf /tmp/* \
         && apk del .build-deps \
-        && rm -rfv /var/cache/apk/* /tmp/* \
-        && mkdir -pv /var/run/openresty /var/cache/nginx \
-        && ln -sf /dev/stdout /usr/local/openresty/nginx/logs/access.log \
-        && ln -sf /dev/stderr /usr/local/openresty/nginx/logs/error.log \
-        && addgroup -g 1001 -S nginx \
-        && adduser -S -D -H -u 1001 -h /var/cache/nginx -s /sbin/nologin -G nginx -g nginx nginx \
+        && rm -rf /var/cache/apk/* \
+        && mkdir -p /var/run/openresty /var/cache/nginx \
+        && addgroup -g 101 -S nginx \
+        && adduser -S -D -H -u 101 -h /var/cache/nginx -s /sbin/nologin -G nginx -g nginx nginx \
         && chown nginx:nginx /var/cache/nginx \
-        && chown -R nginx:nginx /usr/local/openresty /etc/nginx /var/run/openresty
+        && chown -R nginx:nginx /usr/local/openresty /etc/nginx /var/run/openresty \
+        && ln -sf /dev/stdout /usr/local/openresty/nginx/logs/access.log \
+        && ln -sf /dev/stderr /usr/local/openresty/nginx/logs/error.log
 
 ENV PATH=$PATH:/usr/local/openresty/luajit/bin:/usr/local/openresty/nginx/sbin:/usr/local/openresty/bin
 ENV LUA_PATH=/usr/local/openresty/lualib/?.lua;/usr/local/openresty/luajit/share/lua/5.1/?.lua;;
