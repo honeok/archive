@@ -177,6 +177,7 @@ RUN set -ex \
         && /usr/local/openresty/luajit/bin/luarocks install loadkit \
         && /usr/local/openresty/luajit/bin/luarocks install lpeg \
         && /usr/local/openresty/luajit/bin/luarocks install lua-cjson \
+        && /usr/local/openresty/luajit/bin/luarocks install lua-resty-hmac-ffi \
         && /usr/local/openresty/luajit/bin/luarocks install lua-resty-http \
         && /usr/local/openresty/luajit/bin/luarocks install lua-resty-mlcache \
         && /usr/local/openresty/luajit/bin/luarocks install lua-resty-openssl \
@@ -185,6 +186,7 @@ RUN set -ex \
         && /usr/local/openresty/luajit/bin/luarocks install luaossl \
         && /usr/local/openresty/luajit/bin/luarocks install luasocket \
         && /usr/local/openresty/luajit/bin/luarocks install luasql-mysql MYSQL_INCDIR=/usr/include/mysql \
+        && /usr/local/openresty/luajit/bin/luarocks install net-url \
         && /usr/local/openresty/luajit/bin/luarocks install pgmoon \
         && cp -f /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
         && echo "Asia/Shanghai" > /etc/timezone \
