@@ -50,11 +50,12 @@ jobs:
               exit 1
           fi
           echo "$NEW_VERSION" > jds/p8/bi/BASE_VERSION
-          echo "BASE_IMG_TAG=$(cat jds/p8/bi/Dockerfile_base | grep '^ARG PYTHON_IMAGE_TAG=' | awk -F'=' '{print $2}' | sed 's/.*-//' | sed 's/[0-9.]*//g')" >> $GITHUB_ENV
+          BASE_IMG_TAG=$(cat jds/p8/bi/Dockerfile_base | grep '^ARG PYTHON_IMAGE_TAG=' | awk -F'=' '{print $2}' | sed 's/.*-//' | sed 's/[0-9.]*//g')
           if [[ -z $BASE_IMG_TAG ]]; then
             echo "ERROR: variable BASE_IMG_TAG not defined, exiting!"
             exit 1
           fi
+          echo "BASE_IMG_TAG=$BASE_IMG_TAG" >> $GITHUB_ENV
 
       - name: Build and push Bi baseimage
         uses: docker/build-push-action@v6.11.0
