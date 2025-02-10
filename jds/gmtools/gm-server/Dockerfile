@@ -17,9 +17,9 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <https://www.gnu.org/licenses/>.
 
-ARG NODE_VERSION=16.20.2-alpine
+ARG BASE_IMAGE_TAG"16.20.2-alpine"
 
-FROM node:${NODE_VERSION}
+FROM node:${BASE_IMAGE_TAG}
 
 WORKDIR /gm-server
 
@@ -27,16 +27,18 @@ COPY . .
 
 RUN set -ex \
         && apk update && apk upgrade \
-        && apk add --no-cache tzdata gettext \
+        && apk add --no-cache \
+            gettext \
+            tzdata \
         && install -m 755 docker-entrypoint.sh /docker-entrypoint.sh \
-        && rm -rfv node_modules upload logs config \
+        && rm -rf node_modules upload logs config \
         && npm install \
-        && cp -fv /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
+        && cp -f /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
         && echo "Asia/Shanghai" > /etc/timezone \
         && apk del tzdata \
-        && rm -rfv /var/cache/apk/* \
-        && mkdir -pv upload logs config \
-        && rm -fv Dockerfile docker-entrypoint.sh
+        && rm -rf /var/cache/apk/* \
+        && mkdir -p upload logs config \
+        && rm -f Dockerfile docker-entrypoint.sh
 
 EXPOSE 3000
 
