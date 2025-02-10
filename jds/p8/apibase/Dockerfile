@@ -196,7 +196,7 @@ RUN set -ex \
         && sed -i 's/^#user  nobody;/user  nginx;/' /usr/local/openresty/nginx/conf/nginx.conf \
         && addgroup -g 1001 -S nginx \
         && adduser -S -D -H -u 1001 -h /var/cache/nginx -s /sbin/nologin -G nginx -g nginx nginx \
-        && chown -R nginx:nginx /usr/local/openresty /var/run/openresty /etc/nginx/conf.d /var/cache/nginx \
+        && chown -R nginx:nginx /usr/local/openresty /var/run/openresty /etc/nginx /var/cache/nginx \
         && rm -rf /tmp/* \
         && rm -rf /var/cache/apk/* \
         && apk del .build-deps \
