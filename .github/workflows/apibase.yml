@@ -39,7 +39,8 @@ jobs:
 
       - name: Set tag
         run: |
-          echo "VERSION=$(<jds/p8/apibase/VERSION)" >> $GITHUB_ENV
+          VERSION=$(cat jds/p8/apibase/VERSION)
+          echo $VERSION >> $GITHUB_ENV
           echo "current version is $VERSION"
           NEW_VERSION=$(echo $VERSION | awk -F. '{print $1"."$2"."$3+1}')
           echo "new version is $NEW_VERSION"
