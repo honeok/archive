@@ -18,8 +18,8 @@ SET @db_name = 'example_game_2';  -- 将数据库B的名称赋值给变量
 
 -- 以被合并的区服进行修改!
 -- 设定数据库B中重名角色以及重名公会前缀
-set @pname='S002';           -- 角色重名前缀
-set @uname='S002';           -- 公会重名前缀
+set @pname='S';           -- 角色重名前缀
+set @uname='S';           -- 公会重名前缀
 -- ↑ --
 
 set @ret1=NULL;
@@ -44,6 +44,7 @@ drop temporary table if exists temp2;
 create temporary table temp2
 (id BIGINT(20));
 
+-- 15就是 -> 15日内没有登录过的角色
 insert into temp1
 select id from t_player where ifnull(title->'$.id', 0) <= 5 and ifnull(pay->'$.total', 0) = 0 and datediff(now(), from_unixtime(logout_time)) >= 15 and id not in(select leader_id from t_guild);
 set @ret1=ROW_COUNT();
