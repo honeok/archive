@@ -39,8 +39,12 @@ jobs:
 
       - name: Set tag
         run: |
-          echo "VERSION=$(<jds/p8/apibase/VERSION)" >> $GITHUB_ENV
-          echo "NEW_VERSION=$(echo $VERSION | awk -F. '{print $1"."$2"."$3+1}')" >> $GITHUB_ENV
+          VERSION=$(<jds/p8/apibase/VERSION)
+          NEW_VERSION=$(echo $VERSION | awk -F. '{print $1"."$2"."$3+1}')
+          if [ -z "$NEW_VERSION" ]; then
+              echo "ERROR: NEW_VERSION is empty, exiting!"
+              exit 1
+          fi
           echo "BASE_IMG=$(cat jds/p8/apibase/Dockerfile | grep '^ARG RESTY_IMAGE_BASE' | sed 's/ARG RESTY_IMAGE_BASE="//' | sed 's/"//')" >> $GITHUB_ENV
           echo "$NEW_VERSION" > jds/p8/apibase/VERSION
 
@@ -56,4 +60,4 @@ jobs:
       - name: Commit version update
         uses: stefanzweifel/git-auto-commit-action@v5.1.0
         with:
-          commit_message: "chore: bump version to $NEW_VERSION"
+          commit_message: "chore: bump version"
