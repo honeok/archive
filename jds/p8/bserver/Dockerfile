@@ -25,17 +25,21 @@ COPY . .
 
 RUN set -ex \
         && apk update && apk upgrade \
-        && apk add --no-cache libstdc++ libc6-compat tzdata \
-        && chmod +x bserver && install -m 755 docker-entrypoint.sh /docker-entrypoint.sh \
-        && cp -fv templates/App.json.template config/App.json \
-        && cp -fv /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
+        && apk add --no-cache \
+            libstdc++ \
+            libc6-compat \
+            tzdata \
+        && chmod +x bserver \
+        && install -m 755 docker-entrypoint.sh /docker-entrypoint.sh \
+        && cp -f templates/App.json.template config/App.json \
+        && cp -f /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
         && echo "Asia/Shanghai" > /etc/timezone \
         && apk del tzdata \
-        && rm -fv Dockerfile docker-entrypoint.sh \
+        && rm -f Dockerfile docker-entrypoint.sh \
         && rm -rf config/luban_temp \
-        && rm -rfv /var/cache/apk/* templates logs BattleSimulator \
-        && mkdir -pv logs BattleSimulator config/luban_temp \
-        && cp -rfv config/luban/* config/luban_temp/
+        && rm -rf /var/cache/apk/* templates logs BattleSimulator \
+        && mkdir -p logs BattleSimulator config/luban_temp \
+        && cp -rf config/luban/* config/luban_temp/
 
 EXPOSE 8080
 
