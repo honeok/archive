@@ -1,11 +1,11 @@
 # Description: Dockerfile to install essential PHP dependencies for the environment
 #
 # Copyright (C) 2025 honeok <honeok@duck.com>
-#      __     __       _____                  
-#  __ / / ___/ /  ___ / ___/ ___ _  __ _  ___ 
+#      __     __       _____
+#  __ / / ___/ /  ___ / ___/ ___ _  __ _  ___
 # / // / / _  /  (_-</ (_ / / _ `/ /  ' \/ -_)
-# \___/  \_,_/  /___/\___/  \_,_/ /_/_/_/\__/ 
-#                                             
+# \___/  \_,_/  /___/\___/  \_,_/ /_/_/_/\__/
+#
 # License Information:
 # This program is free software: you can redistribute it and/or modify it under
 # the terms of the GNU General Public License, version 3 or later.
@@ -20,10 +20,10 @@
 FROM php:8.0.30-fpm-alpine3.16
 
 RUN set -ex \
-        && apk update \
-        && curl -fsL https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions -o /usr/local/bin/install-php-extensions \
+        && apk update && apk upgrade \
+        && curl -L https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions -o /usr/local/bin/install-php-extensions \
         && chmod +x /usr/local/bin/install-php-extensions \
-        && /usr/local/bin/install-php-extensions opcache mysqlnd pdo_mysql gd ldap odbc xml xmlrpc mbstring soap gmp bcmath bcmath bz2  \
+        && /usr/local/bin/install-php-extensions opcache mysqlnd pdo_mysql gd ldap odbc xml xmlrpc mbstring soap gmp bcmath bcmath bz2 \
             calendar exif gettext shmop sysvmsg sysvsem sysvshm xmlrpc xsl \
-        && rm -fv Dockerfile /usr/local/bin/install-php-extensions \
-        && rm -rfv /var/cache/apk/*
+        && rm -f Dockerfile /usr/local/bin/install-php-extensions \
+        && rm -rf /var/cache/apk/* /tmp/*
