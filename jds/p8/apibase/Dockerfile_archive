@@ -98,7 +98,7 @@ ARG _RESTY_CONFIG_DEPS="--with-pcre \
     "
 
 ARG RESTY_LUAROCKS_VERSION="3.9.2"
-ARG RESTY_LUAROCKS_BUILD_OPTIONS="--prefix=/usr/local/openresty/luajit --with-lua=/usr/local/openresty/luajit --lua-suffix=jit --with-lua-include=/usr/local/openresty/luajit/include/luajit-2.1"
+ARG RESTY_LUAROCKS_BUILD_OPTIONS="--lua-suffix=jit --with-lua-include=/usr/local/openresty/luajit/include/luajit-2.1"
 
 RUN set -ex \
         && apk update && apk upgrade \
@@ -161,7 +161,10 @@ RUN set -ex \
         && curl -L "https://luarocks.github.io/luarocks/releases/luarocks-${RESTY_LUAROCKS_VERSION}.tar.gz" -o luarocks-${RESTY_LUAROCKS_VERSION}.tar.gz \
         && tar zxpf luarocks-${RESTY_LUAROCKS_VERSION}.tar.gz \
         && cd luarocks-${RESTY_LUAROCKS_VERSION} \
-        && ./configure -j${RESTY_J} ${RESTY_LUAROCKS_BUILD_OPTIONS} \
+        && ./configure -j${RESTY_J} \
+            --prefix=/usr/local/openresty/luajit \
+            --with-lua=/usr/local/openresty/luajit \
+            ${RESTY_LUAROCKS_BUILD_OPTIONS} \
         && make -j${RESTY_J} \
         && make -j${RESTY_J} install \
         && cd / \
