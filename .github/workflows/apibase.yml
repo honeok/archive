@@ -51,7 +51,7 @@ jobs:
           file: Dockerfile
           push: true
           tags: ${{ env.ALIYUN_REGISTRY }}/${{ env.ALIYUN_NAME_SPACE }}/api-base:${{ env.VERSION }}-${{ env.BASE_IMG }}
-          platforms: linux/amd64,linux/arm64/v8
+          platforms: linux/amd64,linux/arm64
 
       - name: Commit version update
         uses: stefanzweifel/git-auto-commit-action@v5.1.0
