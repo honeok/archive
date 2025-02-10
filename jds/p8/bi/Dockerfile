@@ -1,11 +1,11 @@
 # Description: Dockerfile for building the BI containerized image
 #
 # Copyright (C) 2025 honeok <honeok@duck.com>
-#      __     __       _____                  
-#  __ / / ___/ /  ___ / ___/ ___ _  __ _  ___ 
+#      __     __       _____
+#  __ / / ___/ /  ___ / ___/ ___ _  __ _  ___
 # / // / / _  /  (_-</ (_ / / _ `/ /  ' \/ -_)
-# \___/  \_,_/  /___/\___/  \_,_/ /_/_/_/\__/ 
-#                                             
+# \___/  \_,_/  /___/\___/  \_,_/ /_/_/_/\__/
+#
 # License Information:
 # This program is free software: you can redistribute it and/or modify it under
 # the terms of the GNU General Public License, version 3 or later.
@@ -17,9 +17,9 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <https://www.gnu.org/licenses/>.
 
-ARG BUILD_TAG=2025.02.08-22bdfa9
+ARG BASE_IMAGE_TAG="v0.0.4-alpine"
 
-FROM registry.cn-chengdu.aliyuncs.com/havario/bi-base:${BUILD_TAG}
+FROM registry.cn-chengdu.aliyuncs.com/havario/bi-base:${BASE_IMAGE_TAG}
 
 WORKDIR /bi
 
@@ -28,10 +28,10 @@ COPY . .
 RUN set -ex \
         && apk update && apk upgrade \
         && install -m 755 docker-entrypoint.sh /docker-entrypoint.sh \
-        && rm -fv docker-entrypoint.sh Dockerfile .env aerich_env.py \
-        && rm -rfv migrations/models logs \
+        && rm -f docker-entrypoint.sh Dockerfile .env aerich_env.py \
+        && rm -rf migrations/models logs \
         && mkdir -p logs \
-        && rm -rfv /var/cache/apk/*
+        && rm -rf /var/cache/apk/*
 
 EXPOSE 8000/tcp
 
