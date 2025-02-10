@@ -126,6 +126,7 @@ RUN set -ex \
             geoip \
             libgcc \
             libxslt \
+            mysql-dev \
             zlib \
         && cd /tmp \
         && curl -L "${RESTY_OPENSSL_URL_BASE}/openssl-${RESTY_OPENSSL_VERSION}.tar.gz" -o openssl-${RESTY_OPENSSL_VERSION}.tar.gz \
@@ -168,14 +169,23 @@ RUN set -ex \
         && make -j${RESTY_J} \
         && make -j${RESTY_J} install \
         && cd / \
-        && /usr/local/openresty/luajit/bin/luarocks install lpeg \
-        && /usr/local/openresty/luajit/bin/luarocks install luasocket \
-        && /usr/local/openresty/luajit/bin/luarocks install lua-resty-jit-uuid \
-        && /usr/local/openresty/luajit/bin/luarocks install lua-cjson \
+        && /usr/local/openresty/luajit/bin/luarocks install ansicolors \
+        && /usr/local/openresty/luajit/bin/luarocks install argparse \
+        && /usr/local/openresty/luajit/bin/luarocks install date \
+        && /usr/local/openresty/luajit/bin/luarocks install etlua \
         && /usr/local/openresty/luajit/bin/luarocks install lapis \
-        && /usr/local/openresty/luajit/bin/luarocks install lua-resty-redis-connector \
-        && /usr/local/openresty/luajit/bin/luarocks install lua-resty-mysql \
+        && /usr/local/openresty/luajit/bin/luarocks install loadkit \
+        && /usr/local/openresty/luajit/bin/luarocks install lpeg \
+        && /usr/local/openresty/luajit/bin/luarocks install lua-cjson \
+        && /usr/local/openresty/luajit/bin/luarocks install lua-resty-http \
         && /usr/local/openresty/luajit/bin/luarocks install lua-resty-mlcache \
+        && /usr/local/openresty/luajit/bin/luarocks install lua-resty-openssl \
+        && /usr/local/openresty/luajit/bin/luarocks install lua-resty-redis \
+        && /usr/local/openresty/luajit/bin/luarocks install lua-resty-requests \
+        && /usr/local/openresty/luajit/bin/luarocks install luaossl \
+        && /usr/local/openresty/luajit/bin/luarocks install luasocket \
+        && /usr/local/openresty/luajit/bin/luarocks install luasql-mysql MYSQL_INCDIR=/usr/include/mysql \
+        && /usr/local/openresty/luajit/bin/luarocks install pgmoon \
         && cp -f /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
         && echo "Asia/Shanghai" > /etc/timezone \
         && mkdir -p /var/run/openresty /var/cache/nginx /etc/nginx/conf.d \
