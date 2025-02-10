@@ -50,7 +50,12 @@ jobs:
               exit 1
           fi
           echo "$NEW_VERSION" > jds/p8/apibase/VERSION
-          echo "BASE_IMG=$(cat jds/p8/apibase/Dockerfile | grep '^ARG RESTY_IMAGE_BASE' | sed 's/ARG RESTY_IMAGE_BASE="//' | sed 's/"//')" >> $GITHUB_ENV
+          BASE_IMG_TAG=$(cat jds/p8/apibase/Dockerfile | grep '^ARG RESTY_IMAGE_BASE' | sed 's/ARG RESTY_IMAGE_BASE="//' | sed 's/"//')
+          if [[ -z $BASE_IMG_TAG ]]; then
+            echo "ERROR: variable BASE_IMG_TAG not defined, exiting!"
+            exit 1
+          fi
+          echo "BASE_IMG_TAG=$BASE_IMG_TAG" >> $GITHUB_ENV
 
       - name: Build and push apibase image
         uses: docker/build-push-action@v6.11.0
@@ -58,10 +63,10 @@ jobs:
           context: "{{defaultContext}}:jds/p8/apibase"
           file: Dockerfile
           push: true
-          tags: ${{ env.ALIYUN_REGISTRY }}/${{ env.ALIYUN_NAME_SPACE }}/api-base:${{ env.VERSION }}-${{ env.BASE_IMG }}
-          platforms: linux/amd64
+          tags: ${{ env.ALIYUN_REGISTRY }}/${{ env.ALIYUN_NAME_SPACE }}/api-base:${{ env.VERSION }}-${{ env.BASE_IMG_TAG }}
+          platforms: linux/amd64,linux/arm64
 
       - name: Commit version update
         uses: stefanzweifel/git-auto-commit-action@v5.1.0
         with:
-          commit_message: "chore: bump version"
+          commit_message: "chore: base image bump version"
