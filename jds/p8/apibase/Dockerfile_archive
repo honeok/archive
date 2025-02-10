@@ -128,7 +128,7 @@ RUN set -ex \
         && curl -fSL "${RESTY_OPENSSL_URL_BASE}/openssl-${RESTY_OPENSSL_VERSION}.tar.gz" -o openssl-${RESTY_OPENSSL_VERSION}.tar.gz \
         && tar xzf openssl-${RESTY_OPENSSL_VERSION}.tar.gz \
         && cd openssl-${RESTY_OPENSSL_VERSION} \
-        && curl -s https://raw.githubusercontent.com/openresty/openresty/master/patches/openssl-${RESTY_OPENSSL_PATCH_VERSION}-sess_set_get_cb_yield.patch | patch -p1 ; \
+        && curl -s https://raw.githubusercontent.com/openresty/openresty/master/patches/openssl-${RESTY_OPENSSL_PATCH_VERSION}-sess_set_get_cb_yield.patch | patch -p1 \
         && ./config \
                 shared zlib -g \
                 --prefix=/usr/local/openresty/openssl3 \
