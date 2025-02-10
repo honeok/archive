@@ -39,10 +39,12 @@ jobs:
 
       - name: Set tag
         run: |
-          VERSION=$(<jds/p8/apibase/VERSION)
+          echo "VERSION=$(<jds/p8/apibase/VERSION)" >> $GITHUB_ENV
+          echo "current version is $VERSION"
           NEW_VERSION=$(echo $VERSION | awk -F. '{print $1"."$2"."$3+1}')
-          if [ -z "$NEW_VERSION" ]; then
-              echo "ERROR: NEW_VERSION is empty, exiting!"
+          echo "new version is $NEW_VERSION"
+          if [[ ! "$NEW_VERSION" =~ ^v ]]; then
+              echo "ERROR: NEW_VERSION does not start with, exiting!"
               exit 1
           fi
           echo "BASE_IMG=$(cat jds/p8/apibase/Dockerfile | grep '^ARG RESTY_IMAGE_BASE' | sed 's/ARG RESTY_IMAGE_BASE="//' | sed 's/"//')" >> $GITHUB_ENV
