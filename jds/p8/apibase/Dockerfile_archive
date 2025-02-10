@@ -161,7 +161,7 @@ RUN set -ex \
         && curl -L "https://luarocks.github.io/luarocks/releases/luarocks-${RESTY_LUAROCKS_VERSION}.tar.gz" -o luarocks-${RESTY_LUAROCKS_VERSION}.tar.gz \
         && tar zxpf luarocks-${RESTY_LUAROCKS_VERSION}.tar.gz \
         && cd luarocks-${RESTY_LUAROCKS_VERSION} \
-        && ./configure -j${RESTY_J} \
+        && ./configure \
             --prefix=/usr/local/openresty/luajit \
             --with-lua=/usr/local/openresty/luajit \
             ${RESTY_LUAROCKS_BUILD_OPTIONS} \
@@ -182,8 +182,8 @@ RUN set -ex \
         && curl -L https://raw.githubusercontent.com/openresty/docker-openresty/master/nginx.vh.default.conf -o /etc/nginx/conf.d/default.conf \
         && curl -L https://raw.githubusercontent.com/openresty/docker-openresty/master/nginx.conf -o /usr/local/openresty/nginx/conf/nginx.conf \
         && sed -i 's/^#user  nobody;/user  nginx;/' /usr/local/openresty/nginx/conf/nginx.conf \
-        && addgroup -g 101 -S nginx \
-        && adduser -S -D -H -u 101 -h /var/cache/nginx -s /sbin/nologin -G nginx -g nginx nginx \
+        && addgroup -g 1001 -S nginx \
+        && adduser -S -D -H -u 1001 -h /var/cache/nginx -s /sbin/nologin -G nginx -g nginx nginx \
         && chown -R nginx:nginx /usr/local/openresty /var/run/openresty /etc/nginx/conf.d /var/cache/nginx \
         && rm -rf /tmp/* \
         && rm -rf /var/cache/apk/* \
