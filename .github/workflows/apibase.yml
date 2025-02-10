@@ -38,6 +38,7 @@ jobs:
           password: ${{ env.ALIYUN_REGISTRY_PASSWORD }}
 
       - name: Set tag
+        id: set_version_and_tag
         run: |
           VERSION=$(cat jds/p8/apibase/VERSION)
           echo "current version is $VERSION"
@@ -59,12 +60,13 @@ jobs:
 
       - name: Build and push apibase image
         uses: docker/build-push-action@v6.11.0
+        if: success()
         with:
           context: "{{defaultContext}}:jds/p8/apibase"
           file: Dockerfile
           push: true
           tags: ${{ env.ALIYUN_REGISTRY }}/${{ env.ALIYUN_NAME_SPACE }}/api-base:${{ env.VERSION }}-${{ env.BASE_IMG_TAG }}
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
 
       - name: Commit version update
         uses: stefanzweifel/git-auto-commit-action@v5.1.0
