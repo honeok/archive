@@ -40,16 +40,17 @@ jobs:
       - name: Set tag
         run: |
           VERSION=$(cat jds/p8/apibase/VERSION)
-          echo $VERSION >> $GITHUB_ENV
           echo "current version is $VERSION"
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
           NEW_VERSION=$(echo $VERSION | awk -F. '{print $1"."$2"."$3+1}')
           echo "new version is $NEW_VERSION"
+          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
           if [[ ! "$NEW_VERSION" =~ ^v ]]; then
               echo "ERROR: NEW_VERSION does not start with, exiting!"
               exit 1
           fi
-          echo "BASE_IMG=$(cat jds/p8/apibase/Dockerfile | grep '^ARG RESTY_IMAGE_BASE' | sed 's/ARG RESTY_IMAGE_BASE="//' | sed 's/"//')" >> $GITHUB_ENV
           echo "$NEW_VERSION" > jds/p8/apibase/VERSION
+          echo "BASE_IMG=$(cat jds/p8/apibase/Dockerfile | grep '^ARG RESTY_IMAGE_BASE' | sed 's/ARG RESTY_IMAGE_BASE="//' | sed 's/"//')" >> $GITHUB_ENV
 
       - name: Build and push apibase image
         uses: docker/build-push-action@v6.11.0
