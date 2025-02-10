@@ -23,27 +23,32 @@
 set \
     -o errexit \
     -o nounset \
-    -o pipefail
+    -o pipefail \
+    -o igncr \
+    -o noclobber
 
-readonly version='v0.0.2 (2025.02.08)'
+readonly version='v0.0.3 (2025.02.11)'
 
-yellow='\033[93m'
-red='\033[31m'
-green='\033[92m'
+yellow='\033[1;33m'
+red='\033[1;31m'
+green='\033[1;32m'
 white='\033[0m'
 _yellow() { echo -e "${yellow}$*${white}"; }
 _red() { echo -e "${red}$*${white}"; }
 _green() { echo -e "${green}$*${white}"; }
 
 _err_msg() { echo -e "\033[41m\033[1m警告${white} $*"; }
+_suc_msg() { echo -e "\033[42m\033[1m成功${white} $*"; }
 
 export DEBIAN_FRONTEND=noninteractive
 
 [ -t 1 ] && tput clear 2>/dev/null || echo -e "\033[2J\033[H" || clear
-_yellow "当前脚本版本: ${version} 💨 \n"
+_yellow "当前脚本版本: ${version} 🎥 \n"
 
 # 操作系统和权限校验
-[ "$(id -ru)" -ne "0" ] && _err_msg "$(_red '需要root用户才能运行！')" && exit 1
+if [ "$(id -ru)" -ne "0" ]; then
+    _err_msg "$(_red '需要root用户才能运行！')" && exit 1
+fi
 
 # https://github.com/koalaman/shellcheck/wiki/SC2155
 os_name=$(grep "^ID=" /etc/*release | awk -F'=' '{print $2}' | sed 's/"//g')
@@ -56,7 +61,7 @@ fi
 
 # 被控服务器
 declare -a control_hosts
-control_hosts=( 10.46.96.254 10.46.99.216 10.46.97.150 10.46.98.60 )
+control_hosts=( 192.168.250.250 192.168.250.251 192.168.250.252 192.168.250.253 192.168.250.254 )
 
 # sshkey秘钥存储路径
 sshkey_path="$HOME/.ssh/id_rsa"
@@ -77,6 +82,8 @@ install() {
             elif command -v yum >/dev/null 2>&1; then
                 yum install -y epel-release
                 yum install -y "$package"
+            elif command -v apt >/dev/null 2>&1; then
+                apt install -y "$package"
             elif command -v apt-get >/dev/null 2>&1; then
                 apt-get install -y "$package"
             else
@@ -92,23 +99,19 @@ install() {
 
 get_passwd() {
     # 获取服务器密码 usage: echo "xxxxxxxxxxxx" > "$HOME/password.txt" && chmod 600 "$HOME/password.txt"
-
     if [ ! -s "$HOME/password.txt" ]; then
-        _red "密码文件不存在或为空！"
-        exit 1
+        _red "密码文件不存在或为空！" && exit 1
     fi
 
-    for pass_cmd in "head -n 1 $HOME/password.txt | tr -d '[:space:]'" "awk 'NR==1 {gsub(/^[ \t]+|[ \t]+$/, \"\"); print}' $HOME/password.txt"; do
-        host_password=$(eval "$pass_cmd")
-
+    for _cmd in "head -n 1 $HOME/password.txt | tr -d '[:space:]'" "awk 'NR==1 {gsub(/^[ \t]+|[ \t]+$/, \"\"); print}' $HOME/password.txt"; do
+        host_password=$(eval "$_cmd")
         if [ -n "$host_password" ]; then
             break
         fi
     done
 
     if [ -z "$host_password" ]; then
-        _red "无法从文件中获取主机密码，请检查密码文件内容！"
-        exit 1
+        _red "无法从文件中获取主机密码，请检查密码文件内容！" && exit 1
     fi
 }
 
@@ -123,17 +126,20 @@ check_sshkey() {
 send_sshkey() {
     install sshpass
 
-    # 并行执行提高效率，子进程报错退出避免主机过多导致进程崩溃
+    # 并行执行提高效率
     for host in "${control_hosts[@]}"; do
-    {
-        _yellow "正在向 $host 分发公钥"
-        if ! sshpass -p"${host_password}" ssh-copy-id -i "$sshkey_path" -o StrictHostKeyChecking=no root@"${host}" >/dev/null 2>&1; then
-            _err_msg "$(_red "$host 公钥分发失败！")" && exit 1
-        fi
-        _green "$host 公钥分发成功"
-    } &
+        # 启动子进程，每个分发操作完全独立运行在新的进程中
+        # 子进程报错退出避免主机过多导致进程崩溃
+        (
+            _yellow "正在向 $host 分发公钥"
+            if ! sshpass -p"${host_password}" ssh-copy-id -i "$sshkey_path" -o StrictHostKeyChecking=no -o ConnectTimeout=30 root@"${host}" >/dev/null 2>&1; then
+                _err_msg "$(_red "$host 公钥分发失败！")" && exit 1
+            fi
+            _suc_msg "$(_green "$host 公钥分发成功")"
+        ) &
     done
-    wait
+
+    wait # 等待并行任务
 }
 
 main() {
