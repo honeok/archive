@@ -9,6 +9,10 @@ on:
       - 'jds/p8/apibase/Dockerfile'
   workflow_dispatch:
 
+permissions:
+  contents: write
+  actions: write
+
 env:
   ALIYUN_REGISTRY: "${{ secrets.ALIYUN_REGISTRY }}"
   ALIYUN_NAME_SPACE: "${{ secrets.ALIYUN_NAME_SPACE }}"
