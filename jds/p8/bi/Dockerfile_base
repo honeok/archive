@@ -1,12 +1,11 @@
 # Description: Dockerfile for building the base image for the BI containerized environment
 #
 # Copyright (C) 2025 honeok <honeok@duck.com>
-#
-#      __     __       _____                  
+#      __     __       _____
 #  __ / / ___/ /  ___ / ___/ ___ _  __ _  ___ 
 # / // / / _  /  (_-</ (_ / / _ `/ /  ' \/ -_)
 # \___/  \_,_/  /___/\___/  \_,_/ /_/_/_/\__/ 
-#                                             
+#
 # License Information:
 # This program is free software: you can redistribute it and/or modify it under
 # the terms of the GNU General Public License, version 3 or later.
@@ -18,26 +17,33 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <https://www.gnu.org/licenses/>.
 
-ARG PYTHON_VERSION=3.9.20-alpine3.20
+ARG PYTHON_IMAGE_BASE="python"
+ARG PYTHON_IMAGE_TAG=3.9.20-alpine3.20
 
 FROM alpine:latest AS builder
 
 RUN set -ex \
         && apk update && apk upgrade \
-        && apk add --no-cache gettext \
-        && rm -rfv /var/cache/apk/*
+        && apk add --no-cache \
+            gettext \
+        && rm -rf /var/cache/apk/* /tmp/*
 
-FROM python:${PYTHON_VERSION}
+FROM ${PYTHON_IMAGE_BASE}:${PYTHON_IMAGE_TAG}
 
 COPY --from=builder /usr/bin/envsubst /usr/bin/envsubst
 COPY requirements.txt .
 
 RUN set -ex \
         && apk update && apk upgrade \
-        && apk add --no-cache gcc libffi-dev python3-dev tzdata musl-dev \
+        && apk add --no-cache \
+            gcc \
+            libffi-dev \
+            musl-dev \
+            python3-dev \
+            tzdata \
         && python3 -m pip install --no-cache-dir -r requirements.txt \
-        && cp -fv /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
+        && cp -f /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
         && echo "Asia/Shanghai" > /etc/timezone \
         && apk del tzdata \
-        && rm -fv requirements.txt \
-        && rm -rfv /var/cache/apk/*
+        && rm -f requirements.txt \
+        && rm -rf /var/cache/apk/* /tmp/*
