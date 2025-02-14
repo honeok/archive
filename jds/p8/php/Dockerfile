@@ -6,7 +6,6 @@
 # / // / / _  /  (_-</ (_ / / _ `/ /  ' \/ -_)
 # \___/  \_,_/  /___/\___/  \_,_/ /_/_/_/\__/
 #
-# License Information:
 # This program is free software: you can redistribute it and/or modify it under
 # the terms of the GNU General Public License, version 3 or later.
 #
@@ -14,16 +13,35 @@
 # warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 # General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License along with
-# this program. If not, see <https://www.gnu.org/licenses/>.
+# See the LICENSE file or <https://www.gnu.org/licenses/> for full license terms.
 
 FROM php:8.0.30-fpm-alpine3.16
 
 RUN set -ex \
         && apk update && apk upgrade \
-        && curl -L https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions -o /usr/local/bin/install-php-extensions \
+        && curl -fsL https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions -o /usr/local/bin/install-php-extensions \
         && chmod +x /usr/local/bin/install-php-extensions \
-        && /usr/local/bin/install-php-extensions opcache mysqlnd pdo_mysql gd ldap odbc xml xmlrpc mbstring soap gmp bcmath bcmath bz2 \
-            calendar exif gettext shmop sysvmsg sysvsem sysvshm xmlrpc xsl \
+        && /usr/local/bin/install-php-extensions \
+            bcmath \
+            bz2 \
+            calendar \
+            exif \
+            gd \
+            gettext \
+            gmp \
+            ldap \
+            mbstring \
+            mysqlnd \
+            odbc \
+            opcache \
+            pdo_mysql \
+            soap \
+            shmop \
+            sysvmsg \
+            sysvsem \
+            sysvshm \
+            xml \
+            xmlrpc \
+            xsl \
         && rm -f Dockerfile /usr/local/bin/install-php-extensions \
         && rm -rf /var/cache/apk/* /tmp/*
