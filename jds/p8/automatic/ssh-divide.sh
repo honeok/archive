@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 #
-# Description: Automates the distribution of SSH keys across multiple hosts using Ansible for password-less SSH login.
+# Description: distributes ssh keys across multiple hosts.
 #
-# Copyright (C) 2025 honeok <honeok@duck.com>
 # Copyright (C) 2025 zzwsec <zzwsec@163.com>
+# Copyright (C) 2025 honeok <honeok@duck.com>
 #
 # Licensed under the MIT License.
 # This software is provided "as is", without any warranty.
@@ -30,7 +30,7 @@ _suc_msg() { echo -e "\033[42m\033[1m成功${white} $*"; }
 export DEBIAN_FRONTEND=noninteractive
 
 [ -t 1 ] && tput clear 2>/dev/null || echo -e "\033[2J\033[H" || clear
-_yellow "当前脚本版本: ${version} 🎥 \n"
+_yellow "当前脚本版本: ${version} 🍴 \n"
 
 # 操作系统和权限校验
 if [ "$(id -ru)" -ne "0" ]; then
@@ -84,7 +84,7 @@ install() {
     return 0
 }
 
-get_passwd() {
+obtain_passwd() {
     # 获取服务器密码 usage: echo "xxxxxxxxxxxx" > "$HOME/password.txt" && chmod 600 "$HOME/password.txt"
     if [ ! -s "$HOME/password.txt" ]; then
         _red "密码文件不存在或为空！" && exit 1
@@ -129,10 +129,10 @@ send_sshkey() {
     wait # 等待并行任务
 }
 
-main() {
-    get_passwd
+standalone() {
+    obtain_passwd
     check_sshkey
     send_sshkey
 }
 
-main
+standalone
