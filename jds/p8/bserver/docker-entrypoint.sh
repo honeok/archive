@@ -1,4 +1,9 @@
-#!/bin/sh
+#!/usr/bin/env sh
+#
+# Copyright (C) 2025 honeok <honeok@duck.com>
+#
+# Licensed under the MIT License.
+# This software is provided "as is", without any warranty.
 
 luban_config_dir="/bserver/config/luban"
 luban_config_dir_temp="/bserver/config/luban_temp"
