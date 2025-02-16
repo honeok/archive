@@ -1,6 +1,6 @@
 # JdsGame 🎲
 
-maintainer: honeok <honeok@duck.com>
+Maintainer: honeok <honeok@duck.com>
 
 Contact us: <fangwo811@gmail.com>
 
@@ -13,4 +13,4 @@ Copyright © Chengdu Zhidan Network Technology Co., Ltd.
 # \___/  \_,_/  /___/\___/  \_,_/ /_/_/_/\__/
 ```
 
-Licensed under GPL-3.0 - see LICENSE for details.
+Licensed under MIT License - see LICENSE for details.
