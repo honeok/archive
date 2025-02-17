@@ -12,7 +12,7 @@ set \
     -o errexit \
     -o nounset
 
-readonly version='v0.1.1 (2025.02.01)'
+readonly version='v0.1.2 (2025.02.17)'
 
 yellow='\033[1;33m'
 red='\033[1;31m'
@@ -29,7 +29,7 @@ _suc_msg() { echo -e "\033[42m\033[1m成功${white} $*"; }
 _info_msg() { echo -e "\033[43m\033[1;37m提示${white} $*"; }
 
 [ -t 1 ] && tput clear 2>/dev/null || echo -e "\033[2J\033[H" || clear
-_cyan "当前脚本版本: ${version} 🛑 \n"
+_cyan "当前脚本版本: ${version} 📍 \n"
 
 # 操作系统和权限校验
 if [ "$(id -ru)" -ne "0" ]; then
@@ -46,11 +46,10 @@ if [[ "$os_name" != "debian" && "$os_name" != "ubuntu" && "$os_name" != "centos"
 fi
 
 # 预定义变量
-readonly project_name='p8_app_server'
+readonly app_name='p8_app_server'
 readonly script_workdir='/data/tool'
 readonly gamestop_pid='/tmp/gamestop.pid'
 
-# 捕获终止信号并优雅退出
 trap 'rm -f "$gamestop_pid" >/dev/null 2>&1; exit 0' SIGINT SIGQUIT SIGTERM EXIT
 
 if [ -f "$gamestop_pid" ] && kill -0 "$(cat "$gamestop_pid")" 2>/dev/null; then
@@ -65,26 +64,28 @@ end_of() {
     read -n 1 -s -r -p ""
 }
 
-entranceserver_Runcheck() {
+debug=false
+
+entrance_Runcheck() {
     local entrances=(gate login)
 
     for entra in "${entrances[@]}"; do
-        if ! pgrep -f "/data/server/${entra}/${project_name}" >/dev/null 2>&1; then
+        if ! pgrep -f "/data/server/${entra}/${app_name}" >/dev/null 2>&1; then
             # gate 和 login 检测到未运行只输出警告
             _err_msg "$(_red "${entra} 未检测到运行")"
         fi
     done
 }
 
-gameserver_Runcheck() {
+game_Runcheck() {
     local search_server process_Spell
     local running_servers=() # 初始化数组
 
     search_server=$(find /data/ -maxdepth 1 -type d -name "server*" | sed 's:.*/::' | grep -E '^server[0-9]+$' | sed 's/server//' | sort -n)
 
     # 拼接服务器组校验是否正在运行
-    for run_num in $search_server; do
-        process_Spell="/data/server${run_num}/game/${project_name}"
+    for run_num in ${search_server}; do
+        process_Spell="/data/server${run_num}/game/${app_name}"
 
         if pgrep -f "${process_Spell}" >/dev/null 2>&1; then
             running_servers+=("${run_num}")
@@ -103,23 +104,25 @@ gameserver_Runcheck() {
 
 # 停止服务器守护进程
 daemon_stop() {
+    local daemon_file='processcontrol-allserver.sh'
+
     cd "$script_workdir" || {
         _err_msg "$(_red "无法进入目录：${script_workdir}")"
         exit 1
     }
 
-    if pgrep -f processcontrol-allserver.sh >/dev/null 2>&1; then
-        pkill -9 -f processcontrol-allserver.sh 1>/dev/null
+    if pgrep -f "$daemon_file" >/dev/null 2>&1; then
+        pkill -9 -f "$daemon_file" 1>/dev/null
         [ -f "control.txt" ] && : > control.txt
         [ -f "dump.txt" ] && : > dump.txt
-        _suc_msg "$(_green 'processcontrol进程已终止文件已清空')"
+        _suc_msg "$(_green "${daemon_file}进程已终止文件已清空")"
     else
-        _info_msg "$(_yellow 'processcontrol进程未运行无需终止')"
+        _info_msg "$(_yellow "${daemon_file}进程未运行无需终止")"
     fi
 }
 
 # 停止服务器入口 gate 和 login
-entranceserver_stop() {
+entrance_stop() {
     cd /data/server/login || { 
         _err_msg "$(_red 'login服务器路径错误')" && exit 1
     }
@@ -138,9 +141,9 @@ entranceserver_stop() {
     fi
 }
 
-gameserver_stop() {
+game_stop() {
     if [ -n "$server_range" ]; then
-        for server_num in $server_range; do
+        for server_num in ${server_range}; do
             (
                 if [ ! -d "/data/server$server_num/game" ]; then
                     _err_msg "$(_red "server${server_num}路径不存在，子进程已退出")"
@@ -166,16 +169,16 @@ gameserver_stop() {
 }
 
 standalone_stop() {
-    entranceserver_Runcheck
-    gameserver_Runcheck
+    entrance_Runcheck
+    game_Runcheck
     daemon_stop
-    entranceserver_stop
-    gameserver_stop
+    entrance_stop
+    game_stop
 }
 
 # 解析命令行参数
 if [ "$#" -eq 0 ]; then
-    _info_msg "$(_red "当前为 ${project_name} 的停服操作，确认后按任意键继续")"
+    _info_msg "$(_red "当前为 ${app_name} 的停服操作，确认后按任意键继续")"
     end_of
     standalone_stop
     exit 0
@@ -184,27 +187,33 @@ else
         case "$1" in
             -at | --allserver-stop)
                 # 所有服务器并行关闭
-                shift
+                _yellow "当前为${app_name}停服"
+                shift 1
                 standalone_stop
-                ;;
+            ;;
             -es | --entrance-stop)
                 # 仅关闭登录入口
-                shift
-                entranceserver_Runcheck
+                shift 1
+                entrance_Runcheck
                 daemon_stop
-                entranceserver_stop
-                ;;
+                entrance_stop
+            ;;
             -gs | --game-stop)
                 # 仅关闭游戏服务器
-                shift
-                gameserver_Runcheck
+                shift 1
+                game_Runcheck
                 daemon_stop
-                gameserver_stop
-                ;;
+                game_stop
+            ;;
+            --debug)
+                shift 1
+                debug=true
+                [ "$debug" = true ] && set -o xtrace
+            ;;
             *)
                 _err_msg "$(_red '无效选项，请重新输入！')"
                 exit 1
-                ;;
+            ;;
         esac
     done
 fi
