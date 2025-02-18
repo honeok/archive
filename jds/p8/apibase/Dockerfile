@@ -1,26 +1,14 @@
 # Description: Dockerfile for the gameapi basic environment based on Alpine
 #
 # Copyright (C) 2025 honeok <honeok@duck.com>
-#      __     __       _____
-#  __ / / ___/ /  ___ / ___/ ___ _  __ _  ___
-# / // / / _  /  (_-</ (_ / / _ `/ /  ' \/ -_)
-# \___/  \_,_/  /___/\___/  \_,_/ /_/_/_/\__/
 #
 # References:
 # https://github.com/luarocks/luarocks/wiki/Download
 # https://github.com/openresty/docker-openresty/blob/master/alpine/Dockerfile
 # https://github.com/nginxinc/docker-nginx/blob/master/mainline/alpine-slim/Dockerfile
 #
-# License Information:
-# This program is free software: you can redistribute it and/or modify it under
-# the terms of the GNU General Public License, version 3 or later.
-#
-# This program is distributed WITHOUT ANY WARRANTY; without even the implied
-# warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along with
-# this program. If not, see <https://www.gnu.org/licenses/>.
+# Licensed under the MIT License.
+# This software is provided "as is", without any warranty.
 
 ARG RESTY_IMAGE_BASE="alpine"
 ARG RESTY_IMAGE_TAG="3.21"
@@ -47,7 +35,7 @@ ARG RESTY_PCRE_BUILD_OPTIONS="--enable-jit --enable-pcre2grep-jit --disable-bsr-
     --enable-percent-zt --disable-rebuild-chartables --enable-shared --disable-static --disable-silent-rules --enable-unicode --disable-valgrind \
     "
 
-ARG RESTY_J="2"
+ARG RESTY_J="4"
 
 # https://github.com/openresty/openresty-packaging/blob/master/alpine/openresty/APKBUILD
 ARG RESTY_CONFIG_OPTIONS="\
@@ -129,10 +117,10 @@ RUN set -ex \
             mysql-dev \
             zlib \
         && cd /tmp \
-        && curl -L "${RESTY_OPENSSL_URL_BASE}/openssl-${RESTY_OPENSSL_VERSION}.tar.gz" -o openssl-${RESTY_OPENSSL_VERSION}.tar.gz \
+        && curl -fsL "${RESTY_OPENSSL_URL_BASE}/openssl-${RESTY_OPENSSL_VERSION}.tar.gz" -o openssl-${RESTY_OPENSSL_VERSION}.tar.gz \
         && tar xzf openssl-${RESTY_OPENSSL_VERSION}.tar.gz \
         && cd openssl-${RESTY_OPENSSL_VERSION} \
-        && curl -s https://raw.githubusercontent.com/openresty/openresty/master/patches/openssl-${RESTY_OPENSSL_PATCH_VERSION}-sess_set_get_cb_yield.patch | patch -p1 \
+        && curl -fsL https://raw.githubusercontent.com/openresty/openresty/master/patches/openssl-${RESTY_OPENSSL_PATCH_VERSION}-sess_set_get_cb_yield.patch | patch -p1 \
         && ./config \
                 shared zlib -g \
                 --prefix=/usr/local/openresty/openssl3 \
@@ -142,7 +130,7 @@ RUN set -ex \
         && make -j${RESTY_J} \
         && make -j${RESTY_J} install_sw \
         && cd /tmp \
-        && curl -L "https://github.com/PCRE2Project/pcre2/releases/download/pcre2-${RESTY_PCRE_VERSION}/pcre2-${RESTY_PCRE_VERSION}.tar.gz" -o pcre2-${RESTY_PCRE_VERSION}.tar.gz \
+        && curl -fsL "https://github.com/PCRE2Project/pcre2/releases/download/pcre2-${RESTY_PCRE_VERSION}/pcre2-${RESTY_PCRE_VERSION}.tar.gz" -o pcre2-${RESTY_PCRE_VERSION}.tar.gz \
         && tar xzf pcre2-${RESTY_PCRE_VERSION}.tar.gz \
         && cd pcre2-${RESTY_PCRE_VERSION} \
         && CFLAGS="-g -O3" ./configure \
@@ -152,14 +140,14 @@ RUN set -ex \
         && CFLAGS="-g -O3" make -j${RESTY_J} \
         && CFLAGS="-g -O3" make -j${RESTY_J} install \
         && cd /tmp \
-        && curl -L "https://openresty.org/download/openresty-${RESTY_VERSION}.tar.gz" -o openresty-${RESTY_VERSION}.tar.gz \
+        && curl -fsL "https://openresty.org/download/openresty-${RESTY_VERSION}.tar.gz" -o openresty-${RESTY_VERSION}.tar.gz \
         && tar xzf openresty-${RESTY_VERSION}.tar.gz \
         && cd openresty-${RESTY_VERSION} \
         && eval ./configure -j${RESTY_J} ${_RESTY_CONFIG_DEPS} ${RESTY_CONFIG_OPTIONS} ${RESTY_LUAJIT_OPTIONS} ${RESTY_PCRE_OPTIONS} \
         && make -j${RESTY_J} \
         && make -j${RESTY_J} install \
         && cd /tmp \
-        && curl -L "https://luarocks.github.io/luarocks/releases/luarocks-${RESTY_LUAROCKS_VERSION}.tar.gz" -o luarocks-${RESTY_LUAROCKS_VERSION}.tar.gz \
+        && curl -fsL "https://luarocks.github.io/luarocks/releases/luarocks-${RESTY_LUAROCKS_VERSION}.tar.gz" -o luarocks-${RESTY_LUAROCKS_VERSION}.tar.gz \
         && tar zxpf luarocks-${RESTY_LUAROCKS_VERSION}.tar.gz \
         && cd luarocks-${RESTY_LUAROCKS_VERSION} \
         && ./configure \
@@ -191,14 +179,13 @@ RUN set -ex \
         && cp -f /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
         && echo "Asia/Shanghai" > /etc/timezone \
         && mkdir -p /var/run/openresty /var/cache/nginx /etc/nginx/conf.d \
-        && curl -L https://raw.githubusercontent.com/openresty/docker-openresty/master/nginx.vh.default.conf -o /etc/nginx/conf.d/default.conf \
-        && curl -L https://raw.githubusercontent.com/openresty/docker-openresty/master/nginx.conf -o /usr/local/openresty/nginx/conf/nginx.conf \
+        && curl -fsL https://raw.githubusercontent.com/openresty/docker-openresty/master/nginx.vh.default.conf -o /etc/nginx/conf.d/default.conf \
+        && curl -fsL https://raw.githubusercontent.com/openresty/docker-openresty/master/nginx.conf -o /usr/local/openresty/nginx/conf/nginx.conf \
         && sed -i 's/^#user  nobody;/user  nginx;/' /usr/local/openresty/nginx/conf/nginx.conf \
         && addgroup -g 1001 -S nginx \
         && adduser -S -D -H -u 1001 -h /var/cache/nginx -s /sbin/nologin -G nginx -g nginx nginx \
         && chown -R nginx:nginx /usr/local/openresty /var/run/openresty /etc/nginx /var/cache/nginx \
-        && rm -rf /tmp/* \
-        && rm -rf /var/cache/apk/* \
+        && rm -rf /var/cache/apk/* /tmp/* \
         && apk del .build-deps \
         && ln -sf /dev/stdout /usr/local/openresty/nginx/logs/access.log \
         && ln -sf /dev/stderr /usr/local/openresty/nginx/logs/error.log
