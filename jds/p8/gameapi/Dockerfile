@@ -6,7 +6,6 @@
 # This software is provided "as is", without any warranty.
 
 ARG BASE_IMAGE_TAG="v0.0.5-alpine"
-ARG LAPIS_ENVIRONMENT="development"
 
 FROM registry.cn-chengdu.aliyuncs.com/havario/api-base:${BASE_IMAGE_TAG}
 
@@ -25,6 +24,6 @@ RUN set -ex \
         && ln -sf /dev/stdout /gameapi/run/logs/access.log \
         && ln -sf /dev/stderr /gameapi/run/logs/error.log
 
-ENV LAPIS_ENVIRONMENT=${LAPIS_ENVIRONMENT}
+ENV LAPIS_ENVIRONMENT=development
 
 ENTRYPOINT [ "/docker-entrypoint.sh" ]
