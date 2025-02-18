@@ -1,9 +1,9 @@
-name: build apibase image
+name: Build and publish apibase
 
 on:
   push:
     branches:
-      - dev
+      - develop
     paths:
       - '.github/workflows/apibase.yml'
       - 'jds/p8/apibase/Dockerfile'
@@ -71,4 +71,4 @@ jobs:
       - name: Commit version update
         uses: stefanzweifel/git-auto-commit-action@v5.1.0
         with:
-          commit_message: "chore: base image bump version"
+          commit_message: "chore: bump version"
