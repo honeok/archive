@@ -1,8 +1,3 @@
--- Copyright (C) Chengdu Zhidan Network Technology Co., Ltd.
---
--- Licensed under the MIT License.
--- This software is provided "as is", without any warranty.
---
 -- 合服前都满足以下5个条件的玩家信息需要清理
 -- 1)身份等级5级以下的角色
 -- 2)15日内没有登录过的角色
@@ -16,9 +11,9 @@
 -- 开启事务
 START TRANSACTION;
 
-use example_game_1;
+use gamedb1;
 -- 设定数据库B的数据库名
-SET @db_name = 'example_game_2';  -- 将数据库B的名称赋值给变量
+SET @db_name = 'gamedb2';  -- 将数据库B的名称赋值给变量
 
 -- 设定数据库B中重名角色以及重名公会前缀
 set @pname='S';           -- 角色重名前缀
@@ -66,17 +61,17 @@ delete from t_personmail where receiver_id in (select * from temp1);
 delete from t_personmail where expire_time < unix_timestamp(now());
 delete from t_player where id in (select * from temp1);
 delete from t_pvp where id in (select * from temp1);
-delete from t_pvp_ladder where id in (select * from temp1);
 delete from t_ticket where id in (select * from temp1);
 
 -- 排行
 truncate table t_rank;
 truncate table t_rank_guild;
 truncate table t_rank_season;
+truncate table t_pvp_ladder;
 -- 队伍
 truncate table t_team;
 
-update t_player set `rank`='{}', `grocery`=json_insert(`grocery`, '$."args"', json_object(), '$."args"."4"', 1);
+update t_player set `rank`='{}', `pvp_ladder`='{}', `grocery`=json_insert(`grocery`, '$."args"', json_object(), '$."args"."4"', 1);
 set @ret3=ROW_COUNT();
 update t_guild set `rank_seasons`='{}';
 
@@ -131,17 +126,12 @@ PREPARE stmt FROM @sql;
 EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
 
-SET @sql = CONCAT('delete from ', @db_name, '.t_pvp_ladder where id in (select * from temp2)');
-PREPARE stmt FROM @sql;
-EXECUTE stmt;
-DEALLOCATE PREPARE stmt;
-
 SET @sql = CONCAT('delete from ', @db_name, '.t_ticket where id in (select * from temp2)');
 PREPARE stmt FROM @sql;
 EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
 
-SET @sql = CONCAT('update ', @db_name, '.t_player set `rank`=\'{}\', `grocery`=json_insert(`grocery`, \'$.\"args\"\', json_object(), \'$.\"args\".\"4\"\', 1)');
+SET @sql = CONCAT('update ', @db_name, '.t_player set `rank`=\'{}\', `pvp_ladder`=\'{}\', `grocery`=json_insert(`grocery`, \'$.\"args\"\', json_object(), \'$.\"args\".\"4\"\', 1)');
 PREPARE stmt FROM @sql;
 EXECUTE stmt;
 GET DIAGNOSTICS @ret4 = ROW_COUNT;
@@ -250,12 +240,6 @@ DEALLOCATE PREPARE stmt;
 -- 竞技场
 SET @sql = concat('insert into t_pvp(', (select group_concat('`', column_name, '`' separator ', ') from information_schema.columns where table_schema=@db_name and table_name='t_pvp'), 
 ') select ', (select group_concat('`', column_name, '`' separator ', ') from information_schema.columns where table_schema=@db_name and table_name='t_pvp'), ' from ', @db_name, '.t_pvp');
-PREPARE stmt FROM @sql;
-EXECUTE stmt;
-DEALLOCATE PREPARE stmt;
-
-SET @sql = concat('insert into t_pvp_ladder(', (select group_concat('`', column_name, '`' separator ', ') from information_schema.columns where table_schema=@db_name and table_name='t_pvp_ladder'), 
-') select ', (select group_concat('`', column_name, '`' separator ', ') from information_schema.columns where table_schema=@db_name and table_name='t_pvp_ladder'), ' from ', @db_name, '.t_pvp_ladder');
 PREPARE stmt FROM @sql;
 EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
