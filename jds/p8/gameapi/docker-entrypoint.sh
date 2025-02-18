@@ -12,7 +12,6 @@ set \
 WORK_DIR="/gameapi"
 RUN_DIR="$WORK_DIR/run"
 CHECK_VARS="MYSQL_HOST MYSQL_USER MYSQL_PASSWORD MYSQL_DATABASE MYSQL_TIMEZONE REDIS_HOST REDIS_DATABASE"
-LAPIS_CMD="/usr/local/openresty/luajit/bin/lapis"
 
 for var in $CHECK_VARS; do
     dev_var="DEV_$var"
@@ -51,7 +50,7 @@ else
 fi
 
 if [ "$#" -eq 0 ]; then
-    exec "$LAPIS_CMD server"
+    exec lapis server
 else
     exec "$@"
 fi
