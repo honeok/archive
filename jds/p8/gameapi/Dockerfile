@@ -15,9 +15,12 @@ COPY . .
 
 RUN set -ex \
         && apk update && apk upgrade \
+        && chmod +x build.sh && ./build.sh \
         && install -m 755 docker-entrypoint.sh /docker-entrypoint.sh \
         && rm -f docker-entrypoint.sh Dockerfile \
-        && rm -rf /var/cache/apk/* /tmp/*
+        && rm -rf /var/cache/apk/* /tmp/* \
+        && ln -sf /dev/stdout /gameapi/run/logs/access.log \
+        && ln -sf /dev/stderr /gameapi/run/logs/error.log
 
 ENV LAPIS_ENVIRONMENT=${LAPIS_ENVIRONMENT:-"development"}
 
