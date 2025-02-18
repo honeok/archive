@@ -15,6 +15,8 @@ COPY . .
 
 RUN set -ex \
         && apk update && apk upgrade \
+        && apk add --no-cache \
+            gettext \
         && chmod +x build.sh && ./build.sh \
         && install -m 755 docker-entrypoint.sh /docker-entrypoint.sh \
         && rm -f docker-entrypoint.sh Dockerfile \
