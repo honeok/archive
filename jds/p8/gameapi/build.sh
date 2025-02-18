@@ -38,11 +38,3 @@ mkdir -p \
     "$RUN_DIR/temp/fastcgi" \
     "$RUN_DIR/temp/uwsgi" \
     "$RUN_DIR/temp/scgi"
-
-# 数据库迁移所需
-cp -f "$WORK_DIR/src/config/migrations.lua" "$WORK_DIR/run/migrations.lua"
-
-# 配置文件
-cp -f "$WORK_DIR/src/config/models.lua" "$WORK_DIR/run/models.lua"
-cp -f "$WORK_DIR/templates/mime.types" "$WORK_DIR/run/mime.types"
-cp -f "$WORK_DIR/templates/nginx.conf" "$WORK_DIR/run/nginx.conf"
