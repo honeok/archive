@@ -13,4 +13,12 @@ WORKDIR /gameapi
 
 COPY . .
 
+RUN set -ex \
+        && apk update && apk upgrade \
+        && install -m 755 docker-entrypoint.sh /docker-entrypoint.sh \
+        && rm -f docker-entrypoint.sh Dockerfile \
+        && rm -rf /var/cache/apk/* /tmp/*
+
 ENV LAPIS_ENVIRONMENT=${LAPIS_ENVIRONMENT:-"development"}
+
+ENTRYPOINT [ "/docker-entrypoint.sh" ]
