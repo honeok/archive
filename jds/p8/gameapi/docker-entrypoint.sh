@@ -5,10 +5,29 @@
 # Licensed under the MIT License.
 # This software is provided "as is", without any warranty.
 
+set \
+    -o errexit \
+    -o nounset
+
 work_dir="/gameapi"
 run_dir="$work_dir/run"
 
-if ! hash lapis >/dev/null 2>&1; then
+check_vars="MYSQL_HOST MYSQL_USER MYSQL_PASSWORD MYSQL_DATABASE MYSQL_TIMEZONE REDIS_HOST REDIS_DATABASE"
+
+for var in $check_vars; do
+    dev_var="DEV_$var"
+    pro_var="PRO_$var"
+
+    eval "dev_val=\${$dev_var}"
+    eval "pro_val=\${$pro_var}"
+
+    if [ -z "$dev_val" ] && [ -z "$pro_val" ]; then
+        echo "ERROR: Both $dev_var and $pro_var are missing."
+        exit 1
+    fi
+done
+
+if ! command -v lapis >/dev/null 2>&1; then
     echo "ERROR: lapis is not installed"
     exit 1
 fi
