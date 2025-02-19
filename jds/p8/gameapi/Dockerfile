@@ -20,9 +20,7 @@ RUN set -ex \
         && chmod +x build.sh && ./build.sh \
         && install -m 755 docker-entrypoint.sh /docker-entrypoint.sh \
         && rm -f build.sh docker-entrypoint.sh Dockerfile \
-        && rm -rf /var/cache/apk/* /tmp/* \
-        && ln -sf /dev/stdout /gameapi/run/logs/access.log \
-        && ln -sf /dev/stderr /gameapi/run/logs/error.log
+        && rm -rf /var/cache/apk/* /tmp/*
 
 ENV LAPIS_ENVIRONMENT=development
 
