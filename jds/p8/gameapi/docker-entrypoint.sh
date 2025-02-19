@@ -29,9 +29,9 @@ done
 # 数据库迁移所需
 cp -f "$WORK_DIR/src/config/migrations.lua" "$WORK_DIR/run/migrations.lua"
 
-# 配置文件
+# 运行配置文件
 cp -f "$WORK_DIR/src/config/models.lua" "$WORK_DIR/run/models.lua"
-cp -f "$WORK_DIR/templates/mime.types" "$WORK_DIR/run/mime.types"
+cp -f "$WORK_DIR/src/config/mime.types" "$WORK_DIR/run/mime.types"
 cp -f "$WORK_DIR/templates/nginx.conf" "$WORK_DIR/run/nginx.conf"
 
 if ! command -v lapis >/dev/null 2>&1; then
