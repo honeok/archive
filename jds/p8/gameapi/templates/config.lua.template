@@ -19,13 +19,14 @@ config("development", {
         database = "${DEV_MYSQL_DATABASE}",
         adapter  = "mysql",
         charset  = "utf8mb4",
-        timezone = "${DEV_MYSQL_TIMEZONE}"
+        timezone = "${DEV_TIMEZONE}"
     },
 
     redis = {
         host     = "${DEV_REDIS_HOST}",
-        port     = 6379,
-        database = "${DEV_REDIS_DATABASE}"
+        port     = "${DEV_REDIS_PORT}",,
+        database = "${DEV_REDIS_DATABASE}",
+        password = "${DEV_REDIS_PASSWORD}"
     },
 
     cache = {
@@ -52,13 +53,14 @@ config("production", {
         database = "${PRO_MYSQL_DATABASE}",
         adapter  = "mysql",
         charset  = "utf8mb4",
-        timezone = "${PRO_MYSQL_TIMEZONE}"
+        timezone = "${PRO_TIMEZONE}"
     },
 
     redis = {
         host     = "${PRO_REDIS_HOST}",
-        port     = 6379,
-        database = "${PRO_REDIS_DATABASE}"
+        port     = "${PRO_REDIS_PORT}",
+        database = "${PRO_REDIS_DATABASE}",
+        password = "${PRO_REDIS_PASSWORD}"
     },
 
     cache = {
