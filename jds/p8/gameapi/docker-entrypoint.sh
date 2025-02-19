@@ -12,28 +12,28 @@ set \
 WORK_DIR="/gameapi"
 RUN_DIR="$WORK_DIR/run"
 
-if [ -z "$DEV_MYSQL_HOST" ] || [ -z "$PRO_MYSQL_HOST" ]; then
+if [ -z "$DEV_MYSQL_HOST" ] && [ -z "$PRO_MYSQL_HOST" ]; then
     echo "ERROR: MySQL host must be specified." && exit 1
 fi
-if [ -z "$DEV_MYSQL_USER" ] || [ -z "$PRO_MYSQL_USER" ]; then
+if [ -z "$DEV_MYSQL_USER" ] && [ -z "$PRO_MYSQL_USER" ]; then
     echo "ERROR: MySQL user must be specified." && exit 1
 fi
-if [ -z "$DEV_MYSQL_PASSWORD" ] || [ -z "$PRO_MYSQL_PASSWORD" ]; then
+if [ -z "$DEV_MYSQL_PASSWORD" ] && [ -z "$PRO_MYSQL_PASSWORD" ]; then
     echo "ERROR: MySQL password must be specified." && exit 1
 fi
-if [ -z "$DEV_MYSQL_DATABASE" ] || [ -z "$PRO_MYSQL_DATABASE" ]; then
+if [ -z "$DEV_MYSQL_DATABASE" ] && [ -z "$PRO_MYSQL_DATABASE" ]; then
     echo "ERROR: MySQL database must be specified." && exit 1
 fi
-if [ -z "$DEV_TIMEZONE" ] || [ -z "$PRO_TIMEZONE" ]; then
+if [ -z "$DEV_TIMEZONE" ] && [ -z "$PRO_TIMEZONE" ]; then
     echo "ERROR: Time zone must be specified." && exit 1
 fi
-if [ -z "$DEV_REDIS_HOST" ] || [ -z "$PRO_REDIS_HOST" ]; then
+if [ -z "$DEV_REDIS_HOST" ] && [ -z "$PRO_REDIS_HOST" ]; then
     echo "ERROR: Redis host must be specified." && exit 1
 fi
-if [ -z "$DEV_REDIS_PORT" ] || [ -z "$PRO_REDIS_PORT" ]; then
+if [ -z "$DEV_REDIS_PORT" ] && [ -z "$PRO_REDIS_PORT" ]; then
     echo "ERROR: Redis port must be specified." && exit 1
 fi
-if [ -z "$DEV_REDIS_DATABASE" ] || [ -z "$PRO_REDIS_DATABASE" ]; then
+if [ -z "$DEV_REDIS_DATABASE" ] && [ -z "$PRO_REDIS_DATABASE" ]; then
     echo "ERROR: Redis database must be specified." && exit 1
 fi
 
