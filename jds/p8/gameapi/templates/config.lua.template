@@ -24,7 +24,7 @@ config("development", {
 
     redis = {
         host     = "${DEV_REDIS_HOST}",
-        port     = "${DEV_REDIS_PORT}",,
+        port     = "${DEV_REDIS_PORT}",
         database = "${DEV_REDIS_DATABASE}",
         password = "${DEV_REDIS_PASSWORD}"
     },
