@@ -22,5 +22,6 @@ services:
       # PRO_TIMEZONE: Asia/Shanghai
       # PRO_REDIS_HOST: 192.168.250.250
       # PRO_REDIS_PORT: 6379
-      # PRO_REDIS_PASSWORD: example_api
+      # PRO_REDIS_DATABASE: example_api
+      # PRO_REDIS_PASSWORD: 12345678
     network_mode: bridge
