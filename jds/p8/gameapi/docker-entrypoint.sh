@@ -11,20 +11,31 @@ set \
 
 WORK_DIR="/gameapi"
 RUN_DIR="$WORK_DIR/run"
-CHECK_VARS="MYSQL_HOST MYSQL_USER MYSQL_PASSWORD MYSQL_DATABASE MYSQL_TIMEZONE REDIS_HOST REDIS_DATABASE"
 
-for var in $CHECK_VARS; do
-    dev_var="DEV_$var"
-    pro_var="PRO_$var"
-
-    eval "dev_val=\${$dev_var}"
-    eval "pro_val=\${$pro_var}"
-
-    if [ -z "$dev_val" ] && [ -z "$pro_val" ]; then
-        echo "ERROR: Both $dev_var and $pro_var are missing."
-        exit 1
-    fi
-done
+if [ -z "$DEV_MYSQL_HOST" ] || [ -z "$PRO_MYSQL_HOST" ]; then
+    echo "ERROR: MySQL host must be specified." && exit 1
+fi
+if [ -z "$DEV_MYSQL_USER" ] || [ -z "$PRO_MYSQL_USER" ]; then
+    echo "ERROR: MySQL user must be specified." && exit 1
+fi
+if [ -z "$DEV_MYSQL_PASSWORD" ] || [ -z "$PRO_MYSQL_PASSWORD" ]; then
+    echo "ERROR: MySQL password must be specified." && exit 1
+fi
+if [ -z "$DEV_MYSQL_DATABASE" ] || [ -z "$PRO_MYSQL_DATABASE" ]; then
+    echo "ERROR: MySQL database must be specified." && exit 1
+fi
+if [ -z "$DEV_TIMEZONE" ] || [ -z "$PRO_TIMEZONE" ]; then
+    echo "ERROR: Time zone must be specified." && exit 1
+fi
+if [ -z "$DEV_REDIS_HOST" ] || [ -z "$PRO_REDIS_HOST" ]; then
+    echo "ERROR: Redis host must be specified." && exit 1
+fi
+if [ -z "$DEV_REDIS_PORT" ] || [ -z "$PRO_REDIS_PORT" ]; then
+    echo "ERROR: Redis port must be specified." && exit 1
+fi
+if [ -z "$DEV_REDIS_DATABASE" ] || [ -z "$PRO_REDIS_DATABASE" ]; then
+    echo "ERROR: Redis database must be specified." && exit 1
+fi
 
 # 数据库迁移所需
 cp -f "$WORK_DIR/src/config/migrations.lua" "$WORK_DIR/run/migrations.lua"
