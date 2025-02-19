@@ -5,7 +5,7 @@
 # Licensed under the MIT License.
 # This software is provided "as is", without any warranty.
 
-ARG BASE_IMAGE_TAG="v0.0.5-alpine"
+ARG BASE_IMAGE_TAG="v0.0.6-alpine"
 
 FROM registry.cn-chengdu.aliyuncs.com/havario/api-base:${BASE_IMAGE_TAG}
 
