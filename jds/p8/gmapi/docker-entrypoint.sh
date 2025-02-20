@@ -37,7 +37,7 @@ mkdir -p \
     "$RUN_DIR/temp/uwsgi" \
     "$RUN_DIR/temp/scgi"
 
-chown -R nginx:nginx /gmapi
+chown -R nginx:nginx "$WORK_DIR" 1>/dev/null
 
 # 数据库迁移所需
 cp -f "$WORK_DIR/src/config/migrations.lua" "$WORK_DIR/run/migrations.lua"
