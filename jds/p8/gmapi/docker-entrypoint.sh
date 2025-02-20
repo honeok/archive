@@ -28,6 +28,17 @@ for VAR in $DEPEND_VARS; do
     fi
 done
 
+# 运行环境准备
+mkdir -p \
+    "$RUN_DIR/logs" \
+    "$RUN_DIR/temp/client-body" \
+    "$RUN_DIR/temp/proxy" \
+    "$RUN_DIR/temp/fastcgi" \
+    "$RUN_DIR/temp/uwsgi" \
+    "$RUN_DIR/temp/scgi"
+
+chown -R nginx:nginx /gmapi
+
 # 数据库迁移所需
 cp -f "$WORK_DIR/src/config/migrations.lua" "$WORK_DIR/run/migrations.lua"
 
