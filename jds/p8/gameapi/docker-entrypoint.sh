@@ -37,14 +37,15 @@ if [ -z "$DEV_REDIS_DATABASE" ] && [ -z "$PRO_REDIS_DATABASE" ]; then
     echo "ERROR: Redis database must be specified." && exit 1
 fi
 
-# 运行环境准备
-mkdir -p \
-    "$RUN_DIR/logs" \
-    "$RUN_DIR/temp/client-body" \
-    "$RUN_DIR/temp/proxy" \
-    "$RUN_DIR/temp/fastcgi" \
-    "$RUN_DIR/temp/uwsgi" \
-    "$RUN_DIR/temp/scgi"
+if [ ! -d "$RUN_DIR/logs" ] || [ ! -d "$RUN_DIR/temp" ]; then
+    mkdir -p \
+        "$RUN_DIR/logs" \
+        "$RUN_DIR/temp/client-body" \
+        "$RUN_DIR/temp/proxy" \
+        "$RUN_DIR/temp/fastcgi" \
+        "$RUN_DIR/temp/uwsgi" \
+        "$RUN_DIR/temp/scgi" 1>/dev/null
+fi
 
 chown -R nginx:nginx "$WORK_DIR" 1>/dev/null
 

@@ -30,4 +30,11 @@ find "$WORK_DIR" -name "*.lua" ! -path "$WORK_DIR/run/*" -print0 | xargs -0 -I {
 ' || HAS_ERROR=1
 [ "$HAS_ERROR" -eq 1 ] && exit 1
 
-return 0
+# 运行环境准备
+mkdir -p \
+    "$RUN_DIR/logs" \
+    "$RUN_DIR/temp/client-body" \
+    "$RUN_DIR/temp/proxy" \
+    "$RUN_DIR/temp/fastcgi" \
+    "$RUN_DIR/temp/uwsgi" \
+    "$RUN_DIR/temp/scgi" 1>/dev/null
