@@ -28,14 +28,15 @@ for VAR in $DEPEND_VARS; do
     fi
 done
 
-# 运行环境准备
-mkdir -p \
-    "$RUN_DIR/logs" \
-    "$RUN_DIR/temp/client-body" \
-    "$RUN_DIR/temp/proxy" \
-    "$RUN_DIR/temp/fastcgi" \
-    "$RUN_DIR/temp/uwsgi" \
-    "$RUN_DIR/temp/scgi"
+if [ ! -d "$RUN_DIR/logs" ] || [ ! -d "$RUN_DIR/temp" ]; then
+    mkdir -p \
+        "$RUN_DIR/logs" \
+        "$RUN_DIR/temp/client-body" \
+        "$RUN_DIR/temp/proxy" \
+        "$RUN_DIR/temp/fastcgi" \
+        "$RUN_DIR/temp/uwsgi" \
+        "$RUN_DIR/temp/scgi" 1>/dev/null
+fi
 
 chown -R nginx:nginx "$WORK_DIR" 1>/dev/null
 
