@@ -37,6 +37,17 @@ if [ -z "$DEV_REDIS_DATABASE" ] && [ -z "$PRO_REDIS_DATABASE" ]; then
     echo "ERROR: Redis database must be specified." && exit 1
 fi
 
+# 运行环境准备
+mkdir -p \
+    "$RUN_DIR/logs" \
+    "$RUN_DIR/temp/client-body" \
+    "$RUN_DIR/temp/proxy" \
+    "$RUN_DIR/temp/fastcgi" \
+    "$RUN_DIR/temp/uwsgi" \
+    "$RUN_DIR/temp/scgi"
+
+chown -R nginx:nginx "$WORK_DIR" 1>/dev/null
+
 # 数据库迁移所需
 cp -f "$WORK_DIR/src/config/migrations.lua" "$WORK_DIR/run/migrations.lua"
 
