@@ -19,7 +19,8 @@ RUN set -ex \
             gettext \
         && chmod +x build.sh && ./build.sh \
         && install -m 755 docker-entrypoint.sh /docker-entrypoint.sh \
-        && rm -f build.sh docker-entrypoint.sh Dockerfile \
+        && install -m 755 healthcheck.sh /usr/local/bin/healthcheck.sh \
+        && rm -f build.sh docker-entrypoint.sh healthcheck.sh Dockerfile \
         && rm -rf /var/cache/apk/* /tmp/* \
         && ln -sf /dev/stdout /gameapi/run/logs/access.log \
         && ln -sf /dev/stderr /gameapi/run/logs/error.log
@@ -27,3 +28,6 @@ RUN set -ex \
 ENV LAPIS_ENVIRONMENT=development
 
 ENTRYPOINT [ "/docker-entrypoint.sh" ]
+
+HEALTHCHECK --interval=30s --retries=2 --timeout=10s \
+  CMD /usr/local/bin/healthcheck.sh
