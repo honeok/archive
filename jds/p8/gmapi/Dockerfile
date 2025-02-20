@@ -26,4 +26,6 @@ RUN set -ex \
 
 ENV LAPIS_ENVIRONMENT=development
 
+EXPOSE 80 81
+
 ENTRYPOINT [ "/docker-entrypoint.sh" ]
