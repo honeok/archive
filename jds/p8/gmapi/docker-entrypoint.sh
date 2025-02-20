@@ -18,7 +18,7 @@ DEPEND_VARS="
     CACHE_DATABASE
     GAME_GM_URL
     OBS_ACCESS_KEY_ID OBS_ACCESS_KEY OBS_ENDPOINT OBS_BUCKET OBS_SERVERLIST_NAME OBS_NOTICE_NAME
-    CDN_IMA_AUTH_TOKEN_URL CDN_REFRESH_URL CDN_DOMAIN_NAME CDN_USER_NAME CDN_PASSWORD CDN_URL
+    CDN_REFRESH_URL CDN_URL CDN_PROJECT_ID CDN_ACCESS_KEY_ID CDN_ACCESS_KEY
 "
 
 for VAR in $DEPEND_VARS; do
@@ -36,7 +36,7 @@ cp -f "$WORK_DIR/boot.lua" "$WORK_DIR/run/boot.lua"
 cp -f "$WORK_DIR/src/config/models.lua" "$WORK_DIR/run/models.lua"
 cp -f "$WORK_DIR/src/config/config.lua" "$WORK_DIR/run/config.lua"
 cp -f "$WORK_DIR/src/config/mime.types" "$WORK_DIR/run/mime.types"
-cp -f "$WORK_DIR/templates/nginx.conf" "$WORK_DIR/run/nginx.conf"
+cp -f "$WORK_DIR/src/config/nginx.conf" "$WORK_DIR/run/nginx.conf"
 
 if ! command -v lapis >/dev/null 2>&1; then
     echo "ERROR: lapis is not installed"
