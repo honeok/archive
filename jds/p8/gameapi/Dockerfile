@@ -29,5 +29,5 @@ ENV LAPIS_ENVIRONMENT=development
 
 ENTRYPOINT [ "/docker-entrypoint.sh" ]
 
-HEALTHCHECK --interval=30s --retries=2 --timeout=10s \
+HEALTHCHECK --interval=30s --retries=2 --timeout=5s --start-period=10s \
   CMD /usr/local/bin/healthcheck.sh
