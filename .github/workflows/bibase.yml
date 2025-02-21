@@ -1,12 +1,11 @@
-name: build bi base image
+name: Build Bi-base image
 
 on:
   push:
     branches:
       - dev
     paths:
-      - '.github/workflows/bibase.yml'
-      - 'jds/p8/bi/Dockerfile_base'
+      - 'jds/p8/bi/base/Dockerfile'
   workflow_dispatch:
 
 permissions:
@@ -22,6 +21,7 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
+    name: "Build Bi-base image"
 
     steps:
       - name: Check out repository
@@ -37,36 +37,30 @@ jobs:
           username: ${{ env.ALIYUN_REGISTRY_USER }}
           password: ${{ env.ALIYUN_REGISTRY_PASSWORD }}
 
-      - name: Set tag
+      - name: Bump Bi-base version
         run: |
-          VERSION=$(cat jds/p8/bi/BASE_VERSION)
-          echo "current version is $VERSION"
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
-          NEW_VERSION=$(echo $VERSION | awk -F. '{print $1"."$2"."$3+1}')
-          echo "new version is $NEW_VERSION"
-          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
-          if [[ ! "$NEW_VERSION" =~ ^v ]]; then
-              echo "ERROR: NEW_VERSION does not start with, exiting!"
-              exit 1
-          fi
-          echo "$NEW_VERSION" > jds/p8/bi/BASE_VERSION
-          BASE_IMG_TAG=$(cat jds/p8/bi/Dockerfile_base | grep '^ARG PYTHON_IMAGE_TAG=' | awk -F'=' '{print $2}' | sed 's/.*-//' | sed 's/[0-9.]*//g')
-          if [[ -z $BASE_IMG_TAG ]]; then
-            echo "ERROR: variable BASE_IMG_TAG not defined, exiting!"
-            exit 1
-          fi
-          echo "BASE_IMG_TAG=$BASE_IMG_TAG" >> $GITHUB_ENV
+          CURRENT_VERSION=$(< jds/p8/bi/base/VERSION)
+          LATEST_VERSION=$(echo "$CURRENT_VERSION" | awk -F. '{print $1"."$2"."$3+1}')
+          BASEIMG_TAG=$(< jds/p8/bi/base/Dockerfile | grep '^ARG IMAGE_TAG=' | awk -F'=' '{print $2}' | sed 's/.*-//' | sed 's/[0-9.]*//g')
 
-      - name: Build and push Bi baseimage
+          if [[ -z "$CURRENT_VERSION" || -z "$LATEST_VERSION" || ! "$LATEST_VERSION" =~ ^v || -z "$BASEIMG_TAG" ]]; then
+              echo "ERROR: All parameters cannot be empty!" && exit 1
+          fi
+
+          echo "$LATEST_VERSION" > jds/p8/bi/base/VERSION
+          echo "LATEST_VERSION=${LATEST_VERSION}" >> $GITHUB_ENV
+          echo "BASEIMG_TAG=${BASEIMG_TAG}" >> $GITHUB_ENV
+
+      - name: Build and push Bi-base image
         uses: docker/build-push-action@v6.11.0
         with:
-          context: "{{defaultContext}}:jds/p8/bi"
-          file: Dockerfile_base
+          context: "{{defaultContext}}:jds/p8/bi/base"
+          file: Dockerfile
           push: true
-          tags: ${{ env.ALIYUN_REGISTRY }}/${{ env.ALIYUN_NAME_SPACE }}/bi-base:${{ env.VERSION }}-${{ env.BASE_IMG_TAG }}
+          tags: ${{ env.ALIYUN_REGISTRY }}/${{ env.ALIYUN_NAME_SPACE }}/bi-base:${{ env.LATEST_VERSION }}-${{ env.BASEIMG_TAG }}
           platforms: linux/amd64,linux/arm64
 
       - name: Commit version update
         uses: stefanzweifel/git-auto-commit-action@v5.1.0
         with:
-          commit_message: "chore: bi baseimage bump version"
+          commit_message: "chore: bump version by Github Actions"
