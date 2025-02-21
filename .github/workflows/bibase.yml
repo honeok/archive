@@ -41,7 +41,7 @@ jobs:
         run: |
           CURRENT_VERSION=$(cat jds/p8/bi/base/VERSION)
           LATEST_VERSION=$(echo "$CURRENT_VERSION" | awk -F. '{print $1"."$2"."$3+1}')
-          BASEIMG_TAG=$(cat jds/p8/bi/base/Dockerfile | grep '^ARG IMAGE_TAG=' | awk -F'=' '{print $2}' | sed 's/.*-//' | sed 's/[0-9.]*//g')
+          BASEIMG_TAG=$(cat jds/p8/bi/base/Dockerfile | grep '^ARG IMAGE_TAG=' | awk -F'=' '{print $2}' | sed 's/"//g' | sed 's/.*-//' | sed 's/[0-9.]*//g')
 
           if [[ -z "$CURRENT_VERSION" || -z "$LATEST_VERSION" || ! "$LATEST_VERSION" =~ ^v || -z "$BASEIMG_TAG" ]]; then
               echo "ERROR: All parameters cannot be empty!" && exit 1
