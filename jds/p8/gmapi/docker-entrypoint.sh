@@ -48,7 +48,7 @@ cp -f "$WORK_DIR/boot.lua" "$WORK_DIR/run/boot.lua"
 cp -f "$WORK_DIR/src/config/models.lua" "$WORK_DIR/run/models.lua"
 cp -f "$WORK_DIR/src/config/config.lua" "$WORK_DIR/run/config.lua"
 cp -f "$WORK_DIR/src/config/mime.types" "$WORK_DIR/run/mime.types"
-cp -f "$WORK_DIR/src/config/nginx.conf" "$WORK_DIR/run/nginx.conf"
+cp -f "$WORK_DIR/templates/nginx.conf" "$WORK_DIR/run/nginx.conf"
 
 if ! command -v lapis >/dev/null 2>&1; then
     echo "ERROR: lapis is not installed"
