@@ -5,20 +5,18 @@
 # Licensed under the MIT License.
 # This software is provided "as is", without any warranty.
 
-PORT="80"
-COUNT="0"
-RETRY="2"
+count=0
 
-until nc -z -w 5 127.0.0.1 "$PORT"; do
-    COUNT=$(( COUNT + 1 ))
+until nc -z -w 5 127.0.0.1 80; do
+    count=$(( count + 1 ))
 
-    echo "Health check failed. Retrying ($COUNT/2)"
-    if [ "$COUNT" -ge "$RETRY" ]; then
-        echo "Service on port $PORT is not responding, exiting!"
+    echo "Health check failed. Retrying ($count/2)"
+    if [ $count -ge 2 ]; then
+        echo "Service on port 80 is not responding, exiting!"
         exit 1
     fi
     sleep 10
 done
 
-echo "Service on port $PORT is healthy!"
+echo "Service on port 80 is healthy!"
 exit 0
