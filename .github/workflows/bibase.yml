@@ -7,6 +7,7 @@ on:
       - dev
     paths:
       - 'jds/p8/bi/base/Dockerfile'
+      - '.github/workflows/bibase.yml'
 
 permissions:
   contents: write
@@ -21,7 +22,6 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
-    name: "Build Bi-base image"
 
     steps:
       - name: Check out repository
