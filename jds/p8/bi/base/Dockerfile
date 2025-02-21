@@ -5,26 +5,18 @@
 # Licensed under the MIT License.
 # This software is provided "as is", without any warranty.
 
-ARG PYTHON_IMAGE_BASE="python"
-ARG PYTHON_IMAGE_TAG="3.9.20-alpine3.20"
+ARG IMAGE_BASE="python"
+ARG IMAGE_TAG="3.9.20-alpine3.20"
 
-FROM alpine:latest AS builder
+FROM ${IMAGE_BASE}:${IMAGE_TAG}
 
-RUN set -ex \
-        && apk update && apk upgrade \
-        && apk add --no-cache \
-            gettext \
-        && rm -rf /var/cache/apk/* /tmp/*
-
-FROM ${PYTHON_IMAGE_BASE}:${PYTHON_IMAGE_TAG}
-
-COPY --from=builder /usr/bin/envsubst /usr/bin/envsubst
 COPY requirements.txt .
 
 RUN set -ex \
         && apk update && apk upgrade \
         && apk add --no-cache \
             gcc \
+            gettext \
             libffi-dev \
             musl-dev \
             python3-dev \
