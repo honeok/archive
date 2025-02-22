@@ -55,7 +55,7 @@ if ! command -v lapis >/dev/null 2>&1; then
     exit 1
 fi
 
-[ ! -s "$RUN_DIR/env.lua" ] && envsubst < "$WORK_DIR/templates/env.lua.template" > "$RUN_DIR/env.lua"
+[ ! -s "$RUN_DIR/env.lua" ] && envsubst < "$WORK_DIR/templates/env.lua" > "$RUN_DIR/env.lua"
 
 cd "$RUN_DIR" || { echo "ERROR: Failed to change directory!" && exit 1; }
 if lapis migrate 2>/dev/null; then
