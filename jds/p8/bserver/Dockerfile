@@ -19,7 +19,7 @@ RUN set -ex \
             tzdata \
         && chmod +x bserver \
         && install -m 755 docker-entrypoint.sh /docker-entrypoint.sh \
-        && cp -f templates/App.json config/App.json \
+        && cp -f templates/App.template.json config/App.json \
         && cp -f /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
         && echo "Asia/Shanghai" > /etc/timezone \
         && apk del tzdata \
