@@ -23,7 +23,7 @@ time_zone = 8
 discovers = {
     "tcp://${DISCOVER_NODE1}",
     "tcp://${DISCOVER_NODE2}",
-    "tcp://${DISCOVER_NODE2}",
+    "tcp://${DISCOVER_NODE3}",
 }
 
 game_db = {
