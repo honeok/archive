@@ -20,6 +20,20 @@ WORK_DIR="/app"
 APP_NAME="p8_app_server"
 readonly WORK_DIR APP_NAME
 
+# Run on
+case "$DEPLOY_ON" in
+    dev | uat)
+        cooling=8s
+    ;;
+    pro)
+        cooling=60s
+    ;;
+    *)
+        echo "Undefined operating environment."
+        exit 1
+    ;;
+esac
+
 _stop() {
     local APP_PID
     APP_PID=$(pgrep -f $APP_NAME)
@@ -28,16 +42,18 @@ _stop() {
         echo "process not found, cannot send SIGUSR2 for saving data."
         return 1
     fi
+
     # flush
     kill -s SIGUSR2 "$APP_PID"
-    sleep 60s
+    sleep "$cooling"
 }
 
 # Terminate signal capture
 # See https://docs.docker.com/reference/cli/docker/container/stop
 trap "_stop; exit 0" SIGTERM SIGINT SIGQUIT
 
-# ....
+# Config generate
+# ...
 
 if [ "$#" -eq 0 ]; then
     exec "$WORK_DIR/$APP_NAME"
