@@ -10,8 +10,6 @@
 # Licensed under the MIT License.
 # This software is provided "as is", without any warranty.
 
-# shellcheck disable=all
-
 set \
     -o errexit \
     -o nounset
@@ -20,7 +18,7 @@ WORK_DIR="/app"
 APP_NAME="p8_app_server"
 readonly WORK_DIR APP_NAME
 
-# Run on
+# Save time
 case "$DEPLOY_ON" in
     dev | uat)
         cooling=8s
@@ -34,13 +32,33 @@ case "$DEPLOY_ON" in
     ;;
 esac
 
+# server.app.lua
+: "${DOMAIN?error: DOMAIN missing}"
+: "${LOCAL_ADDRESS?error: LOCAL_ADDRESS missing}"
+: "${DISCOVER_NODE1?error: DISCOVER_NODE1 missing}"
+: "${DISCOVER_NODE2?error: DISCOVER_NODE2 missing}"
+: "${DISCOVER_NODE3?error: DISCOVER_NODE3 missing}"
+: "${GAMEDB_HOST?error: GAMEDB_HOST missing}"
+: "${GAMEDB_USER?error: GAMEDB_USER missing}"
+: "${GAMEDB_PASSWORD?error: GAMEDB_PASSWORD missing}"
+: "${GAMEDB_DATABASE?error: GAMEDB_DATABASE missing}"
+: "${GROUP_ID?error: GROUP_ID missing}"
+: "${AREA_ID?error: AREA_ID missing}"
+: "${PAY_NOTIFY?error: PAY_NOTIFY missing}"
+# server.log.ini
+: "${LOG_LEVEL?error: LOG_LEVEL missing}"
+# zones.lua
+: "${ZONES_NUM?error: ZONES_NUM missing}"
+: "${ZONE_VALUE?error: ZONE_VALUE missing}"
+# open_time.lua
+: "${OPEN_SERVER_TIME?error: OPEN_SERVER_TIME missing}"
+
 _stop() {
-    local APP_PID
     APP_PID=$(pgrep -f $APP_NAME)
 
     if [ -z "$APP_PID" ]; then
         echo "process not found, cannot send SIGUSR2 for saving data."
-        return 1
+        return 0
     fi
 
     # flush
@@ -50,10 +68,14 @@ _stop() {
 
 # Terminate signal capture
 # See https://docs.docker.com/reference/cli/docker/container/stop
-trap "_stop; exit 0" SIGTERM SIGINT SIGQUIT
+trap "_stop; exit 0" TERM INT QUIT
 
 # Config generate
-# ...
+envsubst < templates/server.app.lua > etc/server.app.lua
+envsubst < templates/server.log.ini > etc/server.log.ini
+envsubst < templates/zones.lua > etc/zones.lua
+envsubst < templates/open_time.lua > lua/config/open_time.lua
+envsubst < templates/server.lua > lua/config/server.lua
 
 if [ "$#" -eq 0 ]; then
     exec "$WORK_DIR/$APP_NAME"
