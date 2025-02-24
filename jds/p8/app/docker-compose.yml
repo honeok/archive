@@ -25,14 +25,14 @@ services:
       OPEN_SERVER_TIME: 2025-02-11T09:00:00
       BATTLE_URL: https://example.com # 战斗
       #  bi系统开放版本  key: 1:内部系统 2:kingnet   value: 0:未开放 1:开放
-      Bi_INTERNAL_SWITCH: 1
-      Bi_INTERNAL_URL: https://example.com
-      Bi_KINGNET_SWITCH: 0
-      Bi_KINGNET_URL: https://example.com
+      BI_INTERNAL_SWITCH: 1
+      BI_INTERNAL_URL: https://example.com
+      BI_KINGNET_SWITCH: 0
+      BI_KINGNET_URL: https://example.com
       # 兑换码地址
       SERIALURL: https://example.com
       # 屏蔽字
-      MASkWORD_WECHAT_URL: https://example.com
+      MASKWORD_WECHAT_URL: https://example.com
       # web排行榜地址
       WEBRANK_URL: https://example.com
     network_mode: bridge

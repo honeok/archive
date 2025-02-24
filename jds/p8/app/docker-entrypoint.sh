@@ -16,7 +16,6 @@ set \
 
 WORK_DIR="/app"
 APP_NAME="p8_app_server"
-readonly WORK_DIR APP_NAME
 
 # Save time
 case "$DEPLOY_ON" in
@@ -53,6 +52,13 @@ esac
 # open_time.lua
 : "${OPEN_SERVER_TIME?error: OPEN_SERVER_TIME missing}"
 
+# Config generate
+envsubst < "$WORK_DIR/templates/server.app.template.lua" > "$WORK_DIR/etc/server.app.lua"
+envsubst < "$WORK_DIR/templates/server.log.template.ini" > "$WORK_DIR/etc/server.log.ini"
+envsubst < "$WORK_DIR/templates/zones.template.lua" > "$WORK_DIR/etc/zones.lua"
+envsubst < "$WORK_DIR/templates/open_time.template.lua" > "$WORK_DIR/lua/config/open_time.lua"
+envsubst < "$WORK_DIR/templates/server.template.lua" > "$WORK_DIR/lua/config/server.lua"
+
 _stop() {
     APP_PID=$(pgrep -f $APP_NAME)
 
@@ -69,13 +75,6 @@ _stop() {
 # Terminate signal capture
 # See https://docs.docker.com/reference/cli/docker/container/stop
 trap "_stop; exit 0" TERM INT QUIT
-
-# Config generate
-envsubst < templates/server.app.template.lua > etc/server.app.lua
-envsubst < templates/server.log.template.ini > etc/server.log.ini
-envsubst < templates/zones.template.lua > etc/zones.lua
-envsubst < templates/open_time.template.lua > lua/config/open_time.lua
-envsubst < templates/server.template.lua > lua/config/server.lua
 
 if [ "$#" -eq 0 ]; then
     exec "$WORK_DIR/$APP_NAME"
