@@ -1,2 +1,4 @@
-nginx
+.idea/
+.vscode/
 docker-compose.yml
+nginx/
