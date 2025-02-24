@@ -3,25 +3,13 @@
 # Description: managing file permissions of HTML files in a production PHP environment.
 #
 # Copyright (C) 2025 honeok <honeok@duck.com>
-#      __     __       _____
-#  __ / / ___/ /  ___ / ___/ ___ _  __ _  ___
-# / // / / _  /  (_-</ (_ / / _ `/ /  ' \/ -_)
-# \___/  \_,_/  /___/\___/  \_,_/ /_/_/_/\__/
 #
-# License Information:
-# This program is free software: you can redistribute it and/or modify it under
-# the terms of the GNU General Public License, version 3 or later.
-#
-# This program is distributed WITHOUT ANY WARRANTY; without even the implied
-# warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along with
-# this program. If not, see <https://www.gnu.org/licenses/>.
+# Licensed under the MIT License.
+# This software is provided "as is", without any warranty.
 
-yellow='\033[93m'
-red='\033[1;31m'
-green='\033[92m'
+yellow='\033[1;33m'
+red='\033[1;38;5;160m'
+green='\033[1;32m'
 white='\033[0m'
 _yellow() { echo -e "${yellow}$*${white}"; }
 _red() { echo -e "${red}$*${white}"; }
@@ -31,9 +19,8 @@ _suc_msg() { echo -e "\033[42m\033[1m成功${white} $*"; }
 _err_msg() { echo -e "\033[41m\033[1m警告${white} $*"; }
 _info_msg() { echo -e "\033[43m\033[1;37m提示${white} $*"; }
 
-nginx_name='nginx'
-php_name='php'
-readonly nginx_name php_name
+nginx_name="php_nginx"
+php_name=( php_1 php_2 php_3 )
 
 if [ "$(id -ru)" -ne "0" ]; then
     _err_msg "$(_red '需要root用户才能运行!')" && exit 1
@@ -74,12 +61,16 @@ main() {
     else
         _err_msg "$(_red "$nginx_name 无法修改容器内文件权限")" && exit 1
     fi
-    if docker ps -q -f name="$php_name"; then
-        docker exec "$php_name" chown -R www-data:www-data /var/www/html 2>/dev/null
-    else
-        _err_msg "$(_red "$php_name 无法修改容器内文件权限")" && exit 1
-    fi
-    if compose_cmd restart 1>/dev/null; then
+
+    for pod in "${php_name[@]}"; do
+        if [[ -n $(docker ps -q -f name="$pod") ]]; then
+            docker exec "$pod" chown -R www-data:www-data /var/www/html 2>/dev/null
+        else
+            _err_msg "$(_red "$pod 无法修改容器内文件权限")" && exit 1
+        fi
+    done
+
+    if compose_cmd restart >/dev/null 2>&1; then
         _suc_msg "$(_green 'PHP环境容器重启完成!')" && exit 0
     else
         _err_msg "$(_red 'PHP环境容器重启失败!')" && exit 1
