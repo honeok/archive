@@ -21,6 +21,7 @@ RUN set -ex \
             tzdata \
         && apk add --no-cache \
             gettext \
+            lua5.3 \
         && curl -fsL -o /etc/apk/keys/sgerrand.rsa.pub https://alpine-pkgs.sgerrand.com/sgerrand.rsa.pub \
         && curl -fsL -O https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.35-r1/glibc-2.35-r1.apk \
         && apk add glibc-2.35-r1.apk \
@@ -33,10 +34,15 @@ RUN set -ex \
             docker-entrypoint.sh \
             /etc/apk/keys/sgerrand.rsa.pub \
             glibc-2.35-r1.apk \
-        && rm -rf /var/cache/apk/* /tmp/*
+        && rm -rf /var/cache/apk/* /tmp/* \
+        && mkdir -p /lib64 \
+        && ln -sf /usr/glibc-compat/lib/ld-linux-x86-64.so.2 /lib64/ld-linux-x86-64.so.2 \
+        && ln -sf /usr/glibc-compat/lib/libc.so.6 /lib64/libc.so.6
 
 VOLUME ["/app/lua", "/app/log", "/app/proto"]
 
 EXPOSE 3340
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
+
+STOPSIGNAL SIGTERM
