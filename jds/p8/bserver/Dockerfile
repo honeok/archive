@@ -27,7 +27,7 @@ RUN set -ex \
         && apk del tzdata \
         && rm -f Dockerfile docker-entrypoint.sh \
         && rm -rf config/luban_temp \
-        && rm -rf /var/cache/apk/* templates logs BattleSimulator \
+        && rm -rf /var/cache/apk/* /tmp/* templates logs BattleSimulator \
         && mkdir -p logs BattleSimulator config/luban_temp \
         && cp -rf config/luban/* config/luban_temp/
 
