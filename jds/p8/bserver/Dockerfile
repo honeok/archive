@@ -12,12 +12,14 @@ WORKDIR /bserver
 COPY . .
 
 RUN set -ex \
+        && country=$(wget -qO- https://ipinfo.io/country) \
+        && if [ "$country" = "CN" ]; then sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories; fi \
         && apk update && apk upgrade \
         && apk add --no-cache \
             libstdc++ \
             libc6-compat \
             tzdata \
-        && chmod +x bserver \
+        && [ -x "bserver" ] || chmod +x bserver \
         && install -m 755 docker-entrypoint.sh /docker-entrypoint.sh \
         && cp -f templates/App.template.json config/App.json \
         && cp -f /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
