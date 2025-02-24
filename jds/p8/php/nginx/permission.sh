@@ -55,7 +55,17 @@ compose_cmd() {
     esac
 }
 
-main() {
+check_docker() {
+    if ! command -v docker >/dev/null 2>&1; then
+        _err_msg "$(_red '系统上未安装Docker!')"
+        exit 1
+    elif ! compose_cmd version >/dev/null 2>&1; then
+        _err_msg "$(_red '系统上未安装Docker Compose!')"
+        exit 1
+    fi
+}
+
+standalone() {
     if docker ps -q -f name="$nginx_name"; then
         docker exec "$nginx_name" chown -R nginx:nginx /var/www/html 2>/dev/null
     else
@@ -77,15 +87,8 @@ main() {
     fi
 }
 
-if ! command -v docker >/dev/null 2>&1; then
-    _err_msg "$(_red '系统上未安装Docker!')"
-    exit 1
-elif ! compose_cmd version >/dev/null 2>&1; then
-    _err_msg "$(_red '系统上未安装Docker Compose!')"
-    exit 1
-fi
-
 _info_msg "$(_yellow '确保容器重启处于维护时间段, 按任意键确认!')"
 read -n 1 -s -r -p ""
 
-main
+check_docker
+standalone
