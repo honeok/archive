@@ -71,11 +71,11 @@ _stop() {
 trap "_stop; exit 0" TERM INT QUIT
 
 # Config generate
-envsubst < templates/server.app.lua > etc/server.app.lua
-envsubst < templates/server.log.ini > etc/server.log.ini
-envsubst < templates/zones.lua > etc/zones.lua
-envsubst < templates/open_time.lua > lua/config/open_time.lua
-envsubst < templates/server.lua > lua/config/server.lua
+envsubst < templates/server.app.template.lua > etc/server.app.lua
+envsubst < templates/server.log.template.ini > etc/server.log.ini
+envsubst < templates/zones.template.lua > etc/zones.lua
+envsubst < templates/open_time.template.lua > lua/config/open_time.lua
+envsubst < templates/server.template.lua > lua/config/server.lua
 
 if [ "$#" -eq 0 ]; then
     exec "$WORK_DIR/$APP_NAME"
