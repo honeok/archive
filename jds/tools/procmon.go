@@ -1,3 +1,5 @@
+// Copyright (C) 2025 honeok <honeok@duck.com>
+
 package main
 
 import (
