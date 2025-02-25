@@ -1,0 +1,23 @@
+stages:
+  - build
+
+build_job:
+  stage: build
+  variables:
+    ImageName: "registry.cn-chengdu.aliyuncs.com/havario/bserver:$CI_PROJECT_NAME-SNAPSHOT-$CI_BUILD_ID"
+  image: alpine:latest
+  before_script:
+    - sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
+    - apk add --no-cache build-base
+  script:
+    - gcc -Os *.c -o p8_app_server
+  artifacts:
+    paths:
+      - build/
+  after_script:
+    - docker build . --tag $ImageName
+    - docker push $ImageName
+    - docker rmi $ImageName
+    - echo " 本次构建的镜像为：$ImageName"
+  only:
+    - master
