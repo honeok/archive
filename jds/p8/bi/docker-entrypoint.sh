@@ -17,29 +17,20 @@ work_dir="/bi"
 : "${DB_PORT?error: DB_PORT missing}"
 : "${DB_DATABASE?error: DB_DATABASE missing}"
 
-if [ -d "$work_dir" ]; then
-    cd "$work_dir" || { echo "error: Failed to enter work path!" && exit 1; }
+cd "$work_dir" || { echo "error: Failed to enter work path!" && exit 1; }
+
+[ ! -f ".env" ] && envsubst < templates/template.env > .env
+[ ! -f "aerich_env.py" ] && envsubst < templates/aerich_env.template.py > aerich_env.py
+
+if ! command -v aerich >/dev/null 2>&1; then echo "ERROR: aerich command not found!" && exit 1; fi
+
+if mysql -u "$DB_USER" -P "$DB_PORT" -h "$DB_HOST" -p"$DB_PASSWORD" -e "SHOW DATABASES LIKE '$DB_DATABASE';" | grep -q "$DB_DATABASE" || ls -A "$work_dir/migrations/models" >/dev/null 2>&1; then
+    aerich migrate
+    aerich upgrade
 else
-    echo "error: Directory $work_dir does not exist, exiting!" && exit 1
-fi
-
-[ ! -f ".env" ] && envsubst < templates/.env.template > .env
-[ ! -f "aerich_env.py" ] && envsubst < templates/aerich_env.py.template > aerich_env.py
-
-set +o errexit
-if ! python3 manager.py initdb >/dev/null 2>&1; then
-    echo "Database $DB_DATABASE already exists. Skipping initialization."
-else
-    echo "Initializing database $DB_DATABASE"
-fi
-set -o errexit
-
-if command -v aerich >/dev/null 2>&1; then
+    python3 manager.py initdb 2>/dev/null
     aerich init -t aerich_env.TORTOISE_ORM
     aerich init-db
-else
-    echo "error: aerich command not found!"
-    exit 1
 fi
 
 if [ "$#" -eq 0 ]; then
