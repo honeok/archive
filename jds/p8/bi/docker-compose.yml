@@ -16,6 +16,7 @@ services:
       KINGNET_TOKEN: 9f1c0d61a6e34d9a826e764edb3d2850
     volumes:
       - ./logs:/bi/logs
+      - ./migrations:/bi/migrations
     network_mode: bridge
     #healthcheck:
     #  test: ["CMD-SHELL", "curl", "-f", "http://127.0.0.1:8000/health"]
