@@ -19,6 +19,7 @@ RUN set -ex \
             gettext \
             libffi-dev \
             musl-dev \
+            mysql-client \
             python3-dev \
             tzdata \
         && python3 -m pip install --no-cache-dir -r requirements.txt \
