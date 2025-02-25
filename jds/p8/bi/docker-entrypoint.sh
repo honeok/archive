@@ -24,7 +24,7 @@ cd "$work_dir" || { echo "error: Failed to enter work path!" && exit 1; }
 
 if ! command -v aerich >/dev/null 2>&1; then echo "ERROR: aerich command not found!" && exit 1; fi
 
-if mysql -u "$DB_USER" -P "$DB_PORT" -h "$DB_HOST" -p"$DB_PASSWORD" -e "SHOW DATABASES LIKE '$DB_DATABASE';" | grep -q "$DB_DATABASE" || ls -A "$work_dir/migrations/models" >/dev/null 2>&1; then
+if mysql -u "$DB_USER" -P "$DB_PORT" -h "$DB_HOST" -p"$DB_PASSWORD" -e "SHOW DATABASES LIKE '${DB_DATABASE}';" | grep -q "${DB_DATABASE}" || ls -A "$work_dir/migrations/models" >/dev/null 2>&1; then
     aerich migrate
     aerich upgrade
 else
