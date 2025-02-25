@@ -33,5 +33,7 @@ RUN set -ex \
             xml \
             xmlrpc \
             xsl \
+        && cp -f /usr/local/etc/php/php.ini-production /usr/local/etc/php/php.ini \
+        && sed -i 's~^;date.timezone =.*~date.timezone = Asia/Shanghai~' /usr/local/etc/php/php.ini \
         && rm -f Dockerfile /usr/local/bin/install-php-extensions \
         && rm -rf /var/cache/apk/* /tmp/*
