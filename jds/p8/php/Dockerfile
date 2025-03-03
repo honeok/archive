@@ -5,7 +5,7 @@
 # Licensed under the MIT License.
 # This software is provided "as is", without any warranty.
 
-FROM php:8.0.30-fpm-alpine3.16
+FROM php:8.1.30-fpm-alpine3.20
 
 RUN set -ex \
         && apk update && apk upgrade \
@@ -21,6 +21,7 @@ RUN set -ex \
             gmp \
             ldap \
             mbstring \
+            mysqli \
             mysqlnd \
             odbc \
             opcache \
