@@ -7,6 +7,9 @@
 # Licensed under the MIT License.
 # This software is provided "as is", without any warranty.
 
+# https://github.com/koalaman/shellcheck/wiki/SC2207
+# shellcheck disable=SC2207
+
 set \
     -o nounset
 
@@ -123,7 +126,10 @@ pre_check() {
 
 # 获取更新包
 get_updatefile() {
-    cd "$local_update_dir" || { mkdir -p "$local_update_dir" && cd "$local_update_dir" || exit 1; }
+    if ! cd "$local_update_dir" 2>/dev/null; then
+        mkdir -p "$local_update_dir" && cd "$local_update_dir" || exit 1
+    fi
+
     rm -rf ./*
 
     if ! sshpass -p "$control_host_passwd" scp -o StrictHostKeyChecking=no -o ConnectTimeout=10 "root@$control_host:$remote_update_file" "$local_update_dir/"; then
@@ -132,7 +138,7 @@ get_updatefile() {
     if [ ! -e "$local_update_dir/updategame.tar.gz" ]; then
         _err_msg "$(_red 'The update package was not downloaded correctly, please check.')" && exit 1
     fi
-    if tar zxvf "$local_update_dir/updategame.tar.gz"; then
+    if tar xvf "$local_update_dir/updategame.tar.gz"; then
         _suc_msg "$(_green "Successfully decompressed! \xe2\x9c\x93")"
     else
         _err_msg "$(_red "Decompression failed. \xe2\x9c\x97")" && exit 1 
@@ -140,26 +146,80 @@ get_updatefile() {
     printf "\n"
 }
 
-execute_game() {
+# 游戏服
+execute_gameserver() {
     local game_server
-    # shellcheck disable=SC2207
-    # https://github.com/koalaman/shellcheck/wiki/SC2207
     game_server=($(find /data -maxdepth 1 -type d -name "server*[0-9]" | sed 's:.*/server::' | sort -n | awk '{if(NR>1)printf " ";printf "%s", $0}'))
 
-    if [ "${#game_server[@]}" -eq 0 ]; then _info_msg "$(_cyan 'The server list is empty.')" && return; fi
+    if [ "${#game_server[@]}" -eq 0 ]; then _info_msg "$(_cyan 'The GameServer list is empty.')" && return; fi
     get_updatefile
     for num in "${game_server[@]}"; do
         Spell_Dir="/data/server$num/game"
-        _yellow "Processing server$num ."
+        _yellow "Processing GameServer$num ."
         \cp -rf "$local_update_dir/app/"* "$Spell_Dir/"
         cd "$Spell_Dir" || continue
-        ./server.sh reload && _suc_msg "$(_green "Server$num update success! \xe2\x9c\x93")"
+        ./server.sh reload && _suc_msg "$(_green "GameServer$num update success! \xe2\x9c\x93")"
+        separator
+    done
+}
+
+# 日志服
+execute_logserver() {
+    local log_server
+    log_server=($(find /data -maxdepth 1 -type d -name "logserver*[0-9]" | sed 's:.*/logserver::' | sort -n | awk '{if(NR>1)printf " ";printf "%s", $0}'))
+
+    if [ "${#log_server[@]}" -eq 0 ]; then _info_msg "$(_cyan 'The LogServer list is empty.')" && return; fi
+    get_updatefile
+    for num in "${log_server[@]}"; do
+        Spell_Dir="/data/logserver$num"
+        _yellow "Processing LogServer$num ."
+        \cp -rf "$local_update_dir/app/"* "$Spell_Dir/"
+        cd "$Spell_Dir" || continue
+        ./server.sh reload && _suc_msg "$(_green "LogServer$num update success! \xe2\x9c\x93")"
+        separator
+    done
+}
+
+# 跨服
+execute_crossserver() {
+    local cross_server
+    cross_server=($(find /data -maxdepth 1 -type d -name "crossserver*[0-9]" | sed 's:.*/crossserver::' | sort -n | awk '{if(NR>1)printf " ";printf "%s", $0}'))
+
+    if [ "${#cross_server[@]}" -eq 0 ]; then _info_msg "$(_cyan 'The CrossServer list is empty.')" && return; fi
+    get_updatefile
+    for num in "${cross_server[@]}"; do
+        Spell_Dir="/data/crossserver$num"
+        _yellow "Processing CrossServer$num ."
+        \cp -rf "$local_update_dir/app/"* "$Spell_Dir/"
+        cd "$Spell_Dir" || continue
+        ./server.sh reload && _suc_msg "$(_green "CrossServer$num update success! \xe2\x9c\x93")"
+        separator
+    done
+}
+
+# GM
+execute_gmserver() {
+    local gm_server
+    gm_server=($(find /data -maxdepth 1 -type d -name "gmserver*[0-9]" | sed 's:.*/gmserver::' | sort -n | awk '{if(NR>1)printf " ";printf "%s", $0}'))
+
+    if [ "${#gm_server[@]}" -eq 0 ]; then _info_msg "$(_cyan 'The GMServer list is empty.')" && return; fi
+    get_updatefile
+    for num in "${gm_server[@]}"; do
+        Spell_Dir="/data/gmserver$num"
+        _yellow "Processing GMServer$num ."
+        \cp -rf "$local_update_dir/app/"* "$Spell_Dir/"
+        cd "$Spell_Dir" || continue
+        ./server.sh reload && _suc_msg "$(_green "GMServer$num update success! \xe2\x9c\x93")"
         separator
     done
 }
 
 reload() {
-    execute_game
+    pre_check
+    execute_gameserver
+    execute_logserver
+    execute_crossserver
+    execute_gmserver
 }
 
 reload
