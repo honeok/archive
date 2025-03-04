@@ -14,8 +14,6 @@ WORKDIR /bi
 COPY . .
 
 RUN set -ex \
-        && country=$(wget -qO- https://ipinfo.io/country) \
-        && if [ "$country" = "CN" ]; then sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories; fi \
         && apk update && apk upgrade \
         && install -m 755 docker-entrypoint.sh /docker-entrypoint.sh \
         && rm -f docker-entrypoint.sh Dockerfile .env aerich_env.py \

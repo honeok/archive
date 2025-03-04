@@ -12,8 +12,6 @@ WORKDIR /bserver
 COPY . .
 
 RUN set -ex \
-        && country=$(wget -qO- https://ipinfo.io/country) \
-        && if [ "$country" = "CN" ]; then sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories; fi \
         && apk update && apk upgrade \
         && apk add --no-cache \
             libstdc++ \
