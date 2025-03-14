@@ -1,0 +1,38 @@
+services:
+  gameapi:
+    image: registry.cn-chengdu.aliyuncs.com/havario/p8_app
+    container_name: server_1
+    restart: unless-stopped
+    ports:
+      - 3340:3340
+    environment:
+      DEPLOY_ON: dev
+      DOMAIN: /p8_dev
+      LOCAL_ADDRESS: 192.168.250.250
+      DISCOVER_NODE1: 192.168.250.250:2881
+      DISCOVER_NODE2: 192.168.250.250:2882
+      DISCOVER_NODE3: 192.168.250.250:2883
+      GAMEDB_HOST: 192.166.166.166
+      GAMEDB_USER: root
+      GAMEDB_PASSWORD: 123456
+      GAMEDB_DATABASE: example_game_1
+      GROUP_ID: 1
+      AREA_ID: 1
+      PAY_NOTIFY: https://example.com
+      LOG_LEVEL: INFO
+      ZONES_NUM: 1
+      ZONE_VALUE: 1, # +逗号 合服后逗号分隔 1, 2 依次内推
+      OPEN_SERVER_TIME: 2025-02-11T09:00:00
+      BATTLE_URL: https://example.com # 战斗
+      #  bi系统开放版本  key: 1:内部系统 2:kingnet   value: 0:未开放 1:开放
+      BI_INTERNAL_SWITCH: 1
+      BI_INTERNAL_URL: https://example.com
+      BI_KINGNET_SWITCH: 0
+      BI_KINGNET_URL: https://example.com
+      # 兑换码地址
+      SERIALURL: https://example.com
+      # 屏蔽字
+      MASKWORD_WECHAT_URL: https://example.com
+      # web排行榜地址
+      WEBRANK_URL: https://example.com
+    network_mode: bridge

@@ -1,0 +1,46 @@
+services:
+  gmserver:
+    image: registry.cn-chengdu.aliyuncs.com/havario/gmserver
+    container_name: gmserver
+    restart: unless-stopped
+    ports:
+      - 3000:3000  # 20011
+    environment:
+      GMDB_HOST: 192.168.250.250
+      GMDB_DATABASE: example_gm
+      GMDB_USER: root
+      GMDB_PASSWORD: 12345678
+      GMDB_PORT: 3306
+      REPORTDB_HOST: 192.168.250.250
+      REPORTDB_DATABASE: example_report
+      REPORTDB_USER: root
+      REPORTDB_PASSWORD: 12345678
+      REPORTDB_PORT: 3306
+      ACCOUNTDB_HOST: 192.168.250.250
+      ACCOUNTDB_DATABASE: example_account
+      ACCOUNTDB_USER: root
+      ACCOUNTDB_PASSWORD: 12345678
+      ACCOUNTDB_PORT: 3306
+      CENTERDB_HOST: 192.168.250.250
+      CENTERDB_DATABASE: example_common
+      CENTERDB_USER: root
+      CENTERDB_PASSWORD: 12345678
+      CENTERDB_PORT: 3306
+      GMGAME_HOST: 172.17.77.77
+      GMGAME_PORT: 6090  # GM
+      OBS_ACCESS_KEY_ID: ABCDEFGHIJKLMNOPQRSTUVWXYZ1234
+      OBS_SECRET_ACCESS_KEY: ABCD1234EFGH5678IJKL90MNOQRSUVWXY
+      OBS_SERVER: https://obs.example.com
+      OBS_BUCKET: example-bucket-611
+      OBS_NOTIC_KEY: Example20241115/StreamingAssets/WebGL/Notice
+      OBS_SERVERLIST_KEY: example
+      OBS_SERVERLIST_NAME: example.json
+      OBS_REFRESH_ACCESSKEY: EXAMPLEAKJHGF1234NBVF
+      OBS_REFRESH_SECRETKEY: EXAMPLES3CR3TKEY0987XMNF
+      OBS_REFRESH_PROJECTID: abc1234def56789ghij0000klmn1234opqrst
+    volumes:
+      - ./config:/gm-server/config # 提前创建从本地挂载gamedb.js
+      - ./logs:/gm-server/logs
+      - ./upload:/gm-server/upload
+    network_mode: bridge
+    privileged: true

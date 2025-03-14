@@ -1,0 +1,15 @@
+services:
+  gmweb:
+    image: registry.cn-chengdu.aliyuncs.com/havario/gmweb
+    container_name: gmweb
+    restart: unless-stopped
+    ports:
+      - 80:80 # 20010
+    environment:
+      HTML_TITLE: p8-gmtools # index.html title
+      GMSERVER_PUBLIC_IP: 8.8.8.8 # 对接gmserver公网ip
+      GMSERVER_PUBLIC_PORT: 3000 # 20011
+    volumes:
+      - ./config:/gm-web/config
+      - ./setup.js:/gm-web/src/globle/setup.js
+    network_mode: bridge

@@ -1,0 +1,37 @@
+module.exports = {
+    port: 3000,
+    timezone: '+08:00',
+    jwt_secret: 'p8_token20240410',
+    gmdb: {
+        host: '${GMDB_HOST}',
+        database: '${GMDB_DATABASE}',
+        user: '${GMDB_USER}',
+        password: '${GMDB_PASSWORD}',
+        port: '${GMDB_PORT}',
+    },
+    reportdb: {
+        host: '${REPORTDB_HOST}',
+        database: '${REPORTDB_DATABASE}',
+        user: '${REPORTDB_USER}',
+        password: '${REPORTDB_PASSWORD}',
+        port: '${REPORTDB_PORT}',
+    },
+    accountdb: {
+        host: '${ACCOUNTDB_HOST}',
+        database: '${ACCOUNTDB_DATABASE}',
+        user: '${ACCOUNTDB_USER}',
+        password: '${ACCOUNTDB_PASSWORD}',
+        port: '${ACCOUNTDB_PORT}',
+    },
+    centerdb: {
+        host: '${CENTERDB_HOST}',
+        database: '${CENTERDB_DATABASE}',
+        user: '${CENTERDB_USER}',
+        password: '${CENTERDB_PASSWORD}',
+        port: '${CENTERDB_PORT}',
+    },
+    gmgame: {
+        host: '${GMGAME_HOST}',
+        port: '${GMGAME_PORT}',
+    },
+}
