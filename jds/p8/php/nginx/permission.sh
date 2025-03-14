@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 #
-# Description: managing file permissions of HTML files in a production PHP environment.
+# Description: managing file permissions of HTML files in a production php environment.
 #
 # Copyright (C) 2025 honeok <honeok@duck.com>
 #
 # Licensed under the MIT License.
 # This software is provided "as is", without any warranty.
 
-yellow='\033[1;33m'
-red='\033[1;38;5;160m'
-green='\033[1;32m'
+red='\033[91m'
+green='\033[92m'
+yellow='\033[93m'
 white='\033[0m'
 _yellow() { echo -e "${yellow}$*${white}"; }
 _red() { echo -e "${red}$*${white}"; }
@@ -17,7 +17,7 @@ _green() { echo -e "${green}$*${white}"; }
 
 _suc_msg() { echo -e "\033[42m\033[1m成功${white} $*"; }
 _err_msg() { echo -e "\033[41m\033[1m警告${white} $*"; }
-_info_msg() { echo -e "\033[43m\033[1;37m提示${white} $*"; }
+_info_msg() { echo -e "\033[43m\033[1m提示${white} $*"; }
 
 nginx_name="php_nginx"
 php_name=( php_1 php_2 php_3 )
@@ -40,18 +40,10 @@ compose_cmd() {
     fi
 
     case "$1" in
-        start)
-            $_cmd up -d
-        ;;
-        stop)
-            $_cmd down
-        ;;
-        restart)
-            $_cmd restart
-        ;;
-        version)
-            eval "$_compose_v"
-        ;;
+        start) "$_cmd" up -d ;;
+        stop) "$_cmd" down ;;
+        restart) "$_cmd" restart ;;
+        version) eval "$_compose_v" ;;
     esac
 }
 
@@ -73,7 +65,7 @@ standalone() {
     fi
 
     for pod in "${php_name[@]}"; do
-        if [[ -n $(docker ps -q -f name="$pod") ]]; then
+        if [ -n "$(docker ps -q -f name="$pod")" ]; then
             docker exec "$pod" chown -R www-data:www-data /var/www/html 2>/dev/null
         else
             _err_msg "$(_red "$pod 无法修改容器内文件权限")" && exit 1
