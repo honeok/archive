@@ -30,7 +30,7 @@ esac
 # Server type
 case "$SERVER_TYPE" in
     'game'|'log'|'cross'|'gm')
-        for script in $(find /docker-entrypoint.d/ -type f -name "*$SERVER_TYPE*.sh"); do
+        find /docker-entrypoint.d/ -type f -name "*$SERVER_TYPE*.sh" | sort -V | while read -r script; do
             [ -x "$script" ] && echo "$0: Running $script" && "$script"
         done || { echo "Error: No executable $SERVER_TYPE script found!" && exit 1; }
     ;;
