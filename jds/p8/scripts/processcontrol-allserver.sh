@@ -7,10 +7,7 @@
 # Licensed under the MIT License.
 # This software is provided "as is", without any warranty.
 
-# https://github.com/koalaman/shellcheck/wiki/SC2207
-# shellcheck disable=SC2207
-
-readonly version='v0.1.1 (2025.03.06)'
+readonly version='v0.1.2 (2025.03.18)'
 
 readonly process_pid='/tmp/process.pid'
 readonly logDir='/data/logbak'
@@ -23,26 +20,20 @@ fi
 
 echo $$ > "$process_pid"
 
-_exit() {
-    [ -f "$process_pid" ] && rm -f "$process_pid"
-}
-
-trap '_exit' SIGINT SIGQUIT SIGTERM EXIT
-
-# api callback
 send_message() {
     local event="$1"
-    local country os_info cpu_arch
+    local cloudflare_api country ipv4_address os_info cpu_arch
 
-    country=$(curl -fskL -m 3 -4 "https://www.qualcomm.cn/cdn-cgi/trace" | grep -i '^loc=' | cut -d'=' -f2 | xargs)
-    public_ip=$(curl -fskL -m 3 -4 "https://www.qualcomm.cn/cdn-cgi/trace" | grep -i '^ip=' | cut -d'=' -f2 | xargs)
+    # 备用 www.qualcomm.cn
+    cloudflare_api='www.garmin.com.cn'
+    country=$(curl -fskL -m 3 -4 "https://$cloudflare_api/cdn-cgi/trace" | grep -i '^loc=' | cut -d'=' -f2 | xargs)
+    ipv4_address=$(curl -fskL -m 3 -4 "https://$cloudflare_api/cdn-cgi/trace" | grep -i '^ip=' | cut -d'=' -f2 | xargs)
     os_info=$(grep "^PRETTY_NAME=" /etc/*-release | cut -d '"' -f 2 | sed 's/ (.*)//')
-    cpu_arch=$(uname -m)
-    readonly country os_info cpu_arch
+    cpu_arch=$(uname -m 2>/dev/null || lscpu | awk -F ': +' '/Architecture/{print $2}')
 
     curl -fskL -X POST "https://api.honeok.com/api/log" \
         -H "Content-Type: application/json" \
-        -d "{\"action\":\"$event $public_ip\",\"timestamp\":\"$(date -u '+%Y-%m-%d %H:%M:%S' -d '+8 hours')\",\"country\":\"$country\",\"os_info\":\"$os_info\",\"cpu_arch\":\"$cpu_arch\"}" >/dev/null 2>&1 &
+        -d "{\"action\":\"$event $ipv4_address\",\"timestamp\":\"$(date -u '+%Y-%m-%d %H:%M:%S' -d '+8 hours')\",\"country\":\"$country\",\"os_info\":\"$os_info\",\"cpu_arch\":\"$cpu_arch\"}" >/dev/null 2>&1 &
 }
 
 pre_check() {
@@ -82,10 +73,11 @@ entrance_check() {
 }
 
 center_check() {
-    local base_path global_server zk_server
-    global_server=($(find /data/center -maxdepth 1 -type d -name "global*[0-9]" | sed 's:.*/global::' | sort -n | awk '{if(NR>1)printf " ";printf "%s", $0}'))
-    zk_server=($(find /data/center -maxdepth 1 -type d -name "zk*[0-9]" | sed 's:.*/zk::' | sort -n | awk '{if(NR>1)printf " ";printf "%s", $0}'))
-    base_path='/data/center'
+    local base_path='/data/center'
+    local global_server=()
+    local zk_server=()
+    while IFS='' read -r row; do global_server+=("$row"); done < <(find "$base_path" -maxdepth 1 -type d -name "global*[0-9]" -printf "%f\n" | sed 's/global//' | sort -n)
+    while IFS='' read -r row; do zk_server+=("$row"); done < <(find "$base_path" -maxdepth 1 -type d -name "zk*[0-9]" -printf "%f\n" | sed 's/zk//' | sort -n)
 
     if [ "${#global_server[@]}" -eq 0 ] || [ "${#zk_server[@]}" -eq 0 ]; then return; fi
     for num in "${global_server[@]}"; do
@@ -103,8 +95,8 @@ center_check() {
 }
 
 game_check() {
-    local game_server
-    game_server=($(find /data -maxdepth 1 -type d -name "server*[0-9]" | sed 's:.*/server::' | sort -n | awk '{if(NR>1)printf " ";printf "%s", $0}'))
+    local game_server=()
+    while IFS='' read -r row; do game_server+=("$row"); done < <(find /data -maxdepth 1 -type d -name "server*[0-9]" -printf "%f\n" | sed 's/server//' | sort -n)
 
     if [ "${#game_server[@]}" -eq 0 ]; then return; fi
     for num in "${game_server[@]}"; do
@@ -116,8 +108,8 @@ game_check() {
 }
 
 log_check() {
-    local log_server
-    log_server=($(find /data -maxdepth 1 -type d -name "logserver*[0-9]" | sed 's:.*/logserver::' | sort -n | awk '{if(NR>1)printf " ";printf "%s", $0}'))
+    local log_server=()
+    while IFS='' read -r row; do log_server+=("$row"); done < <(find /data -maxdepth 1 -type d -name "logserver*[0-9]" -printf "%f\n" | sed 's/logserver//' | sort -n)
 
     if [ "${#log_server[@]}" -eq 0 ]; then return; fi
     for num in "${log_server[@]}"; do
@@ -129,8 +121,8 @@ log_check() {
 }
 
 cross_check() {
-    local cross_server
-    cross_server=($(find /data -maxdepth 1 -type d -name "crossserver*[0-9]" | sed 's:.*/crossserver::' | sort -n | awk '{if(NR>1)printf " ";printf "%s", $0}'))
+    local cross_server=()
+    while IFS='' read -r row; do cross_server+=("$row"); done < <(find /data -maxdepth 1 -type d -name "crossserver*[0-9]" -printf "%f\n" | sed 's/crossserver//' | sort -n)
 
     if [ "${#cross_server[@]}" -eq 0 ]; then return; fi
     for num in "${cross_server[@]}"; do
@@ -142,8 +134,8 @@ cross_check() {
 }
 
 gm_check() {
-    local gm_server
-    gm_server=($(find /data -maxdepth 1 -type d -name "gmserver*[0-9]" | sed 's:.*/gmserver::' | sort -n | awk '{if(NR>1)printf " ";printf "%s", $0}'))
+    local gm_server=()
+    while IFS='' read -r row; do gm_server+=("$row"); done < <(find /data -maxdepth 1 -type d -name "gmserver*[0-9]" -printf "%f\n" | sed 's/gmserver//' | sort -n)
 
     if [ "${#gm_server[@]}" -eq 0 ]; then return; fi
     for num in "${gm_server[@]}"; do
