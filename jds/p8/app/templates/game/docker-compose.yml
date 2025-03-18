@@ -1,5 +1,5 @@
 services:
-  gameapi:
+  server_1:
     image: registry.cn-chengdu.aliyuncs.com/havario/p8_app:dev
     container_name: server_1
     restart: unless-stopped
