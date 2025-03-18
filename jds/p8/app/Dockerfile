@@ -3,7 +3,6 @@
 # Copyright (C) 2025 honeok <honeok@duck.com>
 #
 # References:
-# https://www.gnu.org/software/libc/manual/html_node/Termination-Signals.html
 # https://github.com/nginxinc/docker-nginx/blob/master/mainline/alpine-slim/Dockerfile
 #
 # Licensed under the MIT License.
@@ -33,12 +32,17 @@ RUN set -ex \
         && apt-get remove --purge -y gettext \
         && mv /tmp/envsubst /usr/bin/ \
         && apt-get clean \
-# clear script
+# Clear script
         && rm -f docker-entrypoint.sh server.sh \
         && rm -rf /var/lib/apt/lists/* /tmp/* \
-# create a docker-entrypoint.d directory
+# Create a docker-entrypoint.d directory
         && mkdir /docker-entrypoint.d
 
-EXPOSE 3340
+# 2881 2882 2883 are external ports for zk.
+# 3340 is the GameServer port.
+# 3345 is the GlobalServer port.
+# 6070 is the GateServer port.
+# 6080 is the LoginServer port.
+EXPOSE 2881 2882 2883 3340 3345 6070 6080
 
 ENTRYPOINT [ "/docker-entrypoint.sh" ]
