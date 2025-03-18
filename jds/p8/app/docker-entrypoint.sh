@@ -45,7 +45,7 @@ _stop() {
     fi
 
     # flush signal
-    kill -s SIGUSR2 "$APP_PID"
+    server.sh flush
     sleep "$cooling"
 }
 
