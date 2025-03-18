@@ -1,0 +1,30 @@
+services:
+  gameapi:
+    image: registry.cn-chengdu.aliyuncs.com/havario/p8_app:dev
+    container_name: server_1
+    restart: unless-stopped
+    ports:
+      - 3340:3340
+    environment:
+      DEPLOY_ON: 'dev'
+      SERVER_TYPE: 'game'
+      DOMAIN: '/p8_dev'
+      LOCAL_ADDRESS: '10.46.97.42'
+      DISCOVER_NODE1: '10.46.97.42:2881'
+      DISCOVER_NODE2: '10.46.97.42:2882'
+      DISCOVER_NODE3: '10.46.97.42:2883'
+      GAMEDB_HOST: '10.46.97.42'
+      GAMEDB_USER: 'root'
+      GAMEDB_PASSWORD: '1xBSKI7#*6QRdv'
+      GAMEDB_DATABASE: 'dev_game_1'
+      GROUP_ID: '1'
+      AREA_ID: '1'
+      PAY_NOTIFY: 'http://113.44.69.159:20007/p8/api/callback_kingnet.php'
+      LOG_LEVEL: 'INFO'
+      ZONES_NUM: '1'
+      ZONE_VALUE: '1,'
+      OPEN_SERVER_TIME: '2025-03-18T09:00:00'
+    volumes:
+      - ./log:/app/log
+      - /data/lua:/app/lua
+    network_mode: bridge
