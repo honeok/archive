@@ -26,5 +26,6 @@ services:
       OPEN_SERVER_TIME: '2025-03-18T09:00:00'
     volumes:
       - ./log:/app/log
-      - /data/lua:/app/lua
+      - ./proto:/app/proto
+      - ./lua:/app/lua
     network_mode: bridge
