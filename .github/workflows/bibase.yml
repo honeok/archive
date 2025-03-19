@@ -1,6 +1,9 @@
 name: "Build Bi-base image"
 
 on:
+  push:
+    paths:
+      - 'jds/p8/bi/base/*'
   workflow_dispatch:
 
 env:
