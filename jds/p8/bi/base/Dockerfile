@@ -5,10 +5,9 @@
 # Licensed under the MIT License.
 # This software is provided "as is", without any warranty.
 
-ARG IMAGE_BASE="python"
-ARG IMAGE_TAG="3.9.20-alpine3.20"
+# BASE_VER='v0.0.8-alpine'
 
-FROM ${IMAGE_BASE}:${IMAGE_TAG}
+FROM python:3.9.20-alpine3.20
 
 COPY requirements.txt .
 
@@ -19,7 +18,6 @@ RUN set -ex \
             gettext \
             libffi-dev \
             musl-dev \
-            mysql-client \
             python3-dev \
             tzdata \
         && python3 -m pip install --no-cache-dir -r requirements.txt \
