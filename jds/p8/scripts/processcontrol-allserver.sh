@@ -7,12 +7,16 @@
 # Licensed under the MIT License.
 # This software is provided "as is", without any warranty.
 
+# 当前脚本版本号
 readonly version='v0.1.2 (2025.03.18)'
 
-readonly process_pid='/tmp/process.pid'
-readonly logDir='/data/logbak'
-readonly workDir='/data/tool'
-readonly app_name='p8_app_server'
+# 各变量默认值
+process_pid='/tmp/process.pid'
+LOG_DIR='/data/logbak'
+WORK_DIR='/data/tool'
+APP_NAME='p8_app_server'
+UA_BROWSER="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+readonly process_pid LOG_DIR WORK_DIR APP_NAME UA_BROWSER
 
 if [ -f "$process_pid" ] && kill -0 "$(cat "$process_pid")" 2>/dev/null; then
     echo 'The script is running, please do not repeat the operation!' && exit 1
@@ -22,18 +26,20 @@ echo $$ > "$process_pid"
 
 send_message() {
     local event="$1"
-    local cloudflare_api country ipv4_address os_info cpu_arch
+    local cloudflare_api country ipv4_address cur_time os_info cpu_arch
 
     # 备用 www.qualcomm.cn
     cloudflare_api='www.garmin.com.cn'
-    country=$(curl -fskL -m 3 -4 "https://$cloudflare_api/cdn-cgi/trace" | grep -i '^loc=' | cut -d'=' -f2 | xargs)
-    ipv4_address=$(curl -fskL -m 3 -4 "https://$cloudflare_api/cdn-cgi/trace" | grep -i '^ip=' | cut -d'=' -f2 | xargs)
+    country=$(curl -A "$UA_BROWSER" -fskL -m 3 -4 "https://$cloudflare_api/cdn-cgi/trace" | grep -i '^loc=' | cut -d'=' -f2 | xargs)
+    ipv4_address=$(curl -A "$UA_BROWSER" -fskL -m 3 -4 "https://$cloudflare_api/cdn-cgi/trace" | grep -i '^ip=' | cut -d'=' -f2 | xargs)
+    cur_time=$(date -d @$(($(curl -fskL -m 3 https://acs.m.taobao.com/gw/mtop.common.getTimestamp/ | awk -F'"t":"' '{print $2}' | cut -d '"' -f1) / 1000)) +"%F %T" ||
+        date -u '+%Y-%m-%d %H:%M:%S' -d '+8 hours')
     os_info=$(grep "^PRETTY_NAME=" /etc/*-release | cut -d '"' -f 2 | sed 's/ (.*)//')
     cpu_arch=$(uname -m 2>/dev/null || lscpu | awk -F ': +' '/Architecture/{print $2}')
 
     curl -fskL -X POST "https://api.honeok.com/api/log" \
         -H "Content-Type: application/json" \
-        -d "{\"action\":\"$event $ipv4_address\",\"timestamp\":\"$(date -u '+%Y-%m-%d %H:%M:%S' -d '+8 hours')\",\"country\":\"$country\",\"os_info\":\"$os_info\",\"cpu_arch\":\"$cpu_arch\"}" >/dev/null 2>&1 &
+        -d "{\"action\":\"$event $ipv4_address\",\"timestamp\":\"$cur_time\",\"country\":\"$country\",\"os_info\":\"$os_info\",\"cpu_arch\":\"$cpu_arch\"}" >/dev/null 2>&1 &
 }
 
 pre_check() {
@@ -44,8 +50,8 @@ pre_check() {
     if [ "$(ps -p $$ -o comm=)" != "bash" ] || readlink /proc/$$/exe | grep -q "dash"; then
         echo 'This script requires Bash as the shell interpreter!' && exit 1
     fi
-    [ ! -d "$logDir" ] && mkdir -p "$logDir"
-    [ ! -d "$workDir" ] && mkdir -p "$workDir"
+    [ ! -d "$LOG_DIR" ] && mkdir -p "$LOG_DIR"
+    [ ! -d "$WORK_DIR" ] && mkdir -p "$WORK_DIR"
     [ -t 1 ] && echo -e "Current script version: $version , Daemon process started. \xe2\x9c\x93"
 }
 
@@ -54,14 +60,14 @@ check_server() {
     local server_name="$1"
     local server_dir="$2"
 
-    if ! pgrep -f "$server_dir/$app_name" >/dev/null 2>&1; then
+    if ! pgrep -f "$server_dir/$APP_NAME" >/dev/null 2>&1; then
         cd "$server_dir" || return
-        [ -f nohup.txt ] && mv -f nohup.txt "$logDir/nohup_${server_name}_$(date -u '+%Y-%m-%d_%H:%M:%S' -d '+8 hours').txt"
+        [ -f nohup.txt ] && mv -f nohup.txt "$LOG_DIR/nohup_${server_name}_$(date -u '+%Y-%m-%d_%H:%M:%S' -d '+8 hours').txt"
         ./server.sh start &
-        send_message "$server_name Restart"
-        echo "$(date -u '+%Y-%m-%d %H:%M:%S' -d '+8 hours') [ERROR] $server_name Restart" >> "$workDir/dump.txt" &
+        send_message "$server_name Restart" &
+        echo "$(date -u '+%Y-%m-%d %H:%M:%S' -d '+8 hours') [ERROR] $server_name Restart" >> "$WORK_DIR/dump.txt" &
     else
-        echo "$(date -u '+%Y-%m-%d %H:%M:%S' -d '+8 hours') [INFO] $server_name Running" >> "$workDir/control.txt" &
+        echo "$(date -u '+%Y-%m-%d %H:%M:%S' -d '+8 hours') [INFO] $server_name Running" >> "$WORK_DIR/control.txt" &
     fi
 }
 
