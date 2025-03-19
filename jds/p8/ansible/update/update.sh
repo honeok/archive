@@ -1,6 +1,9 @@
 #!/bin/bash
 
 # 时间: 2025/3/11
+
+# shellcheck disable=SC2034
+
 err_exit() {
     echo "$1" >&2  # 将错误信息输出到标准错误流
     exit "$2"
@@ -22,7 +25,6 @@ print_info_and_execute_playbook() {
 }
 
 update_option() {
-    # shellcheck disable=SC2034
     local file_name="$1"
     local node_name="$2"
     local playbook_path="$3"
