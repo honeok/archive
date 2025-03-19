@@ -1,11 +1,9 @@
 #!/bin/bash
 
-# 时间: 2025/3/11
-
-# shellcheck disable=SC2034
+WORK_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 err_exit() {
-    echo "$1" >&2  # 将错误信息输出到标准错误流
+    echo "$1" >&2
     exit "$2"
 }
 
@@ -25,12 +23,10 @@ print_info_and_execute_playbook() {
 }
 
 update_option() {
-    local file_name="$1"
-    local node_name="$2"
-    local playbook_path="$3"
-    local tag="$4"
+    local playbook_path="$1"
+    local tag="$2"
 
-    [[ ! -f "$playbook_path" ]] && err_exit "playbook 文件 $playbook_path 不存在" 1
+    [ ! -f "$playbook_path" ] && err_exit "playbook 文件 $playbook_path 不存在" 1
     if [ -n "$tag" ]; then
         ansible-playbook "$playbook_path" -t "$tag" || err_exit "Ansible 执行失败: $playbook_path" 4
     else
@@ -39,37 +35,37 @@ update_option() {
 }
 
 update_group_lua() {
-    update_option "groups.lua" "cross" "playbook/cross/cross-entry.yaml" "groups"
-    update_option "groups.lua" "game" "playbook/game/game-entry.yaml" "groups"
+    update_option "playbook/cross/cross-entry.yaml" "groups"
+    update_option "playbook/game/game-entry.yaml" "groups"
 }
 
 update_increment() {
-    update_option "increment.tar.gz" "cross" "playbook/cross/cross-entry.yaml" "increment"
-    update_option "increment.tar.gz" "game" "playbook/game/game-entry.yaml" "increment"
-    update_option "increment.tar.gz" "gm" "playbook/gm/gm-entry.yaml" ""
-    update_option "increment.tar.gz" "log" "playbook/log/log-entry.yaml" ""
+    update_option "playbook/cross/cross-entry.yaml" "increment"
+    update_option "playbook/game/game-entry.yaml" "increment"
+    update_option "playbook/gm/gm-entry.yaml" ""
+    update_option "playbook/log/log-entry.yaml" ""
 }
 
 # 检查 ./file/ 目录是否存在
-[[ ! -d ./file/ ]] && err_exit "错误：目录 ./file/ 不存在" 1
+[ ! -d ./file/ ] && err_exit "错误: 目录 ./file/ 不存在" 1
 
-# 检查 ansible 是否安装
-command -v ansible &>/dev/null || err_exit "错误：ansible 未安装" 1
+# 检查ansible是否安装
+command -v ansible >/dev/null 2>&1 || err_exit "错误: ansible未安装" 1
 
 # 统计文件数量
-group_stat=$(find ./file/ -name "groups.lua" -type f | wc -l)
-increment_stat=$(find ./file/ -name "increment.tar.gz" -type f | wc -l)
+group_stat=$(find "$WORK_DIR/file" -name "groups.lua" -type f | wc -l)
+increment_stat=$(find "$WORK_DIR/file" -name "increment.tar.gz" -type f | wc -l)
 
 # 根据文件存在情况执行相应操作
-if [[ "$group_stat" -eq 1 && "$increment_stat" -eq 0 ]]; then
+if [ "$group_stat" -eq 1 ] && [ "$increment_stat" -eq 0 ]; then
     print_info_and_execute_playbook "group"
-elif [[ "$group_stat" -eq 0 && "$increment_stat" -eq 1 ]]; then
-    tar tf ./file/increment.tar.gz | sed -n '1p' | grep -q "app/" || err_exit "increment.tar.gz 未包含 app 目录" 2
+elif [ "$group_stat" -eq 0 ] &&  [ "$increment_stat" -eq 1 ]; then
+    tar tf "$WORK_DIR/file/increment.tar.gz" | sed -n '1p' | grep -q "app/" || err_exit "increment.tar.gz 未包含 app 目录" 2
     print_info_and_execute_playbook "increment"
-elif [[ "$group_stat" -eq 1 && "$increment_stat" -eq 1 ]]; then
+elif [ "$group_stat" -eq 1 ] && [ "$increment_stat" -eq 1 ]; then
     err_exit "groups.lua 和 increment.tar.gz 同时存在，请删除或移动其中一个" 2
 else
     err_exit "groups.lua 或 increment.tar.gz 不存在，请检查 file 目录" 2
 fi
 
-rm -rf ./file/*
+rm -rf "$WORK_DIR/file/"*
