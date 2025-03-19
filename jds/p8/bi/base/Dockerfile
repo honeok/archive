@@ -5,7 +5,7 @@
 # Licensed under the MIT License.
 # This software is provided "as is", without any warranty.
 
-# BASE_VER='v0.0.8-alpine'
+# BASE_VER 'v0.0.8-alpine'
 
 FROM python:3.9.20-alpine3.20
 
