@@ -8,7 +8,19 @@
 # This software is provided "as is", without any warranty.
 
 # 当前脚本版本号
-readonly version='v0.1.2 (2025.03.18)'
+readonly version='v0.1.3 (2025.03.21)'
+
+red='\033[91m'
+green='\033[92m'
+yellow='\033[93m'
+cyan='\033[96m'
+white='\033[0m'
+_red() { echo -e "${red}$*${white}"; }
+_green() { echo -e "${green}$*${white}"; }
+_yellow() { echo -e "${yellow}$*${white}"; }
+_cyan() { echo -e "${cyan}$*${white}"; }
+
+_err_msg() { echo -e "\033[41m\033[1mError${white} $*"; }
 
 # 各变量默认值
 process_pid='/tmp/process.pid'
@@ -17,12 +29,6 @@ WORK_DIR='/data/tool'
 APP_NAME='p8_app_server'
 UA_BROWSER="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
 readonly process_pid LOG_DIR WORK_DIR APP_NAME UA_BROWSER
-
-if [ -f "$process_pid" ] && kill -0 "$(cat "$process_pid")" 2>/dev/null; then
-    echo 'The script is running, please do not repeat the operation!' && exit 1
-fi
-
-echo $$ > "$process_pid"
 
 send_message() {
     local event="$1"
@@ -43,16 +49,27 @@ send_message() {
 }
 
 pre_check() {
-    [ -t 1 ] && tput clear 2>/dev/null || echo -e "\033[2J\033[H" || clear
-    if [ "$(id -ru)" -ne "0" ] || [ "$EUID" -ne "0" ]; then
-        echo 'This script must be run as root!' && exit 1
+    local cur_tty
+    cur_tty=$(tty) # 获取当前终端
+
+    [ -t 1 ] && tput clear 2>/dev/null || echo -e "\033[2J\033[H" || clear > "$cur_tty"
+    # 确保守护进程唯一
+    if [ -f "$process_pid" ] && kill -0 "$(cat "$process_pid")" 2>/dev/null; then
+        _err_msg "$(_red 'The script is running, please do not repeat the operation!')" > "$cur_tty" && exit 1
     fi
+    echo $$ > "$process_pid"
+    # 确保root用户运行
+    if [ "$(id -ru)" -ne 0 ] || [ "$EUID" -ne 0 ]; then
+        _err_msg "$(_red 'This script must be run as root!')" > "$cur_tty" && exit 1
+    fi
+    # 确保使用bash运行而不是sh
     if [ "$(ps -p $$ -o comm=)" != "bash" ] || readlink /proc/$$/exe | grep -q "dash"; then
-        echo 'This script requires Bash as the shell interpreter!' && exit 1
+        _err_msg "$(_red 'This script requires Bash as the shell interpreter!')" > "$cur_tty" && exit 1
     fi
-    [ ! -d "$LOG_DIR" ] && mkdir -p "$LOG_DIR"
-    [ ! -d "$WORK_DIR" ] && mkdir -p "$WORK_DIR"
-    [ -t 1 ] && echo -e "Current script version: $version , Daemon process started. \xe2\x9c\x93"
+    # 创建运行必备文件夹
+    [ ! -d "$LOG_DIR" ] && mkdir -p "$LOG_DIR" 2>/dev/null
+    [ ! -d "$WORK_DIR" ] && mkdir -p "$WORK_DIR" 2>/dev/null
+    [ -t 1 ] && echo "$(_yellow Current script version: ) $(_cyan "$version") , $(_green 'Daemon process started.') $(_cyan "\xe2\x9c\x93")" > "$cur_tty"
 }
 
 # independent logic called by a function
