@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# vim:sw=4:ts=4:et
 #
 # Description: server backend resident daemon for monitoring and management.
 #
@@ -8,7 +9,7 @@
 # This software is provided "as is", without any warranty.
 
 # 当前脚本版本号
-readonly version='v0.1.3 (2025.03.21)'
+readonly version='v0.1.3 (2025.03.22)'
 
 red='\033[91m'
 green='\033[92m'
