@@ -5,7 +5,6 @@
 # Copyright (c) 2025 honeok <honeok@duck.com>
 #
 # SPDX-License-Identifier: GPL-2.0
-#
 
 set -eE
 
