@@ -1,0 +1,70 @@
+# Description: Cross server related updates.
+#
+# Copyright (c) 2025 honeok <honeok@duck.com>
+#
+# Thanks: zzwsec <zzwsec@163.com>
+#
+# Licensed under the MIT License.
+# This software is provided "as is", without any warranty.
+
+---
+# 检查CrossServer的目录
+- name: Check the cross directory
+  shell: find /data -maxdepth 1 -type d -name 'crossserver*' -printf '%f\n'
+  register: cross_dir
+
+# 检查更新路径文件夹是否存在
+- name: Create update directory if it does not exist
+  file:
+    path: "{{ update_path }}"
+    state: directory
+    mode: '0755'
+
+# 检查更新目录是否存在
+- name: Check if update directory exists
+  stat:
+    path: "{{ update_path }}"
+  register: update_dir
+
+# 删除远程主机更新路径
+- name: Delete remote host update path
+  shell: find "{{ update_path }}" -maxdepth 1 -not -path "{{ update_path }}" -exec rm -rf {} +
+  when:
+    - update_dir.stat.exists and update_dir.stat.isdir
+    - update_path != "/"
+
+# 分发更新包
+- name: Distribute updated compressed files
+  copy:
+    src: "{{ playbook_dir }}/share_files/increment.tar.gz"
+    dest: "{{ update_path }}"
+
+# 解压更新包
+- name: Extract update files
+  unarchive:
+    src: "{{ update_path }}/increment.tar.gz"
+    dest: "{{ update_path }}"
+    remote_src: yes
+
+# 强制覆盖更新
+- name: Forced overwrite update
+  copy:
+    src: "{{ update_path }}/app/"
+    dest: "{{ base_path }}/{{ item }}/"
+    remote_src: yes
+  loop: "{{ cross_dir.stdout_lines }}"
+
+# 过滤CrossServer进程
+- name: Filter cross processes
+  shell: pgrep -af "{{ base_path }}/{{ item }}/{{ app_name }}"
+  register: cross_stat
+  ignore_errors: yes
+  loop: "{{ cross_dir.stdout_lines }}"
+
+# 如果进程存在则执行重读, 如果不存在则仅执行更新覆盖
+- name: Reload cross process
+  shell: ./server.sh reload && sleep 1 && ./server.sh reload
+  args:
+    chdir: "{{ base_path }}/{{ item.item }}"
+  when: cross_stat.results is defined and item.rc == 0
+  loop: "{{ cross_stat.results }}"
