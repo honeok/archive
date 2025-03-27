@@ -1,5 +1,0 @@
----
-- hosts: cross
-  remote_user: root
-  roles:
-    - cross
