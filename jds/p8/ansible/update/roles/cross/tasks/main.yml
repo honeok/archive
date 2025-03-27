@@ -12,19 +12,25 @@
 - name: Check the cross directory
   shell: find /data -maxdepth 1 -type d -name 'crossserver*' -printf '%f\n'
   register: cross_dir
+  tags:
+    - always
 
-# 检查更新路径文件夹是否存在
+# 检查更新路径文件夹是否存在, 不存在则创建
 - name: Create update directory if it does not exist
   file:
     path: "{{ update_path }}"
     state: directory
     mode: '0755'
+  tags:
+    - always
 
 # 检查更新目录是否存在
 - name: Check if update directory exists
   stat:
     path: "{{ update_path }}"
   register: update_dir
+  tags:
+    - always
 
 # 删除远程主机更新路径
 - name: Delete remote host update path
@@ -32,27 +38,53 @@
   when:
     - update_dir.stat.exists and update_dir.stat.isdir
     - update_path != "/"
+  tags:
+    - always
 
-# 分发更新包
+# 分发跨服分组文件
+- name: Distribute group file
+  copy:
+    src: "{{ playbook_dir }}/share_files/groups.lua"
+    dest: "{{ update_path }}"
+  tags:
+    - groups
+
+# 分发更新包 (增量更新)
 - name: Distribute updated compressed files
   copy:
     src: "{{ playbook_dir }}/share_files/increment.tar.gz"
     dest: "{{ update_path }}"
+  tags:
+    - increment
 
-# 解压更新包
+# 解压更新包 (增量更新)
 - name: Extract update files
   unarchive:
     src: "{{ update_path }}/increment.tar.gz"
     dest: "{{ update_path }}"
     remote_src: yes
+  tags:
+    - increment
 
-# 强制覆盖更新
+# 强制覆盖更新 (分组文件)
+- name: Forcefully overwrite grouped files
+  copy:
+    src: "{{ update_path }}/groups.lua"
+    dest: "{{ base_path }}/{{ item }}/etc/groups.lua"
+    remote_src: yes
+  loop: "{{ cross_dir.stdout_lines }}"
+  tags:
+    - groups
+
+# 强制覆盖更新 (增量更新)
 - name: Forced overwrite update
   copy:
     src: "{{ update_path }}/app/"
     dest: "{{ base_path }}/{{ item }}/"
     remote_src: yes
   loop: "{{ cross_dir.stdout_lines }}"
+  tags:
+    - increment
 
 # 过滤CrossServer进程
 - name: Filter cross processes
@@ -60,6 +92,8 @@
   register: cross_stat
   ignore_errors: yes
   loop: "{{ cross_dir.stdout_lines }}"
+  tags:
+    - always
 
 # 如果进程存在则执行重读, 如果不存在则仅执行更新覆盖
 - name: Reload cross process
@@ -68,3 +102,5 @@
     chdir: "{{ base_path }}/{{ item.item }}"
   when: cross_stat.results is defined and item.rc == 0
   loop: "{{ cross_stat.results }}"
+  tags:
+    - always
