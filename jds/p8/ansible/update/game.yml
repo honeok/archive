@@ -1,0 +1,5 @@
+---
+- hosts: game
+  remote_user: root
+  roles:
+    - game
