@@ -1,0 +1,55 @@
+# Description: Incremental and maintenance updates for zk servers.
+#
+# Copyright (c) 2025 honeok <honeok@duck.com>
+#
+# Thanks: zzwsec <zzwsec@163.com>
+#
+# Licensed under the MIT License.
+# This software is provided "as is", without any warranty.
+
+---
+# 检查zk服务器的目录
+- name: Look for zk server folders
+  shell: find '{{ base_path }}' -maxdepth 1 -type d -name "zk*[0-9]" -printf '%f\n'
+  register: zk_dir
+
+# 检查更新文件夹是否存在, 不存在则创建
+- name: Make update folder if it's not there
+  file:
+    path: '{{ update_path }}'
+    state: directory
+    mode: '0755'
+
+# 检查更新目录状态
+- name: See if update folder is there
+  stat:
+    path: '{{ update_path }}'
+  register: update_dir
+
+# 删除远程主机更新路径
+- name: Wipe out update folder contents
+  shell: find '{{ update_path }}' -maxdepth 1 -not -path '{{ update_path }}' -exec rm -rf {} +
+  when:
+    - update_dir.stat.exists and update_dir.stat.isdir
+    - update_path != "/"
+
+# 分发更新包, 维护
+- name: Send over the maintenance update
+  copy:
+    src: '{{ playbook_dir }}/share_files/updategame.tar.gz'
+    dest: '{{ update_path }}'
+
+# 解压更新包, 维护
+- name: Unpack the maintenance update
+  unarchive:
+    src: '{{ update_path }}/updategame.tar.gz'
+    dest: '{{ update_path }}'
+    remote_src: yes
+
+# 强制覆盖更新
+- name: Push the app updates hard
+  copy:
+    src: '{{ update_path }}/app/'
+    dest: '{{ base_path }}/{{ item }}/'
+    remote_src: yes
+  loop: '{{ zk_dir.stdout_lines }}'
