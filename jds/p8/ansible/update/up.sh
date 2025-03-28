@@ -14,17 +14,17 @@ red='\033[1;91m'
 green='\033[1;92m'
 yellow='\033[1;93m'
 white='\033[0m'
-_red() { echo -e "${red}$*${white}"; }
-_green() { echo -e "${green}$*${white}"; }
-_yellow() { echo -e "${yellow}$*${white}"; }
+function _red { echo -e "${red}$*${white}"; }
+function _green { echo -e "${green}$*${white}"; }
+function _yellow { echo -e "${yellow}$*${white}"; }
 
-_err_msg() { echo -e "\033[41m\033[1mError${white} $*"; }
-_suc_msg() { echo -e "\033[42m\033[1mSuccess${white} $*"; }
+function _err_msg { echo -e "\033[41m\033[1mError${white} $*"; }
+function _suc_msg { echo -e "\033[42m\033[1mSuccess${white} $*"; }
 
 # 各变量默认值
 WORK_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-function _exists() {
+function _exists {
     local _cmd="$1"
     if type "$_cmd" >/dev/null 2>&1; then
         return 0
@@ -35,7 +35,7 @@ function _exists() {
     fi
 }
 
-function pkg_install() {
+function pkg_install {
     for package in "$@"; do
         _yellow "Installing $package"
         if _exists 'dnf'; then
@@ -56,7 +56,7 @@ function pkg_install() {
     done
 }
 
-function pre_check() {
+function pre_check {
     local depend_pkg
     depend_pkg=( 'ansible' 'ansible-playbook' )
 
@@ -73,7 +73,7 @@ function pre_check() {
     fi
 }
 
-function before_event() {
+function before_event {
     if [ -f "$WORK_DIR/share_files/groups.lua" ]; then
         exec_event='groups'
     elif [ -f "$WORK_DIR/share_files/increment.tar.gz" ]; then
@@ -85,7 +85,7 @@ function before_event() {
     fi
 }
 
-function exec_playbook() {
+function exec_playbook {
     case "$exec_event" in
         'groups')
             ansible-playbook cross.yml --tags 'groups'
@@ -105,14 +105,14 @@ function exec_playbook() {
     esac
 }
 
-function after_event() {
+function after_event {
     if [ -n "$WORK_DIR" ] && [ -n "$(ls -A "$WORK_DIR/share_files")" ]; then
         rm -rf "$WORK_DIR/share_files/"* 2>/dev/null
     fi
     _green 'Job Success' ; exit 0
 }
 
-function update() {
+function update {
     pre_check
     before_event
     exec_playbook
