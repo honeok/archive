@@ -2,8 +2,6 @@
 
 Maintainer: honeok <honeok@duck.com>
 
-Copyright © Chengdu Zhidan Network Technology Co., Ltd.
-
 ```shell
 #      __     __       _____
 #  __ / / ___/ /  ___ / ___/ ___ _  __ _  ___
