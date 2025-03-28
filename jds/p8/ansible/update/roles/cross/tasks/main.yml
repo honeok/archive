@@ -8,33 +8,33 @@
 # This software is provided "as is", without any warranty.
 
 ---
-# 检查CrossServer的目录
-- name: Check the cross directory
-  shell: find /data -maxdepth 1 -type d -name 'crossserver*' -printf '%f\n'
+# 检查cross服务器的目录
+- name: Look for cross server folders
+  shell: find '{{ base_path }}' -maxdepth 1 -type d -name 'crossserver*' -printf '%f\n'
   register: cross_dir
   tags:
     - always
 
-# 检查更新路径文件夹是否存在, 不存在则创建
-- name: Create update directory if it does not exist
+# 检查更新文件夹是否存在, 不存在则创建
+- name: Make update folder if it's not there
   file:
-    path: "{{ update_path }}"
+    path: '{{ update_path }}'
     state: directory
     mode: '0755'
   tags:
     - always
 
-# 检查更新目录是否存在
-- name: Check if update directory exists
+# 检查更新目录状态
+- name: See if update folder is there
   stat:
-    path: "{{ update_path }}"
+    path: '{{ update_path }}'
   register: update_dir
   tags:
     - always
 
 # 删除远程主机更新路径
-- name: Delete remote host update path
-  shell: find "{{ update_path }}" -maxdepth 1 -not -path "{{ update_path }}" -exec rm -rf {} +
+- name: Wipe out update folder contents
+  shell: find '{{ update_path }}' -maxdepth 1 -not -path '{{ update_path }}' -exec rm -rf {} +
   when:
     - update_dir.stat.exists and update_dir.stat.isdir
     - update_path != "/"
@@ -42,56 +42,74 @@
     - always
 
 # 分发跨服分组文件
-- name: Distribute group file
+- name: Send over the group file
   copy:
-    src: "{{ playbook_dir }}/share_files/groups.lua"
-    dest: "{{ update_path }}"
+    src: '{{ playbook_dir }}/share_files/groups.lua'
+    dest: '{{ update_path }}'
   tags:
     - groups
 
-# 分发更新包 (增量更新)
-- name: Distribute updated compressed files
+# 分发更新包, 重读更新
+- name: Send over the update package
   copy:
-    src: "{{ playbook_dir }}/share_files/increment.tar.gz"
-    dest: "{{ update_path }}"
+    src: '{{ playbook_dir }}/share_files/increment.tar.gz'
+    dest: '{{ update_path }}'
   tags:
     - increment
 
-# 解压更新包 (增量更新)
-- name: Extract update files
+# 分发更新包, 维护
+- name: Send over the maintenance update
+  copy:
+    src: '{{ playbook_dir }}/share_files/updategame.tar.gz'
+    dest: '{{ update_path }}'
+  tags:
+    - maint
+
+# 解压更新包, 增量更新
+- name: Unpack the increment update
   unarchive:
-    src: "{{ update_path }}/increment.tar.gz"
-    dest: "{{ update_path }}"
+    src: '{{ update_path }}/increment.tar.gz'
+    dest: '{{ update_path }}'
     remote_src: yes
   tags:
     - increment
 
-# 强制覆盖更新 (分组文件)
-- name: Forcefully overwrite grouped files
-  copy:
-    src: "{{ update_path }}/groups.lua"
-    dest: "{{ base_path }}/{{ item }}/etc/groups.lua"
+# 解压更新包, 维护
+- name: Unpack the maintenance update
+  unarchive:
+    src: '{{ update_path }}/updategame.tar.gz'
+    dest: '{{ update_path }}'
     remote_src: yes
-  loop: "{{ cross_dir.stdout_lines }}"
+  tags:
+    - maint
+
+# 强制覆盖更新分组文件
+- name: Force update the group files
+  copy:
+    src: '{{ update_path }}/groups.lua'
+    dest: '{{ base_path }}/{{ item }}/etc/groups.lua'
+    remote_src: yes
+  loop: '{{ cross_dir.stdout_lines }}'
   tags:
     - groups
 
-# 强制覆盖更新 (增量更新)
-- name: Forced overwrite update
+# 强制覆盖更新重读或维护阶段
+- name: Push the app updates hard
   copy:
-    src: "{{ update_path }}/app/"
-    dest: "{{ base_path }}/{{ item }}/"
+    src: '{{ update_path }}/app/'
+    dest: '{{ base_path }}/{{ item }}/'
     remote_src: yes
-  loop: "{{ cross_dir.stdout_lines }}"
+  loop: '{{ cross_dir.stdout_lines }}'
   tags:
     - increment
+    - maint
 
-# 过滤CrossServer进程
+# 过滤Cross服务器进程
 - name: Filter cross processes
-  shell: pgrep -af "{{ base_path }}/{{ item }}/{{ app_name }}"
+  shell: pgrep -af '{{ base_path }}/{{ item }}/{{ app_name }}'
   register: cross_stat
   ignore_errors: yes
-  loop: "{{ cross_dir.stdout_lines }}"
+  loop: '{{ cross_dir.stdout_lines }}'
   tags:
     - always
 
@@ -99,8 +117,8 @@
 - name: Reload cross process
   shell: ./server.sh reload && sleep 1 && ./server.sh reload
   args:
-    chdir: "{{ base_path }}/{{ item.item }}"
+    chdir: '{{ base_path }}/{{ item.item }}'
   when: cross_stat.results is defined and item.rc == 0
-  loop: "{{ cross_stat.results }}"
+  loop: '{{ cross_stat.results }}'
   tags:
     - always
