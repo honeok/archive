@@ -10,8 +10,10 @@
 ---
 # 检查cross服务器的文件夹
 - name: check for cross server folders
-  shell: find '{{ base_path }}' -maxdepth 1 -type d -name 'crossserver*' -printf '%f\n'
+  shell: 'find {{ base_path }} -maxdepth 1 -type d -name "crossserver*" -printf "%f\n"'
   register: cross_dir
+  changed_when: cross_dir.stdout_lines | length > 0
+  failed_when: cross_dir.rc != 0
   tags:
     - always
 
@@ -32,9 +34,10 @@
   tags:
     - always
 
-# 删除远程主机更新文件夹下历史更新内容
-- name: delete remote host update folder
+# 删除远程主机更新路径
+- name: Wipe out update folder contents
   shell: 'find {{ update_path }} -maxdepth 1 -not -path {{ update_path }} -exec rm -rf {} +'
+  changed_when: false
   when:
     - update_dir.stat.exists and update_dir.stat.isdir
     - update_path != "/"
@@ -46,6 +49,7 @@
   copy:
     src: '{{ playbook_dir }}/share/groups.lua'
     dest: '{{ update_path }}'
+    mode: '0644'
   tags:
     - groups
 
@@ -85,7 +89,11 @@
 
 # 强制更新覆盖分组文件
 - name: force update the group files
-  shell: 'command cp -rf {{ update_path }}/groups.lua {{ base_path }}/{{ item }}/etc/groups.lua'
+  copy:
+    src: '{{ update_path }}/groups.lua'
+    dest: '{{ base_path }}/{{ item }}/etc/groups.lua'
+    remote_src: yes
+    force: yes
   loop: '{{ cross_dir.stdout_lines }}'
   when: cross_dir.stdout_lines is defined and cross_dir.stdout_lines | length > 0
   tags:
