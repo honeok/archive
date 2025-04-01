@@ -1,7 +1,7 @@
 # https://docs.ansible.com/ansible/latest/inventory_guide/intro_inventory.html
 
 [game]
-GameServer1 ansible_host=192.168.100.61
-GameServer2 ansible_host=192.168.100.62
+gameNode1 ansible_host=192.168.100.61
+gameNode2 ansible_host=192.168.100.62
 [cross]
-CrossServer1 ansible_host=192.168.100.61
+crossNode1 ansible_host=192.168.100.61
