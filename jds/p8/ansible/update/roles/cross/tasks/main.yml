@@ -1,4 +1,4 @@
-# Description: Incremental and maintenance updates for Cross servers.
+# Description: performs incremental and maintenance updates for cross servers.
 #
 # Copyright (c) 2025 honeok <honeok@duck.com>
 #
@@ -8,15 +8,15 @@
 # This software is provided "as is", without any warranty.
 
 ---
-# 检查cross服务器的目录
-- name: Look for cross server folders
+# 检查cross服务器的文件夹
+- name: check for cross server folders
   shell: find '{{ base_path }}' -maxdepth 1 -type d -name 'crossserver*' -printf '%f\n'
   register: cross_dir
   tags:
     - always
 
-# 检查更新文件夹是否存在, 不存在则创建
-- name: Make update folder if it's not there
+# 更新文件夹不存在则创建
+- name: if update folder does not exist
   file:
     path: '{{ update_path }}'
     state: directory
@@ -24,17 +24,17 @@
   tags:
     - always
 
-# 检查更新目录状态
-- name: See if update folder is there
+# 检查更新文件夹状态
+- name: check the status of the update folder
   stat:
     path: '{{ update_path }}'
   register: update_dir
   tags:
     - always
 
-# 删除远程主机更新路径
-- name: Wipe out update folder contents
-  shell: find '{{ update_path }}' -maxdepth 1 -not -path '{{ update_path }}' -exec rm -rf {} +
+# 删除远程主机更新文件夹下历史更新内容
+- name: delete remote host update folder
+  shell: 'find {{ update_path }} -maxdepth 1 -not -path {{ update_path }} -exec rm -rf {} +'
   when:
     - update_dir.stat.exists and update_dir.stat.isdir
     - update_path != "/"
@@ -42,31 +42,31 @@
     - always
 
 # 分发跨服分组文件
-- name: Send over the group file
+- name: send cross server group file
   copy:
-    src: '{{ playbook_dir }}/share_files/groups.lua'
+    src: '{{ playbook_dir }}/share/groups.lua'
     dest: '{{ update_path }}'
   tags:
     - groups
 
-# 分发更新包, 重读更新
-- name: Send over the update package
+# 重读更新分发更新包
+- name: send package of the reload update
   copy:
-    src: '{{ playbook_dir }}/share_files/increment.tar.gz'
+    src: '{{ playbook_dir }}/share/increment.tar.gz'
     dest: '{{ update_path }}'
   tags:
     - increment
 
-# 分发更新包, 维护
-- name: Send over the maintenance update
+# 维护更新分发更新包
+- name: send package of the maintenance update
   copy:
-    src: '{{ playbook_dir }}/share_files/updategame.tar.gz'
+    src: '{{ playbook_dir }}/share/updategame.tar.gz'
     dest: '{{ update_path }}'
   tags:
     - maint
 
-# 解压更新包, 增量更新
-- name: Unpack the increment update
+# 重读更新解压更新包
+- name: uncompress package of the reload update
   unarchive:
     src: '{{ update_path }}/increment.tar.gz'
     dest: '{{ update_path }}'
@@ -74,8 +74,8 @@
   tags:
     - increment
 
-# 解压更新包, 维护
-- name: Unpack the maintenance update
+# 维护更新解压更新包
+- name: uncompress package of the maintenance update
   unarchive:
     src: '{{ update_path }}/updategame.tar.gz'
     dest: '{{ update_path }}'
@@ -83,30 +83,26 @@
   tags:
     - maint
 
-# 强制覆盖更新分组文件
-- name: Force update the group files
-  copy:
-    src: '{{ update_path }}/groups.lua'
-    dest: '{{ base_path }}/{{ item }}/etc/groups.lua'
-    remote_src: yes
+# 强制更新覆盖分组文件
+- name: force update the group files
+  shell: 'command cp -rf {{ update_path }}/groups.lua {{ base_path }}/{{ item }}/etc/groups.lua'
   loop: '{{ cross_dir.stdout_lines }}'
+  when: cross_dir.stdout_lines is defined and cross_dir.stdout_lines | length > 0
   tags:
     - groups
 
-# 强制覆盖更新重读或维护阶段
-- name: Push the app updates hard
-  copy:
-    src: '{{ update_path }}/app/'
-    dest: '{{ base_path }}/{{ item }}/'
-    remote_src: yes
+# 强制更新覆盖, 重读或维护阶段
+- name: force update the reload or maintenance
+  shell: 'command cp -rf {{ update_path }}/app/* {{ base_path }}/{{ item }}/'
   loop: '{{ cross_dir.stdout_lines }}'
+  when: cross_dir.stdout_lines is defined and cross_dir.stdout_lines | length > 0
   tags:
     - increment
     - maint
 
-# 过滤Cross服务器进程
-- name: Filter cross processes
-  shell: pgrep -af '{{ base_path }}/{{ item }}/{{ app_name }}'
+# 过滤cross服务器进程
+- name: filter cross processes
+  shell: 'pgrep -af {{ base_path }}/{{ item }}/{{ app_name }}'
   register: cross_stat
   ignore_errors: yes
   loop: '{{ cross_dir.stdout_lines }}'
@@ -114,8 +110,8 @@
     - always
 
 # 如果进程存在则执行重读, 如果不存在则仅执行更新覆盖
-- name: Reload cross process
-  shell: ./server.sh reload && sleep 1 && ./server.sh reload
+- name: reload cross process
+  shell: './server.sh reload && sleep 1 && ./server.sh reload'
   args:
     chdir: '{{ base_path }}/{{ item.item }}'
   when: cross_stat.results is defined and item.rc == 0
