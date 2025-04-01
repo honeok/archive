@@ -1,5 +1,6 @@
 ---
-- hosts: cross
+- name: 'execute crossNodes tasks'
+  hosts: cross
   remote_user: root
   roles:
     - cross
