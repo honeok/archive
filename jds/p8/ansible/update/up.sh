@@ -10,21 +10,24 @@
 # Licensed under the MIT License.
 # This software is provided "as is", without any warranty.
 
-red='\033[1;91m'
-green='\033[1;92m'
-yellow='\033[1;93m'
-white='\033[0m'
-function _red { echo -e "${red}$*${white}"; }
-function _green { echo -e "${green}$*${white}"; }
-function _yellow { echo -e "${yellow}$*${white}"; }
+export DEBIAN_FRONTEND=noninteractive
 
-function _err_msg { echo -e "\033[41m\033[1mError${white} $*"; }
-function _suc_msg { echo -e "\033[42m\033[1mSuccess${white} $*"; }
+red='\033[91m'
+green='\033[92m'
+yellow='\033[93m'
+white='\033[0m'
+_red() { echo -e "${red}$*${white}"; }
+_green() { echo -e "${green}$*${white}"; }
+_yellow() { echo -e "${yellow}$*${white}"; }
+
+_err_msg() { echo -e "\033[41m\033[1mError${white} $*"; }
+_suc_msg() { echo -e "\033[42m\033[1mSuccess${white} $*"; }
 
 # 各变量默认值
 WORK_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SHARE_DIR="$WORK_DIR/share"
 
-function _exists {
+_exists() {
     local _cmd="$1"
     if type "$_cmd" >/dev/null 2>&1; then
         return 0
@@ -35,7 +38,7 @@ function _exists {
     fi
 }
 
-function pkg_install {
+pkg_install() {
     for package in "$@"; do
         _yellow "Installing $package"
         if _exists 'dnf'; then
@@ -43,10 +46,8 @@ function pkg_install {
         elif _exists 'yum'; then
             yum install -y "$package"
         elif _exists 'apt-get'; then
-            export DEBIAN_FRONTEND=noninteractive
             apt-get install -y -q "$package"
         elif _exists 'apt'; then
-            export DEBIAN_FRONTEND=noninteractive
             apt install -y -q "$package"
         elif _exists 'pacman'; then
             pacman -S --noconfirm --needed "$package"
@@ -56,7 +57,7 @@ function pkg_install {
     done
 }
 
-function pre_check {
+pre_check() {
     local depend_pkg
     depend_pkg=( 'ansible' 'ansible-playbook' )
 
@@ -67,25 +68,25 @@ function pre_check {
         fi
     done
     # 如果没有共享文件夹认为是第一次使用则执行创建
-    if [ ! -d "$WORK_DIR/share_files" ]; then
-        mkdir -p "$WORK_DIR/share_files" >/dev/null 2>&1
-        _suc_msg "$(_green "First use? $WORK_DIR/share_files created.")" && exit 0
+    if [ ! -d "$SHARE_DIR" ]; then
+        mkdir -p "$SHARE_DIR" >/dev/null 2>&1
+        _suc_msg "$(_green "First use? $SHARE_DIR created.")" && exit 0
     fi
 }
 
-function before_event {
-    if [ -f "$WORK_DIR/share_files/groups.lua" ]; then
+before_event() {
+    if [ -f "$SHARE_DIR/groups.lua" ]; then
         exec_event='groups'
-    elif [ -f "$WORK_DIR/share_files/increment.tar.gz" ]; then
+    elif [ -f "$SHARE_DIR/increment.tar.gz" ]; then
         exec_event='increment'
-    elif [ -f "$WORK_DIR/share_files/updategame.tar.gz" ]; then
+    elif [ -f "$SHARE_DIR/updategame.tar.gz" ]; then
         exec_event='maint'
     else
         _err_msg "$(_red 'List of tasks with no matches.')" && exit 1
     fi
 }
 
-function exec_playbook {
+exec_playbook() {
     case "$exec_event" in
         'groups')
             ansible-playbook cross.yml --tags 'groups'
@@ -105,14 +106,14 @@ function exec_playbook {
     esac
 }
 
-function after_event {
-    if [ -n "$WORK_DIR" ] && [ -n "$(ls -A "$WORK_DIR/share_files")" ]; then
-        rm -rf "$WORK_DIR/share_files/"* 2>/dev/null
+after_event() {
+    if [ -n "$WORK_DIR" ] && [ -n "$(ls -A "$SHARE_DIR")" ]; then
+        rm -rf "${SHARE_DIR:?}/"* 2>/dev/null
     fi
     _green 'Job Success' ; exit 0
 }
 
-function update {
+update() {
     pre_check
     before_event
     exec_playbook
