@@ -118,7 +118,7 @@
     - always
 
 # 如果进程存在则执行重读, 如果不存在则仅执行更新覆盖
-- name: Reload cross process'
+- name: 'Reload cross process'
   shell: './server.sh reload && sleep 1 && ./server.sh reload'
   args:
     chdir: '{{ base_path }}/{{ item.item }}'
