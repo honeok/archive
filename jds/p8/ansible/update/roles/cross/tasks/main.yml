@@ -10,16 +10,20 @@
 ---
 # 检查cross服务器的文件夹
 - name: 'Check cross server directory'
-  shell: 'find {{ base_path }} -maxdepth 1 -type d -name "crossserver*" -printf "%f\n"'
+  ansible.builtin.find:
+    paths: '{{ base_path }}'
+    depth: 1
+    file_type: directory
+    patterns: "^crossserver[0-9]+$"
+    use_regex: yes
   register: cross_dir
-  changed_when: cross_dir.stdout_lines | length > 0
-  failed_when: cross_dir.rc != 0
+  failed_when: cross_dir.failed or cross_dir.matched == 0
   tags:
     - always
 
 # 更新文件夹不存在则创建
 - name: 'If the updated directory does not exist, create it'
-  file:
+  ansible.builtin.file:
     path: '{{ update_path }}'
     state: directory
     mode: '0755'
@@ -28,7 +32,7 @@
 
 # 检查更新文件夹状态
 - name: 'Check status of the update directory'
-  stat:
+  ansible.builtin.stat:
     path: '{{ update_path }}'
   register: update_dir
   tags:
@@ -36,7 +40,7 @@
 
 # 删除远程主机更新路径
 - name: 'Delete remote host update directory'
-  shell: 'find {{ update_path }} -maxdepth 1 -not -path {{ update_path }} -exec rm -rf {} +'
+  ansible.builtin.shell: 'find {{ update_path }} -maxdepth 1 -not -path {{ update_path }} -exec rm -rf {} +'
   changed_when: false
   when:
     - update_dir.stat.exists and update_dir.stat.isdir
@@ -46,7 +50,7 @@
 
 # 分发跨服分组文件
 - name: 'Send cross server group file'
-  copy:
+  ansible.builtin.copy:
     src: '{{ playbook_dir }}/share/groups.lua'
     dest: '{{ update_path }}'
     mode: '0644'
@@ -55,7 +59,7 @@
 
 # 重读更新分发更新包
 - name: 'Send package of the reload update'
-  copy:
+  ansible.builtin.copy:
     src: '{{ playbook_dir }}/share/increment.tar.gz'
     dest: '{{ update_path }}'
   tags:
@@ -63,7 +67,7 @@
 
 # 维护更新分发更新包
 - name: 'Send package of the maintenance update'
-  copy:
+  ansible.builtin.copy:
     src: '{{ playbook_dir }}/share/updategame.tar.gz'
     dest: '{{ update_path }}'
   tags:
@@ -71,7 +75,7 @@
 
 # 重读更新解压更新包
 - name: 'Uncompress package of the reload update'
-  unarchive:
+  ansible.builtin.unarchive:
     src: '{{ update_path }}/increment.tar.gz'
     dest: '{{ update_path }}'
     remote_src: yes
@@ -80,7 +84,7 @@
 
 # 维护更新解压更新包
 - name: 'Uncompress package of the maintenance update'
-  unarchive:
+  ansible.builtin.unarchive:
     src: '{{ update_path }}/updategame.tar.gz'
     dest: '{{ update_path }}'
     remote_src: yes
@@ -89,40 +93,42 @@
 
 # 强制更新覆盖分组文件
 - name: 'Force update the group files'
-  copy:
+  ansible.builtin.copy:
     src: '{{ update_path }}/groups.lua'
-    dest: '{{ base_path }}/{{ item }}/etc/groups.lua'
+    dest: '{{ item.path }}/etc/groups.lua'
     remote_src: yes
     force: yes
-  loop: '{{ cross_dir.stdout_lines }}'
-  when: cross_dir.stdout_lines is defined and cross_dir.stdout_lines | length > 0
+  loop: '{{ cross_dir.files }}'
+  when: cross_dir is defined and cross_dir.matched > 0
   tags:
     - groups
 
 # 强制更新覆盖, 重读或维护阶段
 - name: 'Force update the reload or maintenance'
-  shell: 'command cp -rf {{ update_path }}/app/* {{ base_path }}/{{ item }}/'
-  loop: '{{ cross_dir.stdout_lines }}'
-  when: cross_dir.stdout_lines is defined and cross_dir.stdout_lines | length > 0
+  ansible.builtin.shell: 'command cp -rf {{ update_path }}/app/* {{ item.path }}/'
+  loop: '{{ cross_dir.files }}'
+  when: cross_dir is defined and cross_dir.matched > 0
   tags:
     - increment
     - maint
 
 # 过滤cross服务器进程
 - name: 'Filter cross processes'
-  shell: 'pgrep -af {{ base_path }}/{{ item }}/{{ app_name }}'
+  ansible.builtin.shell: 'pgrep -af {{ item.path }}/{{ app_name }}'
+  loop: '{{ cross_dir.files }}'
+  when: cross_dir is defined and cross_dir.matched > 0
   register: cross_stat
+  changed_when: false
   ignore_errors: yes
-  loop: '{{ cross_dir.stdout_lines }}'
   tags:
     - always
 
 # 如果进程存在则执行重读, 如果不存在则仅执行更新覆盖
 - name: 'Reload cross process'
-  shell: './server.sh reload && sleep 1 && ./server.sh reload'
+  ansible.builtin.shell: './server.sh reload && sleep 1 && ./server.sh reload'
   args:
-    chdir: '{{ base_path }}/{{ item.item }}'
-  when: cross_stat.results is defined and item.rc == 0
+    chdir: '{{ item.item.path }}'
   loop: '{{ cross_stat.results }}'
+  when: cross_stat.results is defined and item.rc == 0
   tags:
     - always
