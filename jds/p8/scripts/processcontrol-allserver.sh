@@ -3,74 +3,65 @@
 #
 # Description: server backend resident daemon for monitoring and management.
 #
-# Copyright (C) 2024 - 2025 honeok <honeok@duck.com>
+# Copyright (c) 2024-2025 honeok <honeok@duck.com>
 #
 # Licensed under the MIT License.
 # This software is provided "as is", without any warranty.
 
+# https://www.graalvm.org/latest/reference-manual/ruby/UTF8Locale
+export LANG=en_US.UTF-8
+
 # 当前脚本版本号
-readonly version='v0.1.3 (2025.03.22)'
-
-red='\033[91m'
-green='\033[92m'
-yellow='\033[93m'
-cyan='\033[96m'
-white='\033[0m'
-_red() { echo -e "${red}$*${white}"; }
-_green() { echo -e "${green}$*${white}"; }
-_yellow() { echo -e "${yellow}$*${white}"; }
-_cyan() { echo -e "${cyan}$*${white}"; }
-
-_err_msg() { echo -e "\033[41m\033[1mError${white} $*"; }
+readonly version='v0.1.4 (2025.04.02)'
 
 # 各变量默认值
 process_pid='/tmp/process.pid'
-LOG_DIR='/data/logbak'
-WORK_DIR='/data/tool'
-APP_NAME='p8_app_server'
-UA_BROWSER="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
-readonly process_pid LOG_DIR WORK_DIR APP_NAME UA_BROWSER
+log_dir='/data/logbak'
+work_dir='/data/tool'
+app_name='p8_app_server'
+ua_browser='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36'
+readonly process_pid log_dir work_dir app_name ua_browser
 
 send_message() {
     local event="$1"
-    local cloudflare_api country ipv4_address cur_time os_info cpu_arch
+    local cloudflare_api='www.qualcomm.cn'
+    local public_ip cur_time country os_info cpu_arch
 
-    # 备用 www.qualcomm.cn
-    cloudflare_api='www.garmin.com.cn'
-    country=$(curl -A "$UA_BROWSER" -fskL -m 3 -4 "https://$cloudflare_api/cdn-cgi/trace" | grep -i '^loc=' | cut -d'=' -f2 | xargs)
-    ipv4_address=$(curl -A "$UA_BROWSER" -fskL -m 3 -4 "https://$cloudflare_api/cdn-cgi/trace" | grep -i '^ip=' | cut -d'=' -f2 | xargs)
-    cur_time=$(date -d @$(($(curl -fskL -m 3 https://acs.m.taobao.com/gw/mtop.common.getTimestamp/ | awk -F'"t":"' '{print $2}' | cut -d '"' -f1) / 1000)) +"%F %T" ||
-        date -u '+%Y-%m-%d %H:%M:%S' -d '+8 hours')
+    public_ip=$(curl -A "$ua_browser" -fskL -m 5 "https://$cloudflare_api/cdn-cgi/trace" | grep -i '^ip=' | cut -d'=' -f2 | xargs)
+    cur_time=$(date -u '+%Y-%m-%d %H:%M:%S' -d '+8 hours')
+    country=$(curl -A "$ua_browser" -fskL -m 5 "https://$cloudflare_api/cdn-cgi/trace" | grep -i '^loc=' | cut -d'=' -f2 | xargs)
     os_info=$(grep "^PRETTY_NAME=" /etc/*-release | cut -d '"' -f 2 | sed 's/ (.*)//')
     cpu_arch=$(uname -m 2>/dev/null || lscpu | awk -F ': +' '/Architecture/{print $2}')
 
     curl -fskL -X POST "https://api.honeok.com/api/log" \
         -H "Content-Type: application/json" \
-        -d "{\"action\":\"$event $ipv4_address\",\"timestamp\":\"$cur_time\",\"country\":\"$country\",\"os_info\":\"$os_info\",\"cpu_arch\":\"$cpu_arch\"}" >/dev/null 2>&1 &
+        -d "{\"action\":\"$event $public_ip\",\"timestamp\":\"$cur_time\",\"country\":\"$country\",\"os_info\":\"$os_info\",\"cpu_arch\":\"$cpu_arch\"}" >/dev/null 2>&1 &
 }
 
 pre_check() {
-    local cur_tty
-    cur_tty=$(tty) # 获取当前终端
-
-    [ -t 1 ] && tput clear 2>/dev/null || echo -e "\033[2J\033[H" || clear > "$cur_tty"
     # 确保守护进程唯一
     if [ -f "$process_pid" ] && kill -0 "$(cat "$process_pid")" 2>/dev/null; then
-        _err_msg "$(_red 'The script is running, please do not repeat the operation!')" > "$cur_tty" && exit 1
+        echo 'The script is running, please do not repeat the operation!' >> "$work_dir/control.txt" && exit 1
     fi
     echo $$ > "$process_pid"
     # 确保root用户运行
     if [ "$(id -ru)" -ne 0 ] || [ "$EUID" -ne 0 ]; then
-        _err_msg "$(_red 'This script must be run as root!')" > "$cur_tty" && exit 1
+        echo 'This script must be run as root!' >> "$work_dir/control.txt" && exit 1
     fi
     # 确保使用bash运行而不是sh
     if [ "$(ps -p $$ -o comm=)" != "bash" ] || readlink /proc/$$/exe | grep -q "dash"; then
-        _err_msg "$(_red 'This script requires Bash as the shell interpreter!')" > "$cur_tty" && exit 1
+        echo 'This script needs to be run with bash, not sh!' >> "$work_dir/control.txt" && exit 1
     fi
     # 创建运行必备文件夹
-    [ ! -d "$LOG_DIR" ] && mkdir -p "$LOG_DIR" 2>/dev/null
-    [ ! -d "$WORK_DIR" ] && mkdir -p "$WORK_DIR" 2>/dev/null
-    [ -t 1 ] && echo "$(_yellow Current script version: ) $(_cyan "$version") , $(_green 'Daemon process started.') $(_cyan "\xe2\x9c\x93")" > "$cur_tty"
+    [ ! -d "$log_dir" ] && mkdir -p "$log_dir" 2>/dev/null
+    [ ! -d "$work_dir" ] && mkdir -p "$work_dir" 2>/dev/null
+    # 清除历史守护进程输出文件
+    if [ -s "${work_dir}/control.txt" ] || [ -s "${work_dir}/dump.txt" ]; then
+        rm -f "${work_dir:?Error: work_dir is not set}"/{control.txt,dump.txt} 2>/dev/null
+    fi
+    # 预检完成后认为环境没有问题, 输出启动成功提示
+    printf "Current script version: %s Daemon process started. \xe2\x9c\x93 \n" "$version" >> "$work_dir/control.txt"
+    printf "\n"
 }
 
 # independent logic called by a function
@@ -78,14 +69,14 @@ check_server() {
     local server_name="$1"
     local server_dir="$2"
 
-    if ! pgrep -f "$server_dir/$APP_NAME" >/dev/null 2>&1; then
+    if ! pgrep -f "$server_dir/$app_name" >/dev/null 2>&1; then
         cd "$server_dir" || return
-        [ -f nohup.txt ] && mv -f nohup.txt "$LOG_DIR/nohup_${server_name}_$(date -u '+%Y-%m-%d_%H:%M:%S' -d '+8 hours').txt"
+        [ -f nohup.txt ] && mv -f nohup.txt "$log_dir/nohup_${server_name}_$(date -u '+%Y-%m-%d_%H:%M:%S' -d '+8 hours').txt"
         ./server.sh start &
         send_message "$server_name Restart" &
-        echo "$(date -u '+%Y-%m-%d %H:%M:%S' -d '+8 hours') [ERROR] $server_name Restart" >> "$WORK_DIR/dump.txt" &
+        echo "$(date -u '+%Y-%m-%d %H:%M:%S' -d '+8 hours') [ERROR] $server_name Restart" >> "$work_dir/dump.txt" &
     else
-        echo "$(date -u '+%Y-%m-%d %H:%M:%S' -d '+8 hours') [INFO] $server_name Running" >> "$WORK_DIR/control.txt" &
+        echo "$(date -u '+%Y-%m-%d %H:%M:%S' -d '+8 hours') [INFO] $server_name Running" >> "$work_dir/control.txt" &
     fi
 }
 
