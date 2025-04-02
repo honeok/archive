@@ -1,4 +1,4 @@
-# Description: Incremental and maintenance updates for game servers.
+# Description: provides incremental and maintenance updates for game servers.
 #
 # Copyright (c) 2025 honeok <honeok@duck.com>
 #
@@ -9,32 +9,39 @@
 
 ---
 # 检查game服务器的目录
-- name: Look for game server folders
-  shell: find '{{ base_path }}' -maxdepth 1 -type d -name 'server[0-9]*' -printf '%f\n'
+- name: 'Check game server directory'
+  ansible.builtin.find:
+    paths: '{{ base_path }}'
+    depth: 1
+    file_type: directory
+    patterns: "^server[0-9]+$"
+    use_regex: yes
   register: game_dir
+  failed_when: game_dir.failed or game_dir.matched == 0
   tags:
     - always
 
-# 检查更新文件夹是否存在, 不存在则创建
-- name: Make update folder if it's not there
-  file:
+# 更新文件夹不存在则创建
+- name: 'If the updated directory does not exist, create it'
+  ansible.builtin.file:
     path: '{{ update_path }}'
     state: directory
     mode: '0755'
   tags:
     - always
 
-# 检查更新目录状态
-- name: See if update folder is there
-  stat:
+# 检查更新文件夹状态
+- name: 'Check status of the update directory'
+  ansible.builtin.stat:
     path: '{{ update_path }}'
   register: update_dir
   tags:
     - always
 
 # 删除远程主机更新路径
-- name: Wipe out update folder contents
-  shell: find '{{ update_path }}' -maxdepth 1 -not -path '{{ update_path }}' -exec rm -rf {} +
+- name: 'Delete remote host update directory'
+  ansible.builtin.shell: 'find {{ update_path }} -maxdepth 1 -not -path {{ update_path }} -exec rm -rf {} +'
+  changed_when: false
   when:
     - update_dir.stat.exists and update_dir.stat.isdir
     - update_path != "/"
@@ -42,83 +49,86 @@
     - always
 
 # 分发跨服分组文件
-- name: Send over the group file
-  copy:
-    src: '{{ playbook_dir }}/share_files/groups.lua'
+- name: 'Send cross server group file'
+  ansible.builtin.copy:
+    src: '{{ playbook_dir }}/share/groups.lua'
     dest: '{{ update_path }}'
+    mode: '0644'
   tags:
     - groups
 
-# 分发更新包, 重读更新
-- name: Send over the update package
-  copy:
-    src: '{{ playbook_dir }}/share_files/increment.tar.gz'
+# 重读更新分发更新包
+- name: 'Send package of the reload update'
+  ansible.builtin.copy:
+    src: '{{ playbook_dir }}/share/increment.tar.gz'
     dest: '{{ update_path }}'
   tags:
     - increment
 
-# 分发更新包, 维护
-- name: Send over the maintenance update
-  copy:
-    src: '{{ playbook_dir }}/share_files/updategame.tar.gz'
+# 维护更新分发更新包
+- name: 'Send package of the maintenance update'
+  ansible.builtin.copy:
+    src: '{{ playbook_dir }}/share/updategame.tar.gz'
     dest: '{{ update_path }}'
   tags:
     - maint
 
-# 解压更新包, 增量更新
-- name: Unpack the increment update
-  unarchive:
+# 重读更新解压更新包
+- name: 'Uncompress package of the reload update'
+  ansible.builtin.unarchive:
     src: '{{ update_path }}/increment.tar.gz'
     dest: '{{ update_path }}'
     remote_src: yes
   tags:
     - increment
 
-# 解压更新包, 维护
-- name: Unpack the maintenance update
-  unarchive:
+# 维护更新解压更新包
+- name: 'Uncompress package of the maintenance update'
+  ansible.builtin.unarchive:
     src: '{{ update_path }}/updategame.tar.gz'
     dest: '{{ update_path }}'
     remote_src: yes
   tags:
     - maint
 
-# 强制覆盖更新分组文件
-- name: Force update the group files
-  copy:
+# 强制更新覆盖分组文件
+- name: 'Force update the group files'
+  ansible.builtin.copy:
     src: '{{ update_path }}/groups.lua'
-    dest: '{{ base_path }}/{{ item }}/game/etc/groups.lua'
+    dest: '{{ item.path }}/game/etc/groups.lua'
     remote_src: yes
-  loop: '{{ game_dir.stdout_lines }}'
+    force: yes
+  loop: '{{ game_dir.files }}'
+  when: game_dir is defined and game_dir.matched > 0
   tags:
     - groups
 
-# 强制覆盖更新重读或维护阶段
-- name: Push the app updates hard
-  copy:
-    src: '{{ update_path }}/app/'
-    dest: '{{ base_path }}/{{ item }}/game/'
-    remote_src: yes
-  loop: '{{ game_dir.stdout_lines }}'
+# 强制更新覆盖, 重读或维护阶段
+- name: 'Force update the reload or maintenance'
+  ansible.builtin.shell: 'command cp -rf {{ update_path }}/app/* {{ item.path }}/game/'
+  loop: '{{ game_dir.files }}'
+  when: game_dir is defined and game_dir.matched > 0
   tags:
     - increment
     - maint
 
-# 过滤Game服务器进程
-- name: Filter game processes
-  shell: pgrep -af '{{ base_path }}/{{ item }}/game/{{ app_name }}'
+# 过滤game服务器进程
+- name: 'Filter game processes'
+  ansible.builtin.shell: 'pgrep -af {{ item.path }}/game/{{ app_name }}'
+  loop: '{{ game_dir.files }}'
+  when: game_dir is defined and game_dir.matched > 0
   register: game_stat
+  changed_when: false
   ignore_errors: yes
-  loop: '{{ game_dir.stdout_lines }}'
   tags:
     - always
 
 # 如果进程存在则执行重读, 如果不存在则仅执行更新覆盖
-- name: Reload game process
-  shell: ./server.sh reload && sleep 1 && ./server.sh reload
+- name: 'Reload game process'
+  ansible.builtin.shell: './server.sh reload && sleep 1 && ./server.sh reload'
   args:
-    chdir: '{{ base_path }}/{{ item.item }}/game/'
-  when: game_stat.results is defined and item.rc == 0
+    chdir: '{{ item.item.path }}/game/'
   loop: '{{ game_stat.results }}'
+  when: game_stat.results is defined and item.rc == 0
   tags:
     - always
