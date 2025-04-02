@@ -9,7 +9,7 @@
 
 ---
 # 检查cross服务器的文件夹
-- name: check for cross server folders
+- name: 'Check cross server directory'
   shell: 'find {{ base_path }} -maxdepth 1 -type d -name "crossserver*" -printf "%f\n"'
   register: cross_dir
   changed_when: cross_dir.stdout_lines | length > 0
@@ -18,7 +18,7 @@
     - always
 
 # 更新文件夹不存在则创建
-- name: if update folder does not exist
+- name: 'If the updated directory does not exist, create it'
   file:
     path: '{{ update_path }}'
     state: directory
@@ -27,7 +27,7 @@
     - always
 
 # 检查更新文件夹状态
-- name: check the status of the update folder
+- name: 'Check status of the update directory'
   stat:
     path: '{{ update_path }}'
   register: update_dir
@@ -35,7 +35,7 @@
     - always
 
 # 删除远程主机更新路径
-- name: Wipe out update folder contents
+- name: 'Delete remote host update directory'
   shell: 'find {{ update_path }} -maxdepth 1 -not -path {{ update_path }} -exec rm -rf {} +'
   changed_when: false
   when:
@@ -45,7 +45,7 @@
     - always
 
 # 分发跨服分组文件
-- name: send cross server group file
+- name: 'Send cross server group file'
   copy:
     src: '{{ playbook_dir }}/share/groups.lua'
     dest: '{{ update_path }}'
@@ -54,7 +54,7 @@
     - groups
 
 # 重读更新分发更新包
-- name: send package of the reload update
+- name: 'Send package of the reload update'
   copy:
     src: '{{ playbook_dir }}/share/increment.tar.gz'
     dest: '{{ update_path }}'
@@ -62,7 +62,7 @@
     - increment
 
 # 维护更新分发更新包
-- name: send package of the maintenance update
+- name: 'Send package of the maintenance update'
   copy:
     src: '{{ playbook_dir }}/share/updategame.tar.gz'
     dest: '{{ update_path }}'
@@ -70,7 +70,7 @@
     - maint
 
 # 重读更新解压更新包
-- name: uncompress package of the reload update
+- name: 'Uncompress package of the reload update'
   unarchive:
     src: '{{ update_path }}/increment.tar.gz'
     dest: '{{ update_path }}'
@@ -79,7 +79,7 @@
     - increment
 
 # 维护更新解压更新包
-- name: uncompress package of the maintenance update
+- name: 'Uncompress package of the maintenance update'
   unarchive:
     src: '{{ update_path }}/updategame.tar.gz'
     dest: '{{ update_path }}'
@@ -88,7 +88,7 @@
     - maint
 
 # 强制更新覆盖分组文件
-- name: force update the group files
+- name: 'Force update the group files'
   copy:
     src: '{{ update_path }}/groups.lua'
     dest: '{{ base_path }}/{{ item }}/etc/groups.lua'
@@ -100,7 +100,7 @@
     - groups
 
 # 强制更新覆盖, 重读或维护阶段
-- name: force update the reload or maintenance
+- name: 'Force update the reload or maintenance'
   shell: 'command cp -rf {{ update_path }}/app/* {{ base_path }}/{{ item }}/'
   loop: '{{ cross_dir.stdout_lines }}'
   when: cross_dir.stdout_lines is defined and cross_dir.stdout_lines | length > 0
@@ -109,7 +109,7 @@
     - maint
 
 # 过滤cross服务器进程
-- name: filter cross processes
+- name: 'Filter cross processes'
   shell: 'pgrep -af {{ base_path }}/{{ item }}/{{ app_name }}'
   register: cross_stat
   ignore_errors: yes
@@ -118,7 +118,7 @@
     - always
 
 # 如果进程存在则执行重读, 如果不存在则仅执行更新覆盖
-- name: reload cross process
+- name: Reload cross process'
   shell: './server.sh reload && sleep 1 && ./server.sh reload'
   args:
     chdir: '{{ base_path }}/{{ item.item }}'
