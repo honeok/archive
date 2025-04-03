@@ -1,0 +1,6 @@
+---
+- name: 'execute globalNodes tasks'
+  hosts: global
+  remote_user: root
+  roles:
+    - global
