@@ -1,0 +1,69 @@
+# Description: Perform maintenance updates for global servers.
+#
+# Copyright (c) 2025 honeok <honeok@duck.com>
+#
+# Thanks: zzwsec <zzwsec@163.com>
+#
+# Licensed under the MIT License.
+# This software is provided "as is", without any warranty.
+
+---
+# 检查zk服务器的目录
+- name: 'Check global server directory'
+  ansible.builtin.find:
+    paths: '{{ base_path }}'
+    depth: 1
+    file_type: directory
+    patterns: "^global[0-9]+$"
+    use_regex: yes
+  register: global_dir
+  failed_when: global_dir.failed or global_dir.matched == 0
+
+# 更新文件夹不存在则创建
+- name: 'If the updated directory does not exist, create it'
+  ansible.builtin.file:
+    path: '{{ update_path }}'
+    state: directory
+    mode: '0755'
+
+# 检查更新文件夹状态
+- name: 'Check status of the update directory'
+  ansible.builtin.stat:
+    path: '{{ update_path }}'
+  register: update_dir
+
+# 删除远程主机更新路径
+- name: 'Delete remote host update directory'
+  ansible.builtin.shell: 'find {{ update_path }} -maxdepth 1 -not -path {{ update_path }} -exec rm -rf {} +'
+  changed_when: false
+  when:
+    - update_dir.stat.exists and update_dir.stat.isdir
+    - update_path != "/"
+
+# 维护更新分发更新包
+- name: 'Send package of the maintenance update'
+  ansible.builtin.copy:
+    src: '{{ playbook_dir }}/share/updategame.tar.gz'
+    dest: '{{ update_path }}'
+
+# 维护更新解压更新包
+- name: 'Uncompress package of the maintenance update'
+  ansible.builtin.unarchive:
+    src: '{{ update_path }}/updategame.tar.gz'
+    dest: '{{ update_path }}'
+    remote_src: yes
+
+# 过滤zk服务器进程
+- name: 'Filter global processes'
+  ansible.builtin.shell: 'pgrep -af {{ item.path }}/{{ app_name }}'
+  loop: '{{ global_dir.files }}'
+  when: global_dir is defined and global_dir.matched > 0
+  register: global_stat
+  changed_when: false
+  ignore_errors: yes
+
+# 强制覆盖更新
+- name: 'Force update the maintenance'
+  ansible.builtin.shell: 'command cp -rf {{ update_path }}/app/* {{ item.path }}/'
+  loop: '{{ global_dir.files }}'
+  when: global_stat.results is defined and not global_stat.results | map(attribute='stdout_lines') | flatten
