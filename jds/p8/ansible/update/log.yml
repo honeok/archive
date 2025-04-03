@@ -1,0 +1,6 @@
+---
+- name: 'execute logNodes tasks'
+  hosts: log
+  remote_user: root
+  roles:
+    - log
