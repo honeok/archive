@@ -1,5 +1,6 @@
 ---
-- hosts: game
+- name: 'execute gameNodes tasks'
+  hosts: game
   remote_user: root
   roles:
     - game
