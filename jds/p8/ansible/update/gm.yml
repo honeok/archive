@@ -1,0 +1,6 @@
+---
+- name: 'execute gmNodes tasks'
+  hosts: gm
+  remote_user: root
+  roles:
+    - gm
