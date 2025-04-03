@@ -54,7 +54,7 @@
     remote_src: yes
 
 # 过滤zk服务器进程
-- name: 'Filter cross processes'
+- name: 'Filter zk processes'
   ansible.builtin.shell: 'pgrep -af {{ item.path }}/{{ app_name }}'
   loop: '{{ zk_dir.files }}'
   when: zk_dir is defined and zk_dir.matched > 0
@@ -63,7 +63,7 @@
   ignore_errors: yes
 
 # 强制覆盖更新
-- name: 'Force update the reload or maintenance'
+- name: 'Force update the maintenance'
   ansible.builtin.shell: 'command cp -rf {{ update_path }}/app/* {{ item.path }}/'
   loop: '{{ zk_dir.files }}'
   when: zk_stat.results is defined and not zk_stat.results | map(attribute='stdout_lines') | flatten
