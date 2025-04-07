@@ -1,5 +1,6 @@
 ---
-- hosts: zk
+- name: 'execute zkNodes tasks'
+  hosts: zk
   remote_user: root
   roles:
     - zk
