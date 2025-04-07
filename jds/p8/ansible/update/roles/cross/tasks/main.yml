@@ -17,7 +17,14 @@
     patterns: "^crossserver[0-9]+$"
     use_regex: yes
   register: cross_dir
-  failed_when: cross_dir.failed or cross_dir.matched == 0
+  ignore_errors: yes
+  tags:
+    - always
+
+# 如果cross服务器文件夹未被定义跳过当前主机
+- name: 'Skip server if no crossserver directories found'
+  ansible.builtin.meta: end_host
+  when: cross_dir.matched == 0
   tags:
     - always
 
