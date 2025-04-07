@@ -16,12 +16,12 @@ red='\033[91m'
 green='\033[92m'
 yellow='\033[93m'
 white='\033[0m'
-_red() { echo -e "${red}$*${white}"; }
-_green() { echo -e "${green}$*${white}"; }
-_yellow() { echo -e "${yellow}$*${white}"; }
+_red() { printf "$red%s$white\n" "$*"; }
+_green() { printf "$green%s$white\n" "$*"; }
+_yellow() { printf "$yellow%s$white\n" "$*"; }
 
-_err_msg() { echo -e "\033[41m\033[1mError${white} $*"; }
-_suc_msg() { echo -e "\033[42m\033[1mSuccess${white} $*"; }
+_err_msg() { printf "\033[41m\033[1mError$white %s\n" "$*"; }
+_suc_msg() { printf "\033[42m\033[1mSuccess$white %s\n" "$*"; }
 
 # 各变量默认值
 WORK_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -105,6 +105,8 @@ exec_playbook() {
             ansible-playbook gm.yml --tags 'maint'
             ansible-playbook global.yml
             ansible-playbook zk.yml
+            ansible-playbook gate.yml
+            ansible-playbook login.yml
         ;;
         *)
             _err_msg "$(_red 'List of tasks with no matches.')" && exit 1
@@ -116,7 +118,7 @@ after_event() {
     if [ -n "$WORK_DIR" ] && [ -n "$(ls -A "$SHARE_DIR")" ]; then
         rm -rf "${SHARE_DIR:?}/"* 2>/dev/null
     fi
-    _green 'Job Success' ; exit 0
+    _green 'Job Success'; exit 0
 }
 
 update() {
