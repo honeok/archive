@@ -1,0 +1,6 @@
+---
+- name: 'execute gateNodes tasks'
+  hosts: gate
+  remote_user: root
+  roles:
+    - gate
