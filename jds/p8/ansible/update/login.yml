@@ -1,0 +1,6 @@
+---
+- name: 'execute loginNodes tasks'
+  hosts: login
+  remote_user: root
+  roles:
+    - login
