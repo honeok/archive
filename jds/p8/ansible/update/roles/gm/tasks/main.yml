@@ -17,7 +17,14 @@
     patterns: "^gmserver[0-9]+$"
     use_regex: yes
   register: gm_dir
-  failed_when: gm_dir.failed or gm_dir.matched == 0
+  ignore_errors: yes
+  tags:
+    - always
+
+# 如果gm服务器文件夹未被定义跳过当前主机
+- name: 'Skip server if no gmserver directories found'
+  ansible.builtin.meta: end_host
+  when: gm_dir.matched == 0
   tags:
     - always
 

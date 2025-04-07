@@ -17,7 +17,12 @@
     patterns: "^global[0-9]+$"
     use_regex: yes
   register: global_dir
-  failed_when: global_dir.failed or global_dir.matched == 0
+  ignore_errors: yes
+
+# 如果global服务器文件夹未被定义跳过当前主机
+- name: 'Skip server if no globalserver directories found'
+  ansible.builtin.meta: end_host
+  when: global_dir.matched == 0
 
 # 更新文件夹不存在则创建
 - name: 'If the updated directory does not exist, create it'

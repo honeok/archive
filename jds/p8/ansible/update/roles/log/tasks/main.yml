@@ -17,7 +17,14 @@
     patterns: "^logserver[0-9]+$"
     use_regex: yes
   register: log_dir
-  failed_when: log_dir.failed or log_dir.matched == 0
+  ignore_errors: yes
+  tags:
+    - always
+
+# 如果log服务器文件夹未被定义跳过当前主机
+- name: 'Skip server if no logserver directories found'
+  ansible.builtin.meta: end_host
+  when: log_dir.matched == 0
   tags:
     - always
 

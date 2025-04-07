@@ -17,7 +17,12 @@
     patterns: "^zk[0-9]+$"
     use_regex: yes
   register: zk_dir
-  failed_when: zk_dir.failed or zk_dir.matched == 0
+  ignore_errors: yes
+
+# 如果zk服务器文件夹未被定义跳过当前主机
+- name: 'Skip server if no zkserver directories found'
+  ansible.builtin.meta: end_host
+  when: zk_dir.matched == 0
 
 # 更新文件夹不存在则创建
 - name: 'If the updated directory does not exist, create it'

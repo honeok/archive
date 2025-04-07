@@ -17,7 +17,14 @@
     patterns: "^server[0-9]+$"
     use_regex: yes
   register: game_dir
-  failed_when: game_dir.failed or game_dir.matched == 0
+  ignore_errors: yes
+  tags:
+    - always
+
+# 如果game服务器文件夹未被定义跳过当前主机
+- name: 'Skip server if no gameserver directories found'
+  ansible.builtin.meta: end_host
+  when: game_dir.matched == 0
   tags:
     - always
 
