@@ -15,6 +15,8 @@ use gamedb1;
 -- 设定数据库B的数据库名
 SET @db_name = 'gamedb2';  -- 将数据库B的名称赋值给变量
 
+SET SESSION group_concat_max_len = 10240000;
+
 -- 设定数据库B中重名角色以及重名公会前缀
 set @pname='S';           -- 角色重名前缀
 set @uname='S';           -- 公会重名前缀
