@@ -12,29 +12,31 @@
 export LANG=en_US.UTF-8
 
 # 当前脚本版本号
-readonly VERSION='v0.1.5 (2025.04.22)'
+readonly VERSION='v0.1.6 (2025.04.30)'
 
 # 各变量默认值
-PROCESS_PID="/tmp/process.pid"
-LOG_DIR="/data/logbak"
-WORK_DIR="/data/tool"
-APP_NAME="p8_app_server"
-UA_BROWSER="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+PROCESS_PID='/tmp/process.pid'
+LOG_DIR='/data/logbak'
+WORK_DIR='/data/tool'
+APP_NAME='p8_app_server'
+UA_BROWSER='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36'
 readonly PROCESS_PID LOG_DIR WORK_DIR APP_NAME UA_BROWSER
+
+declare -a CURL_OPTS=(--max-time 5 --retry 1 --retry-max-time 10)
 
 send_message() {
     local EVENT="$1"
-    local CLOUDFLARE_API="www.qualcomm.cn"
+    local CLOUDFLARE_API='www.qualcomm.cn'
     local PUBLIC_IP CUR_TIME COUNTRY OS_INFO CPU_ARCH
 
-    PUBLIC_IP=$(curl -A "$UA_BROWSER" -fsSL -m 5 "https://$CLOUDFLARE_API/cdn-cgi/trace" | grep -i '^ip=' | cut -d'=' -f2 | xargs)
+    PUBLIC_IP=$(curl -A "$UA_BROWSER" "${CURL_OPTS[@]}" -fsL "http://$CLOUDFLARE_API/cdn-cgi/trace" | grep -i '^ip=' | cut -d'=' -f2 | xargs)
     CUR_TIME=$(date -u '+%Y-%m-%d %H:%M:%S' -d '+8 hours')
-    COUNTRY=$(curl -A "$UA_BROWSER" -fsSL -m 5 "https://$CLOUDFLARE_API/cdn-cgi/trace" | grep -i '^loc=' | cut -d'=' -f2 | xargs)
-    OS_INFO=$(grep "^PRETTY_NAME=" /etc/*-release | cut -d '"' -f 2 | sed 's/ (.*)//')
+    COUNTRY=$(curl -A "$UA_BROWSER" "${CURL_OPTS[@]}" -fsL "http://$CLOUDFLARE_API/cdn-cgi/trace" | grep -i '^loc=' | cut -d'=' -f2 | xargs)
+    OS_INFO=$(grep '^PRETTY_NAME=' /etc/os-release | cut -d '"' -f 2 | sed 's/ (.*)//')
     CPU_ARCH=$(uname -m 2>/dev/null || lscpu | awk -F ': +' '/Architecture/{print $2}')
 
     (
-        curl -fsSL -k -X POST "https://p8.isrose.dpdns.org/api/log" \
+        curl -fsL -k -X POST "https://p8.119611.xyz/api/log" \
         -H "Content-Type: application/json" \
         -d "{\"action\":\"$EVENT $PUBLIC_IP\",\"timestamp\":\"$CUR_TIME\",\"country\":\"$COUNTRY\",\"os_info\":\"$OS_INFO\",\"cpu_arch\":\"$CPU_ARCH\"}" \
         >/dev/null 2>&1
@@ -48,7 +50,7 @@ pre_check() {
     fi
     echo $$ > "$PROCESS_PID"
     # 确保root用户运行
-    if [ "$(id -ru)" -ne 0 ] || [ "$EUID" -ne 0 ]; then
+    if [ "$EUID" -ne 0 ]; then
         echo 'This script must be run as root!' >> "$WORK_DIR/control.txt" && exit 1
     fi
     # 确保使用bash运行而不是sh
@@ -64,7 +66,6 @@ pre_check() {
     fi
     # 预检完成后认为环境没有问题, 输出启动成功提示
     printf "Current script version: %s Daemon process started. \xe2\x9c\x93 \n" "$VERSION" >> "$WORK_DIR/control.txt"
-    printf "\n"
 }
 
 # independent logic called by a function
@@ -84,27 +85,33 @@ check_server() {
     fi
 }
 
-entrance_check() {
+entry_check() {
     check_server "gate" "/data/server/gate"
     sleep 3s
     check_server "login" "/data/server/login"
     sleep 3s
 }
 
-center_check() {
+global_check() {
     local BASE_PATH='/data/center'
     local GLOBAL_SERVER=()
-    local ZK_SERVER=()
     while IFS='' read -r row; do GLOBAL_SERVER+=("$row"); done < <(find "$BASE_PATH" -maxdepth 1 -type d -name "global*[0-9]" -printf "%f\n" | sed 's/global//' | sort -n)
-    while IFS='' read -r row; do ZK_SERVER+=("$row"); done < <(find "$BASE_PATH" -maxdepth 1 -type d -name "zk*[0-9]" -printf "%f\n" | sed 's/zk//' | sort -n)
 
-    if [ "${#GLOBAL_SERVER[@]}" -eq 0 ] || [ "${#ZK_SERVER[@]}" -eq 0 ]; then return; fi
+    if [ "${#GLOBAL_SERVER[@]}" -eq 0 ]; then return; fi
     for num in "${GLOBAL_SERVER[@]}"; do
         SERVER_NAME="global$num"
         SERVER_DIR="$BASE_PATH/$SERVER_NAME"
         check_server "$SERVER_NAME" "$SERVER_DIR"
         sleep 3s
     done
+}
+
+zk_check() {
+    local BASE_PATH='/data/center'
+    local ZK_SERVER=()
+    while IFS='' read -r row; do ZK_SERVER+=("$row"); done < <(find "$BASE_PATH" -maxdepth 1 -type d -name "zk*[0-9]" -printf "%f\n" | sed 's/zk//' | sort -n)
+
+    if [ "${#ZK_SERVER[@]}" -eq 0 ]; then return; fi
     for num in "${ZK_SERVER[@]}"; do
         SERVER_NAME="zk$num"
         SERVER_DIR="$BASE_PATH/$SERVER_NAME"
@@ -133,6 +140,19 @@ log_check() {
     if [ "${#LOG_SERVER[@]}" -eq 0 ]; then return; fi
     for num in "${LOG_SERVER[@]}"; do
         SERVER_NAME="logserver$num"
+        SERVER_DIR="/data/$SERVER_NAME"
+        check_server "$SERVER_NAME" "$SERVER_DIR"
+        sleep 3s
+    done
+}
+
+api_check() {
+    local API_SERVER=()
+    while IFS='' read -r row; do API_SERVER+=("$row"); done < <(find /data -maxdepth 1 -type d -name "apiserver*[0-9]" -printf "%f\n" | sed 's/apiserver//' | sort -n)
+
+    if [ "${#API_SERVER[@]}" -eq 0 ]; then return; fi
+    for num in "${API_SERVER[@]}"; do
+        SERVER_NAME="apiserver$num"
         SERVER_DIR="/data/$SERVER_NAME"
         check_server "$SERVER_NAME" "$SERVER_DIR"
         sleep 3s
@@ -169,13 +189,15 @@ processcontrol() {
     pre_check
 
     while :; do
-        entrance_check
-        center_check
+        entry_check
+        global_check
+        zk_check
         game_check
         log_check
+        api_check
         cross_check
         gm_check
-        sleep 5s
+        sleep 3s
     done
 }
 
