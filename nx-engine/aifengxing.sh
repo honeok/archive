@@ -1,54 +1,55 @@
 #!/usr/bin/env bash
 #
-# Description: h5 container rolling update.
-# System Required:  centos7+ rhel8+ rocky8+ alma8+
+# Description: This script is used for scrolling updates of h5 frontend pages.
 #
-# Copyright (C) 2021 - 2022 nx-engine <yihao.he@nx-engine.com>
+# Copyright (c) 2021-2022 yihao.he <yihao.he@nx-engine.com>
 #
-# https://www.nx-engine.com
-# https://github.com/honeok/archive/raw/master/nx-engine/aifengxing.sh
+# Thanks: zhenqiang.zhang <zhenqiang.zhang@nx-engine.com>
+#
+# Licensed under the MIT License.
+# This software is provided "as is", without any warranty.
 
-set \
-    -o errexit \
-    -o nounset
+set -eu
 
-clear
+_red() { printf "\033[91m%s\033[0m\n" "$*"; }
+_green() { printf "\033[92m%s\033[0m\n" "$*"; }
+_yellow() { printf "\033[93m%s\033[0m\n" "$*"; }
+_err_msg() { printf "\033[41m\033[1mError\033[0m %s\n" "$*"; }
 
-host_port='8080'
-container_port='3000'
-svc_name='DongFengFengXing'
+# https://www.graalvm.org/latest/reference-manual/ruby/UTF8Locale
+if locale -a 2>/dev/null | grep -qiE -m 1 "UTF-8|utf8"; then
+    export LANG=en_US.UTF-8
+fi
 
-yellow='\033[93m'
-red='\033[31m'
-green='\033[92m'
-white='\033[0m'
-_yellow() { echo -e "${yellow}$*${white}"; }
-_red() { echo -e "${red}$*${white}"; }
-_green() { echo -e "${green}$*${white}"; }
+# 清屏函数
+clear_screen() {
+    [ -t 1 ] && tput clear 2>/dev/null || echo -e "\033[2J\033[H" || clear
+}
 
-_err_msg() { echo -e "\033[41m\033[1m警告${white} $*"; }
+error_and_exit() {
+    _err_msg "$(_red "$@")" >&2 && exit 1
+}
 
-# Check OS type
-os_info=$(grep ^ID= /etc/*release | awk -F'=' '{print $2}' | sed 's/"//g')
-[[ "$os_info" != "centos" && "$os_info" != "rhel" && "$os_info" != "rocky" && "$os_info" != "almalinux" ]] && exit 1
-[ "$(id -u)" -ne "0" ] && _err_msg "$(_red '需要root用户才能运行！')" && exit 1
+# 系统及用户权限检查
+OS_INFO=$(grep '^ID=' /etc/os-release | awk -F'=' '{print $NF}' | sed 's#"##g')
+[[ "$OS_INFO" != "almalinux" && "$OS_INFO" != "centos" && "$OS_INFO" != "rhel" && "$OS_INFO" != "rocky" ]] && error_and_exit 'This Linux distribution is not supported!'
+[ "$EUID" -ne 0 ] && error_and_exit 'This script must be run as root!'
 
-# Ensure running from root directory
+# 确保工作于根目录
 if [ "$(cd -P -- "$(dirname -- "$0")" && pwd -P)" != "/root" ]; then
-    cd /root >/dev/null 2>&1
+    cd /root >/dev/null 2>&1 || error_and_exit 'Failed to switch directory, Check permissions!'
 fi
 
 # https://www.shellcheck.net/wiki/SC1091
 # shellcheck source=/dev/null
 . /etc/init.d/functions
 
-# Validate parameters
-if [ $# -lt 1 ]; then
-    _red "No parameters provided！" && exit 1
-fi
+clear_screen
+command -v docker >/dev/null 2>&1 || error_and_exit 'Please install the docker environment first!'
+[ "$#" -ne 1 ] && error_and_exit 'No parameters provided!'
+_yellow "If you encounter an error, please contact Ops (2022.01.14)."
 
-_yellow "Update on 2022.01.14 if there is an error！ @OP"
-
+# 容器运行环境变量
 pro_variable=(
     "-e VUE_APP_BASE_URL='weixin.car.com.cn/tg-car-api/mini'"
     "-e VUE_APP_BASE_URL_OTHER='weixin.car.com.cn/tg-car-api'"
@@ -57,52 +58,51 @@ pro_variable=(
 )
 
 check_image() {
-    local contrast
-    contrast=$(docker images --format '{{.Repository}}:{{.Tag}}')
+    local CONTRAST
+    CONTRAST=$(docker images --format '{{.Repository}}:{{.Tag}}')
 
-    if echo "${contrast}" | grep -q "$param"; then
-        _red "Mirror exists！Or Please use \"docker run\" function！" && exit 1
+    if echo "$CONTRAST" | grep -q "$IMAGE"; then
+        error_and_exit 'Mirror exists! Or please use "docker run" function!'
     fi
 }
 
 deploy_image() {
-    local runcon old_img_log
-    runcon=$(docker ps -q -f "name=${svc_name}")
-    old_img_log=$(docker ps --format "{{.Image}}" | grep -Ei "${svc_name}")
+    local SVC_NAME HOST_PORT CONTAINER_PORT RUN_CONTAINER OLD_IMG
+    SVC_NAME='DongFengFengXing'
+    HOST_PORT='8080'
+    CONTAINER_PORT='3000'
+    RUN_CONTAINER=$(docker ps -q -f "name=$SVC_NAME")
+    OLD_IMG=$(docker ps --format "{{.Image}}" | grep -Ei "$SVC_NAME")
 
     _yellow "Beginning to (update|deploy)"
 
-    docker pull "${param}" || { _red "Please check your image name and try again！"; exit 1; } 
+    docker pull "$IMAGE" || error_and_exit 'Please check your image name and try again!'
 
-    echo "$(date -u -d '+8 hours' +'%Y-%m-%d %H:%M:%S') changed [${old_img_log}]" >> ./live_oldimage.log
+    echo "$(date -u -d '+8 hours' +'%Y-%m-%d %H:%M:%S') changed [""$OLD_IMG""]" >> ./live_update.log
 
-    # Stop and remove the old container
-    echo "" && docker stop "${runcon}" >/dev/null 2>&1 && action "[Stop old service container]"
-    echo "" && docker rm -f "${runcon}" >/dev/null 2>&1 && action "[Remove old service container]"
+    docker stop "$RUN_CONTAINER" >/dev/null 2>&1 && action "[Stop old service container]"
+    docker rm -f "$RUN_CONTAINER" >/dev/null 2>&1 && action "[Remove old service container]"
 
-    # Run the new container
-    echo "" && docker run -d --restart=unless-stopped --name="${svc_name}-$RANDOM" -p "${host_port}:${container_port}" "${pro_variable[@]}" "${param}" && action "[Deploy new service container]"
+    docker run -d \
+        --restart=unless-stopped \
+        --name="$SVC_NAME-$RANDOM" \
+        -p "$HOST_PORT":"$CONTAINER_PORT" \
+        "${pro_variable[@]}" \
+        "$IMAGE" \
+    && action "[Deploy new service container]"
 
-    # Wait for the container to be fully started
-    _yellow "Please wait 2 seconds" && sleep 2 && docker ps | grep -i "${param}"
+    _yellow 'Please wait 2 seconds.' && sleep 2 && docker ps | grep -i "$IMAGE"
 }
 
 prune_image() {
-    if docker image prune -a -f >/dev/null 2>&1; then
-        _green "successfully deleted unused images"
-    else
-        _red "failed to delete unused images"
-    fi
+    (docker system prune -af --volumes >/dev/null 2>&1 && _green 'Successfully deleted unused images!') || error_and_exit 'Failed to delete unused images'
 }
 
-for param in "$@"; do
-    if [[ ! ${param} =~ "lq_car_uni" ]]; then
-        _red "The provided image is not suitable for this project. Exiting！" && exit 1
-    fi
-
+for IMAGE in "$@"; do
+    [[ ! "$IMAGE" =~ "lq_car_uni" ]] && error_and_exit 'The provided image is not suitable for this project. Exiting!'
     check_image
     deploy_image
     prune_image
-
     _green "Completed"
 done
+exit 0
