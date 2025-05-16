@@ -2,7 +2,7 @@
 #
 # Description: Adaptively resolves paths and stops multiple servers in parallel.
 #
-# Copyright (c) 2024 - 2025 honeok <honeok@duck.com>
+# Copyright (c) 2024-2025 honeok <honeok@duck.com>
 #
 # Licensed under the MIT License.
 # This software is provided "as is", without any warranty.
@@ -18,108 +18,89 @@
 set \
     -o nounset
 
-readonly version='v0.2.1 (2025.03.10)'
+readonly version='v0.2.2 (2025.05.16)'
 
-red='\033[91m'
-green='\033[92m'
-yellow='\033[93m'
-purple='\033[95m'
-cyan='\033[96m'
-white='\033[0m'
-_red() { echo -e "${red}$*${white}"; }
-_green() { echo -e "${green}$*${white}"; }
-_yellow() { echo -e "${yellow}$*${white}"; }
-_purple() { echo -e "${purple}$*${white}"; }
-_cyan() { echo -e "${cyan}$*${white}"; }
+_red() { echo -e "\033[91m$*\033[0m"; }
+_green() { echo -e "\033[92m$*\033[0m"; }
+_yellow() { echo -e "\033[93m$*\033[0m"; }
+_purple() { echo -e "\033[95m$*\033[0m"; }
+_cyan() { echo -e "\033[96m$*\033[0m"; }
+_err_msg() { echo -e "\033[41m\033[1mError\033[0m $*"; }
+_suc_msg() { echo -e "\033[42m\033[1mSuccess\033[0m $*"; }
+_info_msg() { echo -e "\033[43m\033[1mInfo\033[0m $*"; }
 
-_err_msg() { echo -e "\033[41m\033[1mError${white} $*"; }
-_suc_msg() { echo -e "\033[42m\033[1mSuccess${white} $*"; }
-_info_msg() { echo -e "\033[46m\033[1mTip${white} $*"; }
-
-# 预定义常量
+# 各变量默认值
 # https://github.com/koalaman/shellcheck/wiki/SC2155
-os_name=$(grep "^ID=" /etc/*-release | awk -F'=' '{print $2}' | sed 's/"//g')
-stop_pid='/tmp/stop.pid'
-workDir='/data/tool'
-app_Name='p8_app_server'
-readonly os_name stop_pid workDir app_Name
+STOP_PID="/tmp/stop.pid"
+WORK_DIR="/data/tool"
+APP_NAME="p8_app_server"
+readonly STOP_PID WORK_DIR APP_NAME
 
-if [ -f "$stop_pid" ] && kill -0 "$(cat "$stop_pid")" 2>/dev/null; then
+if [ -f "$STOP_PID" ] && kill -0 "$(cat "$STOP_PID")" 2>/dev/null; then
     _err_msg "$(_red 'The script is running, please do not repeat the operation!')" && exit 1
 fi
 
-echo $$ > "$stop_pid"
+echo $$ > "$STOP_PID"
 
 # 停服任务下发后, 信号捕获后的退出仅删除运行pid, 实际后台停服并行任务并未终止
 _exit() {
-    local return_value="$?"
+    local RETURN_VALUE="$?"
 
-    [ -f "$stop_pid" ] && rm -f "$stop_pid"
-    exit "$return_value"
+    [ -f "$STOP_PID" ] && rm -f "$STOP_PID"
+    exit "$RETURN_VALUE"
 }
 
 trap '_exit' SIGINT SIGQUIT SIGTERM EXIT
 
 # 清屏函数
 clear_screen() {
-    if [ -t 1 ]; then
-        tput clear 2>/dev/null || echo -e "\033[2J\033[H" || clear
-    fi
+    [ -t 1 ] && tput clear 2>/dev/null || echo -e "\033[2J\033[H" || clear
 }
 
 # 运行校验
 pre_check() {
     case "${1:-}" in
-        Y|y) : ;;
-        *) echo "$(_cyan "当前为 $app_Name 停服") $(_yellow '按任意键继续')"; read -n 1 -s -r -p "" ;;
+        --stop) : ;;
+        *) echo "$(_cyan "当前为 $APP_NAME 停服") $(_yellow '按任意键继续')"; read -n 1 -s -r -p "" ;;
     esac
 
     clear_screen
     echo "$(_purple 'Current script version') $(_yellow "$version")"
-    if [ "$(id -ru)" -ne "0" ] || [ "$EUID" -ne "0" ]; then
-        _err_msg "$(_red 'This script must be run as root!')" && exit 1
-    fi
+    [ "$EUID" -ne 0 ] && { _err_msg "$(_red 'This script must be run as root!')"; exit 1; }
     if [ "$(ps -p $$ -o comm=)" != "bash" ] || readlink /proc/$$/exe | grep -q "dash"; then
-        _err_msg "$(_red 'This script requires Bash as the shell interpreter!')" && exit 1
-    fi
-    if [ "$os_name" != "alinux" ] && [ "$os_name" != "almalinux" ] \
-        && [ "$os_name" != "centos" ] && [ "$os_name" != "debian" ] \
-        && [ "$os_name" != "fedora" ] && [ "$os_name" != "opencloudos" ] \
-        && [ "$os_name" != "opensuse" ] && [ "$os_name" != "rhel" ] \
-        && [ "$os_name" != "rocky" ] && [ "$os_name" != "ubuntu" ]; then
-        _err_msg "$(_red 'The current operating system is not supported!')" && exit 1
+        _err_msg "$(_red 'This script needs to be run with bash, not sh!')"; exit 1
     fi
 }
 
 # 统一停止入口
 stop_server() {
-    local server_name="$1"
-    local server_dir="$2"
-    local _delay="${3:-60s}" # Default flush delay is 60s
+    local SERVER_NAME="$1"
+    local SERVER_DIR="$2"
+    local _DELAY="${3:-30s}" # Default flush delay is 30s
 
     # 子进程退出防止继续执行
     (
-        if ! pgrep -f "$server_dir/$app_Name" >/dev/null 2>&1; then exit 0; fi # 进程存活校验
-        cd "$server_dir" || { _err_msg "$(_red "$server_name path error.")" ; exit 1; }
+        if ! pgrep -f "$SERVER_DIR/$APP_NAME" >/dev/null 2>&1; then exit 0; fi # 进程存活校验
+        cd "$SERVER_DIR" || { _err_msg "$(_red "$SERVER_NAME path error.")" ; exit 1; }
         [ ! -f server.sh ] && { _err_msg "$(_red "server.sh does not exist.")" ; exit 1; }
         [ ! -x server.sh ] && chmod +x server.sh
-        ./server.sh flush && sleep "$_delay" && ./server.sh stop
-        _suc_msg "$(_green "$server_name The server has stopped.")"
+        ./server.sh flush && sleep "$_DELAY" && ./server.sh stop
+        _suc_msg "$(_green "$SERVER_NAME The server has stopped.")"
     ) &
 }
 
 # 停止守护进程并清空运行日志
 daemon_stop() {
-    local daemon_file
-    daemon_file='processcontrol-allserver.sh'
+    local DAEMON_FILE
+    DAEMON_FILE='processcontrol-allserver.sh'
 
-    if pgrep -f "$daemon_file" >/dev/null 2>&1; then
-        pkill -9 -f "$daemon_file" >/dev/null 2>&1
-        [ -f "$workDir/control.txt" ] && : > "$workDir/control.txt"
-        [ -f "$workDir/dump.txt" ] && : > "$workDir/dump.txt"
-        _suc_msg "$(_green "$daemon_file Process terminated, files cleared.")"
+    if pgrep -f "$DAEMON_FILE" >/dev/null 2>&1; then
+        pkill -9 -f "$DAEMON_FILE" >/dev/null 2>&1
+        [ -f "$WORK_DIR/control.txt" ] && : > "$WORK_DIR/control.txt"
+        [ -f "$WORK_DIR/dump.txt" ] && : > "$WORK_DIR/dump.txt"
+        _suc_msg "$(_green "$DAEMON_FILE Process terminated, files cleared.")"
     else
-        _info_msg "$(_cyan "$daemon_file The process is not running.")"
+        _info_msg "$(_cyan "$DAEMON_FILE The process is not running.")"
     fi
 }
 
@@ -136,14 +117,14 @@ entrance_stop() {
 
 # 游戏进程停止
 game_stop() {
-    local game_server=()
-    while IFS='' read -r row; do game_server+=("$row"); done < <(find /data -maxdepth 1 -type d -name "server*[0-9]" -printf "%f\n" | sed 's/server//' | sort -n)
+    local GAME_SERVER=()
+    while IFS='' read -r ROW; do GAME_SERVER+=("$ROW"); done < <(find /data -maxdepth 1 -type d -name "server*[0-9]" -printf "%f\n" | sed 's/server//' | sort -n)
 
-    if [ "${#game_server[@]}" -eq 0 ]; then _info_msg "$(_cyan 'The GameServer list is empty, skip execution.')" && return; fi
-    for num in "${game_server[@]}"; do
-        server_name="server$num"
-        server_dir="/data/$server_name/game"
-        stop_server "$server_name" "$server_dir"
+    if [ "${#GAME_SERVER[@]}" -eq 0 ]; then _info_msg "$(_cyan 'The GameServer list is empty, skip execution.')" && return; fi
+    for num in "${GAME_SERVER[@]}"; do
+        SERVER_NAME="server$num"
+        SERVER_DIR="/data/$SERVER_NAME/game"
+        stop_server "$SERVER_NAME" "$SERVER_DIR"
     done
     wait
     _suc_msg "$(_green "All GameServer stop success! \xe2\x9c\x93")"
@@ -151,14 +132,14 @@ game_stop() {
 
 # 跨服服务器停止
 cross_stop() {
-    local cross_server=()
-    while IFS='' read -r row; do cross_server+=("$row"); done < <(find /data -maxdepth 1 -type d -name "crossserver*[0-9]" -printf "%f\n" | sed 's/crossserver//' | sort -n)
+    local CROSS_SERVER=()
+    while IFS='' read -r ROW; do CROSS_SERVER+=("$ROW"); done < <(find /data -maxdepth 1 -type d -name "crossserver*[0-9]" -printf "%f\n" | sed 's/crossserver//' | sort -n)
 
-    if [ "${#cross_server[@]}" -eq 0 ]; then _info_msg "$(_cyan 'The CrossServer list is empty, skip execution.')" && return; fi
-    for num in "${cross_server[@]}"; do
-        server_name="crossserver$num"
-        server_dir="/data/$server_name"
-        stop_server "$server_name" "$server_dir"
+    if [ "${#CROSS_SERVER[@]}" -eq 0 ]; then _info_msg "$(_cyan 'The CrossServer list is empty, skip execution.')" && return; fi
+    for num in "${CROSS_SERVER[@]}"; do
+        SERVER_NAME="crossserver$num"
+        SERVER_DIR="/data/$SERVER_NAME"
+        stop_server "$SERVER_NAME" "$SERVER_DIR"
     done
     wait
     _suc_msg "$(_green "All CrossServer stop success! \xe2\x9c\x93")"
@@ -166,51 +147,51 @@ cross_stop() {
 
 # GM服务器停止
 gm_stop() {
-    local gm_server=()
-    while IFS='' read -r row; do gm_server+=("$row"); done < <(find /data -maxdepth 1 -type d -name "gmserver*[0-9]" -printf "%f\n" | sed 's/gmserver//' | sort -n)
+    local GM_SERVER=()
+    while IFS='' read -r ROW; do GM_SERVER+=("$ROW"); done < <(find /data -maxdepth 1 -type d -name "gmserver*[0-9]" -printf "%f\n" | sed 's/gmserver//' | sort -n)
 
-    if [ "${#gm_server[@]}" -eq 0 ]; then _info_msg "$(_cyan 'The GMServer list is empty, skip execution.')" && return; fi
-    for num in "${gm_server[@]}"; do
-        server_name="gmserver$num"
-        server_dir="/data/$server_name"
-        stop_server "$server_name" "$server_dir"
+    if [ "${#GM_SERVER[@]}" -eq 0 ]; then _info_msg "$(_cyan 'The GMServer list is empty, skip execution.')" && return; fi
+    for num in "${GM_SERVER[@]}"; do
+        SERVER_NAME="gmserver$num"
+        SERVER_DIR="/data/$SERVER_NAME"
+        stop_server "$SERVER_NAME" "$SERVER_DIR"
     done
     wait
     _suc_msg "$(_green "All GMServer stop success! \xe2\x9c\x93")"
 }
 
 center_stop() {
-    local base_path 
-    local global_server=()
-    local zk_server=()
-    readonly base_path='/data/center'
+    local BASE_PATH 
+    local GLOBL_SERVER=()
+    local ZK_SERVER=()
+    readonly BASE_PATH='/data/center'
 
-    if [ ! -d "$base_path" ]; then _info_msg "$(_cyan "The $base_path is empty, skip execution.")" && return; fi
-    while IFS='' read -r row; do global_server+=("$row"); done < <(find "$base_path" -maxdepth 1 -type d -name "global*[0-9]" -printf "%f\n" | sed 's/global//' | sort -n)
-    while IFS='' read -r row; do zk_server+=("$row"); done < <(find "$base_path" -maxdepth 1 -type d -name "zk*[0-9]" -printf "%f\n" | sed 's/zk//' | sort -n)
+    if [ ! -d "$BASE_PATH" ]; then _info_msg "$(_cyan "The $BASE_PATH is empty, skip execution.")" && return; fi
+    while IFS='' read -r ROW; do GLOBL_SERVER+=("$ROW"); done < <(find "$BASE_PATH" -maxdepth 1 -type d -name "global*[0-9]" -printf "%f\n" | sed 's/global//' | sort -n)
+    while IFS='' read -r ROW; do ZK_SERVER+=("$ROW"); done < <(find "$BASE_PATH" -maxdepth 1 -type d -name "zk*[0-9]" -printf "%f\n" | sed 's/zk//' | sort -n)
 
-    if [ "${#global_server[@]}" -eq 0 ]; then
+    if [ "${#GLOBL_SERVER[@]}" -eq 0 ]; then
         _info_msg "$(_cyan 'The GlobalServer list is empty, skip execution.')"
         :
     else
-        for num in "${global_server[@]}"; do
-            server_name="global$num"
-            server_dir="$base_path/$server_name"
-            stop_server "$server_name" "$server_dir"
+        for num in "${GLOBL_SERVER[@]}"; do
+            SERVER_NAME="global$num"
+            SERVER_DIR="$BASE_PATH/$SERVER_NAME"
+            stop_server "$SERVER_NAME" "$SERVER_DIR"
         done
         wait
         _suc_msg "$(_green "All GlobalServer stop success! \xe2\x9c\x93")"
     fi
 
     # ZK Server无需存盘, 传参$3跳过
-    if [ "${#zk_server[@]}" -eq 0 ]; then
+    if [ "${#ZK_SERVER[@]}" -eq 0 ]; then
         _info_msg "$(_cyan 'The ZKServer list is empty, skip execution.')"
         :
     else
-        for num in "${zk_server[@]}"; do
-            server_name="zk$num"
-            server_dir="$base_path/$server_name"
-            stop_server "$server_name" "$server_dir" "0s"
+        for num in "${ZK_SERVER[@]}"; do
+            SERVER_NAME="zk$num"
+            SERVER_DIR="$BASE_PATH/$SERVER_NAME"
+            stop_server "$SERVER_NAME" "$SERVER_DIR" "0s"
         done
         wait
         _suc_msg "$(_green "All ZKServer stop success! \xe2\x9c\x93")"
@@ -218,14 +199,14 @@ center_stop() {
 }
 
 log_stop() {
-    local log_server=()
-    while IFS='' read -r row; do log_server+=("$row"); done < <(find /data -maxdepth 1 -type d -name "logserver*[0-9]" -printf "%f\n" | sed 's/logserver//' | sort -n)
+    local LOG_SERVER=()
+    while IFS='' read -r ROW; do LOG_SERVER+=("$ROW"); done < <(find /data -maxdepth 1 -type d -name "logserver*[0-9]" -printf "%f\n" | sed 's/logserver//' | sort -n)
 
-    if [ "${#log_server[@]}" -eq 0 ]; then _info_msg "$(_cyan 'The GMServer list is empty, skip execution.')" && return; fi
-    for num in "${log_server[@]}"; do
-        server_name="logserver$num"
-        server_dir="/data/$server_name"
-        stop_server "$server_name" "$server_dir"
+    if [ "${#LOG_SERVER[@]}" -eq 0 ]; then _info_msg "$(_cyan 'The GMServer list is empty, skip execution.')" && return; fi
+    for num in "${LOG_SERVER[@]}"; do
+        SERVER_NAME="logserver$num"
+        SERVER_DIR="/data/$SERVER_NAME"
+        stop_server "$SERVER_NAME" "$SERVER_DIR"
     done
     wait
     _suc_msg "$(_green "All LogServer stop success! \xe2\x9c\x93")"
