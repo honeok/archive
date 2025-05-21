@@ -22,12 +22,18 @@ MYSQLBAK_PID="/tmp/mysqlbak.pid"
 WORKDIR="/data/dbback"
 TEMPDIR="/data/dbback/temp"
 
-# mysqdump备份参数
+# mysqldump默认备份参数
+# --no-defaults: MySQL命令行工具如 mysqldump mysql忽略默认的配置文件.
+# --single-transaction: 启动一个单一事务来确保导出数据的一致性, 而不锁定整个数据库.
+# --set-gtid-purged=OFF: 不会在导出的SQL文件中包含用于主从复制的全局唯一事务标识符.
 BAK_PARAMETERS=(--no-defaults --single-transaction --set-gtid-purged=OFF)
 
 if [ -f "$MYSQLBAK_PID" ] && kill -0 "$(cat "$MYSQLBAK_PID")" 2>/dev/null; then
     _err_msg "$(_red 'The script seems to be running, please do not run it again!')"; exit 1
 fi
+
+# 将当前进程写入pid防止并发执行导致冲突
+echo $$ > "$MYSQLBAK_PID"
 
 _exit() {
     local RETURN_VALUE="$?"
