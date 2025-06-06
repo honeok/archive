@@ -1,33 +1,28 @@
-# Description: Dockerfile for building the bserver containerized environment.
+# Description: This dockerfile is used to build the containerized combat suit.
 #
-# Copyright (c) 2024 - 2025 honeok <honeok@duck.com>
+# Copyright (c) 2024-2025 honeok <honeok@disroot.org>
 #
 # Licensed under the MIT License.
 # This software is provided "as is", without any warranty.
 
-FROM alpine:latest
-
+FROM m.daocloud.io/docker.io/library/alpine:latest
+LABEL maintainer="honeok <honeok@disroot.org>"
 WORKDIR /bserver
-
 COPY . .
-
 RUN set -ex \
-        && apk update && apk upgrade \
-        && apk add --no-cache \
-            libstdc++ \
-            libc6-compat \
-            tzdata \
-        && install -m 755 docker-entrypoint.sh /docker-entrypoint.sh \
-        && cp -f templates/App.template.json config/App.json \
-        && cp -f /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
-        && echo "Asia/Shanghai" > /etc/timezone \
-        && apk del tzdata \
-        && rm -f docker-entrypoint.sh \
-        && rm -rf config/luban_temp \
-        && rm -rf /var/cache/apk/* /tmp/* templates logs BattleSimulator \
-        && mkdir -p logs BattleSimulator config/luban_temp \
-        && cp -rf config/luban/* config/luban_temp/
-
+    && sed -i 's/dl-cdn.alpinelinux.org/mirrors.nju.edu.cn/g' /etc/apk/repositories \
+    && apk update && apk upgrade \
+    && apk add --no-cache \
+        libstdc++ \
+        libc6-compat \
+        tzdata \
+    && install -m 755 docker-entrypoint.sh /docker-entrypoint.sh \
+    && cp -f templates/App.template.json config/App.json \
+    && rm -f docker-entrypoint.sh \
+    && rm -rf config/luban_temp \
+    && rm -rf /var/cache/apk/* templates logs BattleSimulator \
+    && mkdir -p logs BattleSimulator config/luban_temp \
+    && cp -rf config/luban/* config/luban_temp/
+ENV TZ=Asia/Shanghai
 EXPOSE 8080
-
 ENTRYPOINT [ "/docker-entrypoint.sh" ]
