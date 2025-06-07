@@ -2,10 +2,10 @@
 #
 # Description: This script is used for the battle suit container runtime entry.
 #
+# Copyright (c) 2025 The p8 Ops Team
 # Copyright (c) 2025 honeok <honeok@disroot.org>
 #
-# Licensed under the MIT License.
-# This software is provided "as is", without any warranty.
+# SPDX-License-Identifier: MIT
 
 LUBAN_CONFIG_DIR="/bserver/config/luban"
 LUBAN_CONFIG_DIR_TEMP="/bserver/config/luban_temp"

@@ -1,9 +1,9 @@
 # Description: This dockerfile is used to build the containerized combat suit.
 #
-# Copyright (c) 2024-2025 honeok <honeok@disroot.org>
+# Copyright (c) 2025 The p8 Ops Team
+# Copyright (c) 2025 honeok <honeok@disroot.org>
 #
-# Licensed under the MIT License.
-# This software is provided "as is", without any warranty.
+# SPDX-License-Identifier: MIT
 
 FROM m.daocloud.io/docker.io/library/alpine:latest
 LABEL maintainer="honeok <honeok@disroot.org>"
