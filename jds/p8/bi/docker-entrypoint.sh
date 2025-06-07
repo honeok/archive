@@ -1,11 +1,11 @@
 #!/usr/bin/env sh
 #
-# Description: Entry file for BI operation, generates runtime configs.
+# Description: This script is used for the bi container runtime entry.
 #
-# Copyright (c) 2025 honeok <honeok@duck.com>
+# Copyright (c) 2025 The p8 Ops Team
+# Copyright (c) 2025 honeok <honeok@disroot.org>
 #
-# Licensed under the MIT License.
-# This software is provided "as is", without any warranty.
+# SPDX-License-Identifier: MIT
 
 set \
     -o errexit \
@@ -22,11 +22,11 @@ MUST_CMD="envsubst aerich"
 
 for _cmd in $MUST_CMD; do
     if ! command -v "$_cmd" >/dev/null 2>&1; then
-        echo "ERROR: $_cmd command not found!" && exit 1
+        echo "ERROR: $_cmd command not found!"; exit 1
     fi
 done
 
-cd "$WORK_DIR" || { echo "error: Failed to enter work path!" && exit 1; }
+cd "$WORK_DIR" || { echo "error: Failed to enter work path!"; exit 1; }
 
 [ ! -f ".env" ] && envsubst < templates/template.env > .env
 [ ! -f "aerich_env.py" ] && envsubst < templates/aerich_env.template.py > aerich_env.py
