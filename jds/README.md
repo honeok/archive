@@ -1,6 +1,6 @@
 # JdsGame 🎲
 
-Maintainer: honeok <honeok@duck.com>
+Maintainer: honeok <honeok@disroot.org>
 
 ```shell
 #      __     __       _____

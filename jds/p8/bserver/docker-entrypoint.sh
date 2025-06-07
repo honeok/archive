@@ -1,19 +1,21 @@
 #!/usr/bin/env sh
 #
-# Copyright (c) 2025 honeok <honeok@duck.com>
+# Description: This script is used for the battle suit container runtime entry.
 #
-# Licensed under the MIT License.
-# This software is provided "as is", without any warranty.
+# Copyright (c) 2025 The p8 Ops Team
+# Copyright (c) 2025 honeok <honeok@disroot.org>
+#
+# SPDX-License-Identifier: MIT
 
-luban_config_dir="/bserver/config/luban"
-luban_config_dir_temp="/bserver/config/luban_temp"
+LUBAN_CONFIG_DIR="/bserver/config/luban"
+LUBAN_CONFIG_DIR_TEMP="/bserver/config/luban_temp"
 
-if [ -d "$luban_config_dir" ] && [ -z "$(ls -A "$luban_config_dir" 2>/dev/null)" ]; then
-    command cp -rf "$luban_config_dir_temp"/* "$luban_config_dir/"
+if [ -d "$LUBAN_CONFIG_DIR" ] && [ -z "$(ls -A "$LUBAN_CONFIG_DIR" 2>/dev/null)" ]; then
+    command cp -rf "$LUBAN_CONFIG_DIR_TEMP"/* "$LUBAN_CONFIG_DIR/"
 fi
 
 if [ "$#" -eq 0 ]; then
-    exec "/bserver/bserver"
+    exec /bserver/bserver
 else
     exec "$@"
 fi
