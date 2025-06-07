@@ -18,7 +18,7 @@ RUN set -ex \
         musl-dev \
         python3-dev \
         tzdata \
-    && python3 -m pip install --no-cache-dir -r requirements.txt \
+    && python3 -m pip install --no-cache-dir -r requirements.txt -i https://mirrors.nju.edu.cn/pypi/web/simple/ --trusted-host mirrors.nju.edu.cn \
     && rm -f requirements.txt \
     && rm -rf /var/cache/apk/*
 ENV TZ=Asia/Shanghai
