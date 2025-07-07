@@ -63,19 +63,20 @@ delete from t_personmail where receiver_id in (select * from temp1);
 delete from t_personmail where expire_time < unix_timestamp(now());
 delete from t_player where id in (select * from temp1);
 delete from t_pvp where id in (select * from temp1);
+delete from t_pvp_ladder where id in (select * from temp1);
 delete from t_ticket where id in (select * from temp1);
 
 -- 排行
 truncate table t_rank;
 truncate table t_rank_guild;
 truncate table t_rank_season;
-truncate table t_pvp_ladder;
 -- 队伍
 truncate table t_team;
 
-update t_player set `rank`='{}', `pvp_ladder`='{}', `grocery`=json_insert(`grocery`, '$."args"', json_object(), '$."args"."4"', 1);
+update t_player set `rank`='{}', `grocery`=json_insert(`grocery`, '$."args"', json_object(), '$."args"."4"', 1);
 set @ret3=ROW_COUNT();
 update t_guild set `rank_seasons`='{}';
+update t_pvp_ladder set `rank`=0, `reports`='{}';
 
 -- B库
 SET @sql = CONCAT('delete from ', @db_name, '.t_activity where id in (select * from temp2)');
@@ -128,18 +129,28 @@ PREPARE stmt FROM @sql;
 EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
 
+SET @sql = CONCAT('delete from ', @db_name, '.t_pvp_ladder where id in (select * from temp2)');
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
 SET @sql = CONCAT('delete from ', @db_name, '.t_ticket where id in (select * from temp2)');
 PREPARE stmt FROM @sql;
 EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
 
-SET @sql = CONCAT('update ', @db_name, '.t_player set `rank`=\'{}\', `pvp_ladder`=\'{}\', `grocery`=json_insert(`grocery`, \'$.\"args\"\', json_object(), \'$.\"args\".\"4\"\', 1)');
+SET @sql = CONCAT('update ', @db_name, '.t_player set `rank`=\'{}\', `grocery`=json_insert(`grocery`, \'$.\"args\"\', json_object(), \'$.\"args\".\"4\"\', 1)');
 PREPARE stmt FROM @sql;
 EXECUTE stmt;
 GET DIAGNOSTICS @ret4 = ROW_COUNT;
 DEALLOCATE PREPARE stmt;
 
 SET @sql = CONCAT('update ', @db_name, '.t_guild set `rank_seasons`=\'{}\'');
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @sql = CONCAT('update ', @db_name, '.t_pvp_ladder set `rank`=0, `reports`=\'{}\'');
 PREPARE stmt FROM @sql;
 EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
@@ -242,6 +253,12 @@ DEALLOCATE PREPARE stmt;
 -- 竞技场
 SET @sql = concat('insert into t_pvp(', (select group_concat('`', column_name, '`' separator ', ') from information_schema.columns where table_schema=@db_name and table_name='t_pvp'), 
 ') select ', (select group_concat('`', column_name, '`' separator ', ') from information_schema.columns where table_schema=@db_name and table_name='t_pvp'), ' from ', @db_name, '.t_pvp');
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @sql = concat('insert into t_pvp_ladder(', (select group_concat('`', column_name, '`' separator ', ') from information_schema.columns where table_schema=@db_name and table_name='t_pvp_ladder'), 
+') select ', (select group_concat('`', column_name, '`' separator ', ') from information_schema.columns where table_schema=@db_name and table_name='t_pvp_ladder'), ' from ', @db_name, '.t_pvp_ladder');
 PREPARE stmt FROM @sql;
 EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
